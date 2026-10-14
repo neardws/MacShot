@@ -93,6 +93,11 @@ final class AreaSelectionController: NSResponder {
 final class AreaOverlayWindow: NSWindow {
     weak var controller: AreaSelectionController?
 
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     init(screen: NSScreen) {
         super.init(
             contentRect: screen.frame,

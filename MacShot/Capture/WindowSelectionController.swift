@@ -82,6 +82,11 @@ final class WindowSelectionController {
 final class WindowOverlayWindow: NSWindow {
     weak var controller: WindowSelectionController?
 
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     init(screen: NSScreen) {
         super.init(
             contentRect: screen.frame,

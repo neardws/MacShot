@@ -8,6 +8,7 @@ enum HotkeyAction: Int {
     case fullscreen = 3
 }
 
+@MainActor
 final class HotkeyManager {
     var onHotkey: ((HotkeyAction) -> Void)?
 
