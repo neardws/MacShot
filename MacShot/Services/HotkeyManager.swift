@@ -8,19 +8,18 @@ enum HotkeyAction: Int {
     case fullscreen = 3
 }
 
-@MainActor
 final class HotkeyManager {
     var onHotkey: ((HotkeyAction) -> Void)?
 
     private var hotkeyRefs: [EventHotKeyRef?] = []
     private var eventHandler: EventHandlerRef?
 
-    func registerAll(from settings: AppSettings) {
+    func registerAll(area: HotkeyBinding, window: HotkeyBinding, fullscreen: HotkeyBinding) {
         unregisterAll()
         installHandlerIfNeeded()
-        register(binding: settings.hotkeyArea, action: .area)
-        register(binding: settings.hotkeyWindow, action: .window)
-        register(binding: settings.hotkeyFullscreen, action: .fullscreen)
+        register(binding: area, action: .area)
+        register(binding: window, action: .window)
+        register(binding: fullscreen, action: .fullscreen)
     }
 
     func unregisterAll() {

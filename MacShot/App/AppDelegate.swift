@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             case .fullscreen: self?.captureFullscreen()
             }
         }
-        hotkeyManager.registerAll(from: AppSettings.shared)
+        reregisterHotkeys()
     }
 
     @objc private func captureArea() {
@@ -70,9 +70,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         CaptureCoordinator.shared.startFullscreenCapture()
     }
 
+    private func reregisterHotkeys() {
+        let settings = AppSettings.shared
+        hotkeyManager.registerAll(
+            area: settings.hotkeyArea,
+            window: settings.hotkeyWindow,
+            fullscreen: settings.hotkeyFullscreen
+        )
+    }
+
     @objc private func openPreferences() {
         preferences.show { [weak self] in
-            self?.hotkeyManager.registerAll(from: AppSettings.shared)
+            self?.reregisterHotkeys()
         }
     }
 
