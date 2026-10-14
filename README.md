@@ -32,7 +32,7 @@ MacShot 是一款受 CleanShot X 启发的原生 macOS 截图应用，使用 Swi
 
 ```bash
 brew install xcodegen
-cd MacShot   # repository root
+# clone repository, then from repo root:
 xcodegen generate
 open MacShot.xcodeproj
 ```

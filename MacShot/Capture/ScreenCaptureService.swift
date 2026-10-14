@@ -35,8 +35,8 @@ final class ScreenCaptureService {
         let scale = screen?.backingScaleFactor ?? 2.0
         let filter = SCContentFilter(display: targetDisplay, excludingWindows: [])
         let config = SCStreamConfiguration()
-        config.width = Int(targetDisplay.width * scale)
-        config.height = Int(targetDisplay.height * scale)
+        config.width = Int(CGFloat(targetDisplay.width) * scale)
+        config.height = Int(CGFloat(targetDisplay.height) * scale)
         config.showsCursor = true
         config.captureResolution = .best
         let cgImage = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)

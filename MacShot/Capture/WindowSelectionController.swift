@@ -9,6 +9,7 @@ final class WindowSelectionController {
     private var windows: [SCWindow] = []
     private var localMonitor: Any?
     private var globalMonitor: Any?
+    private var mouseMoveMonitor: Any?
     private var highlighted: SCWindow?
 
     func begin(windows: [SCWindow]) {
@@ -32,6 +33,13 @@ final class WindowSelectionController {
         globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             if event.keyCode == 53 { self?.cancel() }
         }
+        mouseMoveMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+            self?.updateHighlightAtMouse()
+        }
+    }
+
+    private func updateHighlightAtMouse() {
+        setHighlighted(windowAtGlobalPoint(NSEvent.mouseLocation))
     }
 
     func windowAtGlobalPoint(_ point: NSPoint) -> SCWindow? {
@@ -61,8 +69,10 @@ final class WindowSelectionController {
     private func end() {
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
         if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
+        if let mouseMoveMonitor { NSEvent.removeMonitor(mouseMoveMonitor) }
         localMonitor = nil
         globalMonitor = nil
+        mouseMoveMonitor = nil
         overlayWindows.forEach { $0.orderOut(nil) }
         overlayWindows.removeAll()
         highlighted = nil
@@ -77,9 +87,9 @@ final class WindowOverlayWindow: NSWindow {
             contentRect: screen.frame,
             styleMask: .borderless,
             backing: .buffered,
-            defer: false,
-            screen: screen
+            defer: false
         )
+        setFrame(screen.frame, display: false)
         isOpaque = false
         backgroundColor = .clear
         level = .screenSaver

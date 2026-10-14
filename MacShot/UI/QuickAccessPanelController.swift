@@ -139,7 +139,9 @@ final class DraggableImageView: NSImageView {
     override func mouseDown(with event: NSEvent) {
         guard let image else { return }
         let item = NSPasteboardItem()
-        item.setData(ImageFormats.pngData(from: image), forType: .png)
+        if let data = ImageFormats.pngData(from: image) {
+            item.setData(data, forType: .png)
+        }
         let dragging = NSDraggingItem(pasteboardWriter: item)
         dragging.setDraggingFrame(bounds, contents: image)
         beginDraggingSession(with: [dragging], event: event, source: self)

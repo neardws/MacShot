@@ -39,14 +39,14 @@ final class AreaSelectionController: NSResponder {
         dragStart = point
         currentPoint = point
         isDragging = true
-        overlayWindows.forEach { $0.needsDisplay = true }
+        overlayWindows.forEach { $0.contentView?.needsDisplay = true }
     }
 
     func updateSelection(start: NSPoint, current: NSPoint, dragging: Bool) {
         if dragStart == nil { dragStart = start }
         currentPoint = current
         isDragging = dragging
-        overlayWindows.forEach { $0.needsDisplay = true }
+        overlayWindows.forEach { $0.contentView?.needsDisplay = true }
     }
 
     func finishSelection(at point: NSPoint) {
@@ -98,9 +98,9 @@ final class AreaOverlayWindow: NSWindow {
             contentRect: screen.frame,
             styleMask: .borderless,
             backing: .buffered,
-            defer: false,
-            screen: screen
+            defer: false
         )
+        setFrame(screen.frame, display: false)
         isOpaque = false
         backgroundColor = NSColor.black.withAlphaComponent(0.25)
         level = .screenSaver
