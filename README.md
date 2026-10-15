@@ -74,8 +74,8 @@ open Octoshot.xcodeproj
 
 ```bash
 xcodegen generate
+xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
-xcodebuild -scheme octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 
 首次使用请在 **系统设置 → 隐私与安全性 → 屏幕录制** 中允许 Octoshot（简体系统列表中可能显示为 **章鱼君**）。
@@ -177,8 +177,8 @@ Signing: default team in `Config/Signing.xcconfig` (see `.sample` for overrides)
 
 ```bash
 xcodegen generate
+xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
-xcodebuild -scheme octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 
 Grant **Screen Recording** under **System Settings → Privacy & Security** on first run (may appear as **章鱼君** in Chinese locales).
