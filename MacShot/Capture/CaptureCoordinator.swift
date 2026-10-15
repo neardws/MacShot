@@ -93,6 +93,29 @@ final class CaptureCoordinator {
     }
 
     private func presentResult(_ image: NSImage) {
+        CaptureFeedback.playCaptureSoundIfEnabled()
+        let settings = AppSettings.shared
+
+        if settings.afterCaptureCopyToClipboard {
+            ImageFormats.copyToPasteboard(image)
+        }
+
+        if settings.afterCaptureSaveToDisk {
+            let url = settings.defaultSaveURL()
+            do {
+                try ImageFormats.write(
+                    image: image,
+                    to: url,
+                    format: settings.format,
+                    jpegQuality: settings.jpegQuality
+                )
+            } catch {
+                finishWithError(error)
+            }
+        }
+
+        guard settings.afterCaptureShowQuickAccess else { return }
+
         quickAccess.show(image: image, actions: QuickAccessActions(
             onCopy: { ImageFormats.copyToPasteboard(image) },
             onSave: {

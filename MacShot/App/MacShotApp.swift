@@ -6,7 +6,7 @@ struct MacShotApp: App {
 
     var body: some Scene {
         Settings {
-            EmptyView()
+            MacShotSettingsView()
         }
     }
 }

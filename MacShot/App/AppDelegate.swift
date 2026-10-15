@@ -4,12 +4,26 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem?
     private let hotkeyManager = HotkeyManager()
-    private let preferences = PreferencesWindowController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
+        SettingsOpener.installAccessoryRestoreOnClose()
         setupStatusItem()
+        applyMenuBarVisibility()
         setupHotkeys()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleHotkeysChanged),
+            name: .macShotHotkeysDidChange,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMenuBarVisibilityChanged),
+            name: .macShotMenuBarVisibilityDidChange,
+            object: nil
+        )
 
         if !PermissionManager.hasScreenRecordingAccess {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -24,21 +38,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "MacShot")
-            button.image?.isTemplate = true
-        }
+        updateStatusItemImage()
+        rebuildMenu()
+    }
 
+    private func rebuildMenu() {
         let menu = NSMenu()
         menu.addItem(menuItem("Capture Area", action: #selector(captureArea)))
         menu.addItem(menuItem("Capture Window", action: #selector(captureWindow)))
         menu.addItem(menuItem("Capture Fullscreen", action: #selector(captureFullscreen)))
         menu.addItem(.separator())
-        menu.addItem(menuItem("Preferences…", action: #selector(openPreferences)))
+        let settingsItem = menuItem("Settings…", action: #selector(openSettings), keyEquivalent: ",")
+        settingsItem.keyEquivalentModifierMask = .command
+        menu.addItem(settingsItem)
         menu.addItem(.separator())
         menu.addItem(menuItem("Quit MacShot", action: #selector(quit), keyEquivalent: "q"))
-
         statusItem?.menu = menu
+    }
+
+    private func updateStatusItemImage() {
+        guard let button = statusItem?.button else { return }
+        if let image = NSImage(named: "MenuBarIcon") {
+            image.isTemplate = true
+            button.image = image
+        } else {
+            button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "MacShot")
+            button.image?.isTemplate = true
+        }
+    }
+
+    private func applyMenuBarVisibility() {
+        if AppSettings.shared.showMenuBarIcon {
+            statusItem?.isVisible = true
+        } else {
+            statusItem?.isVisible = false
+        }
     }
 
     private func menuItem(_ title: String, action: Selector, keyEquivalent: String = "") -> NSMenuItem {
@@ -56,6 +90,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         reregisterHotkeys()
+    }
+
+    @objc private func handleHotkeysChanged() {
+        reregisterHotkeys()
+    }
+
+    @objc private func handleMenuBarVisibilityChanged() {
+        applyMenuBarVisibility()
     }
 
     @objc private func captureArea() {
@@ -79,10 +121,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    @objc private func openPreferences() {
-        preferences.show { [weak self] in
-            self?.reregisterHotkeys()
-        }
+    @objc private func openSettings() {
+        SettingsOpener.open()
     }
 
     @objc private func quit() {

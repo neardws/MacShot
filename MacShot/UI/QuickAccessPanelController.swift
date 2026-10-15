@@ -13,6 +13,7 @@ final class QuickAccessPanelController: NSObject {
     private var panel: NSPanel?
     private var image: NSImage?
     private var actions: QuickAccessActions?
+    private var autoCloseTimer: Timer?
 
     func show(image: NSImage, actions: QuickAccessActions) {
         closePanel()
@@ -52,9 +53,12 @@ final class QuickAccessPanelController: NSObject {
         position(panel: panel, size: NSSize(width: panelWidth, height: panelHeight))
         panel.orderFrontRegardless()
         self.panel = panel
+        scheduleAutoCloseIfNeeded()
     }
 
     func closePanel() {
+        autoCloseTimer?.invalidate()
+        autoCloseTimer = nil
         panel?.orderOut(nil)
         panel = nil
         image = nil
@@ -78,6 +82,15 @@ final class QuickAccessPanelController: NSObject {
             origin = NSPoint(x: frame.maxX - size.width - margin, y: frame.minY + margin)
         }
         panel.setFrame(NSRect(origin: origin, size: size), display: true)
+    }
+
+    private func scheduleAutoCloseIfNeeded() {
+        autoCloseTimer?.invalidate()
+        let delay = AppSettings.shared.quickAccessAutoCloseSeconds
+        guard delay > 0 else { return }
+        autoCloseTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
+            Task { @MainActor in self?.closePanel() }
+        }
     }
 }
 
