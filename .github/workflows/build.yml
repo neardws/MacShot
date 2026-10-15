@@ -21,13 +21,16 @@ jobs:
       - name: Build Octoshot
         run: |
           set -o pipefail
+          DERIVED="$PWD/.derivedData"
           xcodebuild \
+            -derivedDataPath "$DERIVED" \
             -target octoshot \
             -configuration Debug \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             build
           xcodebuild \
+            -derivedDataPath "$DERIVED" \
             -scheme Octoshot \
             -configuration Debug \
             -destination 'platform=macOS' \
@@ -39,7 +42,7 @@ jobs:
       - name: Verify embedded CLI helper
         run: |
           set -euo pipefail
-          APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*/Build/Products/Debug/Octoshot.app' -type d | head -1)
+          APP_PATH="$PWD/.derivedData/Build/Products/Debug/Octoshot.app"
           if [ -z "$APP_PATH" ]; then
             echo "Octoshot.app not found in DerivedData"
             exit 1

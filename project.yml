@@ -69,10 +69,13 @@ targets:
         script: |
           set -euo pipefail
           CLI_SRC="${BUILT_PRODUCTS_DIR}/octoshot"
+          if [ ! -f "$CLI_SRC" ] && [ -f "${PROJECT_DIR}/build/Debug/octoshot" ]; then
+            CLI_SRC="${PROJECT_DIR}/build/Debug/octoshot"
+          fi
           HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
           CLI_DST="${HELPERS_DIR}/octoshot"
           if [ ! -f "$CLI_SRC" ]; then
-            echo "error: octoshot binary not found at $CLI_SRC (build the octoshot target first)"
+            echo "error: octoshot binary not found at ${BUILT_PRODUCTS_DIR}/octoshot (build the octoshot target first)"
             exit 1
           fi
           mkdir -p "$HELPERS_DIR"
