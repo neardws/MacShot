@@ -62,6 +62,8 @@ targets:
     dependencies:
       - target: OctoshotCore
       - target: octoshot
+        link: false
+        embed: false
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
