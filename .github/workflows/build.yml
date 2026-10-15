@@ -22,6 +22,12 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild \
+            -target octoshot \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+          xcodebuild \
             -scheme Octoshot \
             -configuration Debug \
             -destination 'platform=macOS' \

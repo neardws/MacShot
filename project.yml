@@ -55,15 +55,6 @@ targets:
         - "@loader_path"
         - "@loader_path/../Frameworks"
 
-  BuildOctoshotCLI:
-    type: aggregate
-    platform: macOS
-    dependencies:
-      - target: octoshot
-    settings:
-      PRODUCT_NAME: BuildOctoshotCLI
-      SKIP_INSTALL: YES
-
   Octoshot:
     type: application
     platform: macOS
@@ -73,9 +64,6 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
-      - target: BuildOctoshotCLI
-        link: false
-        embed: false
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
@@ -104,10 +92,21 @@ targets:
       LD_RUNPATH_SEARCH_PATHS:
         - $(inherited)
         - "@executable_path/../Frameworks"
-    scheme:
-      gatherCoverageData: false
-      testTargets: []
-      build:
-        targets:
-          BuildOctoshotCLI: [build]
-          Octoshot: all
+
+schemes:
+  Octoshot:
+    build:
+      parallelizeBuild: false
+      targets:
+        octoshot: build
+        Octoshot: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  octoshot:
+    build:
+      targets:
+        octoshot: all
+    run:
+      config: Debug
