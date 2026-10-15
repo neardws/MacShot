@@ -37,8 +37,8 @@ enum RedactionDetector {
                     let matches = SensitivePatternMatcher.matches(in: top.string, settings: settings)
                     for match in matches {
                         let visionBox: CGRect
-                        if let box = try? top.boundingBox(for: match.range) {
-                            visionBox = box
+                        if let observation = try? top.boundingBox(for: match.range) {
+                            visionBox = observation.boundingBox
                         } else {
                             visionBox = observation.boundingBox
                         }
