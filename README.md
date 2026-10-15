@@ -33,7 +33,7 @@
 
 **Cursor / Claude Code MCP 配置示例**（路径请改为你本机构建产物）：
 
-在 Octoshot **设置 → Agent** 中点击 **Install Command Line Tool**，将 `octoshot` 安装到 `/usr/local/bin/octoshot`（指向应用内嵌的 CLI，便于框架与 GUI 同步）。
+在 Octoshot **设置 → Agent** 中点击 **Install Command Line Tool**，将 `octoshot` 安装到 `/usr/local/bin/octoshot`（符号链接到 `Octoshot.app/Contents/Helpers/octoshot`，避免与 `MacOS/Octoshot` 主程序在大小写不敏感磁盘上冲突）。
 
 ```json
 {

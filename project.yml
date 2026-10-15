@@ -64,9 +64,24 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
-      - target: octoshot
-        link: false
-        embed: false
+    preBuildScripts:
+      - name: Build octoshot CLI tool
+        script: |
+          set -euo pipefail
+          if [ -x "${BUILT_PRODUCTS_DIR}/octoshot" ]; then
+            exit 0
+          fi
+          xcodebuild \
+            -project "${PROJECT_FILE_PATH}" \
+            -target octoshot \
+            -configuration "${CONFIGURATION}" \
+            -sdk "${SDK_NAME}" \
+            CODE_SIGNING_ALLOWED=NO \
+            BUILD_DIR="${BUILD_DIR}" \
+            OBJROOT="${OBJROOT}" \
+            SYMROOT="${SYMROOT}" \
+            build
+        basedOnDependencyAnalysis: false
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
