@@ -49,6 +49,7 @@ enum SystemScreenshotHotkeys {
         settings.hotkeyWindow = .systemScreenshotOptions
     }
 
+    @MainActor
     static func conflicts(with settings: AppSettings = .shared) -> [Entry] {
         loadEntries().filter { entry in
             guard entry.enabled, let binding = entry.binding else { return false }
