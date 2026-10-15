@@ -24,7 +24,7 @@ jobs:
           DERIVED="$PWD/.derivedData"
           xcodebuild \
             -derivedDataPath "$DERIVED" \
-            -target octoshot \
+            -scheme octoshot \
             -configuration Debug \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
