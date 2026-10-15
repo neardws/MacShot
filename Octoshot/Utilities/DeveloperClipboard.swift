@@ -1,5 +1,6 @@
 import AppKit
 
+@MainActor
 enum DeveloperClipboard {
     /// Writes the image if needed and copies a GitHub-friendly Markdown image line to the pasteboard.
     @discardableResult
