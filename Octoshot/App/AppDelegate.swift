@@ -15,13 +15,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleHotkeysChanged),
-            name: .macShotHotkeysDidChange,
+            name: .octoshotHotkeysDidChange,
             object: nil
         )
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(handleMenuBarVisibilityChanged),
-            name: .macShotMenuBarVisibilityDidChange,
+            name: .octoshotMenuBarVisibilityDidChange,
             object: nil
         )
 
@@ -55,7 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsItem.keyEquivalentModifierMask = .command
         menu.addItem(settingsItem)
         menu.addItem(.separator())
-        menu.addItem(menuItem("Quit MacShot", action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(menuItem("Quit Octoshot", action: #selector(quit), keyEquivalent: "q"))
         statusItem?.menu = menu
     }
 
@@ -65,7 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             image.isTemplate = true
             button.image = image
         } else {
-            button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "MacShot")
+            button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Octoshot")
             button.image?.isTemplate = true
         }
     }

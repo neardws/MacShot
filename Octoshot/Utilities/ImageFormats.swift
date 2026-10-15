@@ -26,7 +26,7 @@ enum ImageFormats {
 
     static func write(image: NSImage, to url: URL, format: ScreenshotFormat, jpegQuality: Double) throws {
         guard let data = data(for: image, format: format, jpegQuality: jpegQuality) else {
-            throw NSError(domain: "MacShot", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode image"])
+            throw NSError(domain: "Octoshot", code: 1, userInfo: [NSLocalizedDescriptionKey: "Failed to encode image"])
         }
         try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),

@@ -101,9 +101,9 @@ enum PermissionManager {
         let alert = NSAlert()
         alert.messageText = "Screen Recording Permission Required"
         alert.informativeText = """
-        MacShot needs Screen Recording permission to capture your screen.
+        Octoshot needs Screen Recording permission to capture your screen.
 
-        Open System Settings → Privacy & Security → Screen Recording, enable MacShot, then quit and reopen the app.
+        Open System Settings → Privacy & Security → Screen Recording, enable Octoshot, then quit and reopen the app.
 
         For development builds, use a stable code-signing identity (Apple Development team) so macOS remembers the grant across rebuilds.
         """

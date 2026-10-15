@@ -187,7 +187,7 @@ private struct QuickAccessCard: View {
                         QuickAccessButton(symbol: "brain", help: "Ask AI", action: onAskAI)
                     }
                     if let onCopyMarkdown = actions.onCopyMarkdown {
-                        QuickAccessButton(symbol: "number", help: "Copy Markdown", action: onCopyMarkdown)
+                        QuickAccessButton(symbol: "doc.richtext", help: "Copy Markdown", action: onCopyMarkdown)
                     }
                     if let onCopyPath = actions.onCopyPath {
                         QuickAccessButton(symbol: "link", help: "Copy file path", action: onCopyPath)

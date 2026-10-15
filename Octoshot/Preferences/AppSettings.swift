@@ -51,8 +51,8 @@ struct HotkeyBinding: Codable, Equatable {
 }
 
 extension Notification.Name {
-    static let macShotHotkeysDidChange = Notification.Name("MacShotHotkeysDidChange")
-    static let macShotMenuBarVisibilityDidChange = Notification.Name("MacShotMenuBarVisibilityDidChange")
+    static let octoshotHotkeysDidChange = Notification.Name("OctoshotHotkeysDidChange")
+    static let octoshotMenuBarVisibilityDidChange = Notification.Name("OctoshotMenuBarVisibilityDidChange")
 }
 
 @MainActor
@@ -60,7 +60,7 @@ final class AppSettings: ObservableObject {
     static let shared = AppSettings()
 
     static let defaultFilenamePattern = "{prefix} {date} {time}"
-    static let repositoryURL = URL(string: "https://github.com/neardws/MacShot")!
+    static let repositoryURL = URL(string: "https://github.com/neardws/Octoshot")!
 
     private enum Keys {
         static let saveDirectory = "saveDirectory"
@@ -102,21 +102,21 @@ final class AppSettings: ObservableObject {
     @Published var hotkeyArea: HotkeyBinding {
         didSet {
             persistHotkey(hotkeyArea, key: Keys.hotkeyArea)
-            NotificationCenter.default.post(name: .macShotHotkeysDidChange, object: nil)
+            NotificationCenter.default.post(name: .octoshotHotkeysDidChange, object: nil)
         }
     }
 
     @Published var hotkeyWindow: HotkeyBinding {
         didSet {
             persistHotkey(hotkeyWindow, key: Keys.hotkeyWindow)
-            NotificationCenter.default.post(name: .macShotHotkeysDidChange, object: nil)
+            NotificationCenter.default.post(name: .octoshotHotkeysDidChange, object: nil)
         }
     }
 
     @Published var hotkeyFullscreen: HotkeyBinding {
         didSet {
             persistHotkey(hotkeyFullscreen, key: Keys.hotkeyFullscreen)
-            NotificationCenter.default.post(name: .macShotHotkeysDidChange, object: nil)
+            NotificationCenter.default.post(name: .octoshotHotkeysDidChange, object: nil)
         }
     }
 
@@ -130,7 +130,7 @@ final class AppSettings: ObservableObject {
     @Published var showMenuBarIcon: Bool {
         didSet {
             UserDefaults.standard.set(showMenuBarIcon, forKey: Keys.showMenuBarIcon)
-            NotificationCenter.default.post(name: .macShotMenuBarVisibilityDidChange, object: nil)
+            NotificationCenter.default.post(name: .octoshotMenuBarVisibilityDidChange, object: nil)
         }
     }
 

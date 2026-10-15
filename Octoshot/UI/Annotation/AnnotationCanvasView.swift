@@ -18,7 +18,15 @@ final class AnnotationCanvasView: NSView {
         didSet { needsDisplay = true }
     }
 
-    var activeTool: AnnotationTool = .arrow
+    var activeTool: AnnotationTool = .arrow {
+        didSet {
+            if activeTool != .measure {
+                measureStart = nil
+                measureEnd = nil
+            }
+            needsDisplay = true
+        }
+    }
     var strokeColor: NSColor = .systemRed
     var lineWidth: CGFloat = 4
 

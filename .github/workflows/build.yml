@@ -18,11 +18,11 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      - name: Build MacShot
+      - name: Build Octoshot
         run: |
           set -o pipefail
           xcodebuild \
-            -scheme MacShot \
+            -scheme Octoshot \
             -configuration Debug \
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \

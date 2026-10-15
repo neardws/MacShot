@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 
-struct MacShotSettingsView: View {
+struct OctoshotSettingsView: View {
     var body: some View {
         TabView {
             GeneralSettingsPane()
@@ -35,7 +35,7 @@ private struct GeneralSettingsPane: View {
 
     var body: some View {
         Form {
-            Toggle("Launch MacShot at login", isOn: $settings.launchAtLogin)
+            Toggle("Launch Octoshot at login", isOn: $settings.launchAtLogin)
             Toggle("Show menu bar icon", isOn: $settings.showMenuBarIcon)
             Toggle("Play sound after capture", isOn: $settings.playCaptureSound)
 
@@ -224,7 +224,7 @@ private struct PermissionsSettingsPane: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Text("System Settings → Privacy & Security → Screen Recording → enable MacShot, then quit and reopen.")
+            Text("System Settings → Privacy & Security → Screen Recording → enable Octoshot, then quit and reopen.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -239,8 +239,8 @@ private struct PermissionsSettingsPane: View {
         let granted = await PermissionManager.refreshAccessStatus()
         accessCache.lastKnownGranted = granted
         statusMessage = granted
-            ? "Screen Recording is enabled for MacShot (verified via ScreenCaptureKit)."
-            : "Screen Recording not detected — enable MacShot in System Settings."
+            ? "Screen Recording is enabled for Octoshot (verified via ScreenCaptureKit)."
+            : "Screen Recording not detected — enable Octoshot in System Settings."
         isChecking = false
     }
 }
@@ -260,7 +260,7 @@ private struct AboutSettingsPane: View {
                 .resizable()
                 .frame(width: 64, height: 64)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
-            Text("MacShot")
+            Text("Octoshot")
                 .font(.title2.bold())
             Text("Version \(appVersion)")
                 .foregroundStyle(.secondary)

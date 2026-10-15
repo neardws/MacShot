@@ -16,7 +16,7 @@ enum LaunchAtLoginManager {
                 try SMAppService.mainApp.unregister()
             }
         } catch {
-            NSLog("MacShot: launch at login failed — \(error.localizedDescription)")
+            NSLog("Octoshot: launch at login failed — \(error.localizedDescription)")
         }
     }
 }

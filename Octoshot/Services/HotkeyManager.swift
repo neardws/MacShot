@@ -62,7 +62,7 @@ final class HotkeyManager {
             &eventHandler
         )
         if status != noErr {
-            NSLog("MacShot: failed to install hotkey handler (%d)", status)
+            NSLog("Octoshot: failed to install hotkey handler (%d)", status)
         }
     }
 
@@ -78,7 +78,7 @@ final class HotkeyManager {
             &ref
         )
         if status != noErr {
-            NSLog("MacShot: failed to register hotkey %d (%d)", action.rawValue, status)
+            NSLog("Octoshot: failed to register hotkey %d (%d)", action.rawValue, status)
         }
         hotkeyRefs.append(ref)
     }

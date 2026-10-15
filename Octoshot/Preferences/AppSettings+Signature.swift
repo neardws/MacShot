@@ -47,7 +47,7 @@ extension AppSettings {
                 return URL(fileURLWithPath: path, isDirectory: true)
             }
             let pictures = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Pictures/MacShot Clips", isDirectory: true)
+                .appendingPathComponent("Pictures/Octoshot Clips", isDirectory: true)
             return pictures
         }
         set { UserDefaults.standard.set(newValue.path, forKey: SignatureKeys.clipsLibraryDirectory) }

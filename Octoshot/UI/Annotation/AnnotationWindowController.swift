@@ -19,7 +19,7 @@ final class AnnotationWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "Annotate"
+        window.title = "Octoshot — Annotate"
         window.center()
         setupContent()
     }

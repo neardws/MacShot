@@ -1,28 +1,33 @@
-name: MacShot
+name: Octoshot
 options:
-  bundleIdPrefix: com.macshot
+  bundleIdPrefix: com.neardws
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
   groupSortPosition: top
+  developmentLanguage: en
+  knownRegions:
+    - en
+    - Base
+    - zh-Hans
 settings:
   base:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     DEVELOPMENT_TEAM: ""
 targets:
-  MacShot:
+  Octoshot:
     type: application
     platform: macOS
     sources:
-      - path: MacShot
+      - path: Octoshot
         excludes:
           - "**/*.md"
     settings:
-      PRODUCT_NAME: MacShot
-      PRODUCT_BUNDLE_IDENTIFIER: com.macshot.MacShot
-      INFOPLIST_FILE: MacShot/Info.plist
-      CODE_SIGN_ENTITLEMENTS: MacShot/MacShot.entitlements
+      PRODUCT_NAME: Octoshot
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.Octoshot
+      INFOPLIST_FILE: Octoshot/Info.plist
+      CODE_SIGN_ENTITLEMENTS: Octoshot/Octoshot.entitlements
       ENABLE_HARDENED_RUNTIME: YES
       CODE_SIGN_STYLE: Automatic
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

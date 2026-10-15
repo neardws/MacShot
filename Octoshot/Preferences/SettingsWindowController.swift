@@ -12,11 +12,11 @@ final class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
-        window.title = "MacShot Settings"
+        window.title = "Octoshot Settings"
         window.isReleasedWhenClosed = false
         window.center()
 
-        let hosting = NSHostingController(rootView: MacShotSettingsView())
+        let hosting = NSHostingController(rootView: OctoshotSettingsView())
         window.contentViewController = hosting
 
         super.init(window: window)

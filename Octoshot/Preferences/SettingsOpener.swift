@@ -13,7 +13,7 @@ enum SettingsOpener {
             queue: .main
         ) { notification in
             guard let window = notification.object as? NSWindow else { return }
-            guard window.title == "MacShot Settings" else { return }
+            guard window.title == "Octoshot Settings" else { return }
             if NSApp.activationPolicy() == .regular {
                 NSApp.setActivationPolicy(.accessory)
             }
