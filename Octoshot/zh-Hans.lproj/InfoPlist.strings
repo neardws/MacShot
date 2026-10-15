@@ -1,0 +1,4 @@
+/* Localized bundle display name */
+"CFBundleDisplayName" = "章鱼君";
+"CFBundleName" = "章鱼君";
+"NSScreenCaptureUsageDescription" = "章鱼君需要“屏幕录制”权限才能截取屏幕、窗口或选区。";
