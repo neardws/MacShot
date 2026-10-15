@@ -62,10 +62,35 @@ final class CaptureCoordinator {
         do {
             let image = try await ScreenCaptureService.shared.captureRegion(globalRect: rect)
             ScreenRecordingAccessCache.shared.lastKnownGranted = true
-            presentResult(image)
+            await handleRegionCaptureResult(image)
         } catch {
             await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
+        }
+    }
+
+    private func handleRegionCaptureResult(_ image: NSImage) async {
+        let followUp = CaptureFollowUpState.shared.areaFollowUp
+        CaptureFollowUpState.shared.areaFollowUp = .standard
+        switch followUp {
+        case .standard:
+            presentResult(image)
+        case .latex:
+            CaptureFeedback.playCaptureSoundIfEnabled()
+            FeatureCoordinator.shared.showLaTeX(with: image)
+        case .paperClip:
+            presentResult(image)
+            Task {
+                do {
+                    let folder = try await PaperClipService.processFigure(image: image)
+                    let alert = NSAlert()
+                    alert.messageText = "Saved to Clips Library"
+                    alert.informativeText = folder.path
+                    alert.runModal()
+                } catch {
+                    finishWithError(error)
+                }
+            }
         }
     }
 
@@ -138,8 +163,23 @@ final class CaptureCoordinator {
                 }
             },
             onAnnotate: { self.annotation.open(with: image) },
-            onClose: { self.quickAccess.closePanel() }
+            onAskAI: { self.showAI(for: image) },
+            onClose: {}
         ))
+    }
+
+    private func showAI(for image: NSImage) {
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 480),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "Ask Local AI"
+        panel.isFloatingPanel = true
+        panel.contentView = NSHostingView(rootView: AIAssistantPanelView(image: image))
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
     }
 
     private func finishWithError(_ error: Error) {

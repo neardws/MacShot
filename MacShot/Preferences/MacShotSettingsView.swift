@@ -12,6 +12,10 @@ struct MacShotSettingsView: View {
                 .tabItem { Label("Output", systemImage: "folder") }
             QuickAccessSettingsPane()
                 .tabItem { Label("Quick Access", systemImage: "photo.on.rectangle.angled") }
+            RedactionSettingsPane()
+                .tabItem { Label("Redaction", systemImage: "eye.slash") }
+            AISettingsPane()
+                .tabItem { Label("AI", systemImage: "brain") }
             PermissionsSettingsPane()
                 .tabItem { Label("Permissions", systemImage: "lock.shield") }
             AboutSettingsPane()

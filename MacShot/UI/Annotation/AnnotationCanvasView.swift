@@ -10,6 +10,14 @@ final class AnnotationCanvasView: NSView {
         didSet { rebuildComposite(); needsDisplay = true }
     }
 
+    var redactionRegions: [CGRect] = [] {
+        didSet { rebuildComposite(); needsDisplay = true }
+    }
+
+    var previewRedactions: [RedactionCandidate] = [] {
+        didSet { needsDisplay = true }
+    }
+
     var activeTool: AnnotationTool = .arrow
     var strokeColor: NSColor = .systemRed
     var lineWidth: CGFloat = 4
@@ -31,6 +39,28 @@ final class AnnotationCanvasView: NSView {
         if let inProgress {
             drawStroke(inProgress, in: bounds)
         }
+        for candidate in previewRedactions where candidate.isEnabled {
+            let path = NSBezierPath(rect: mapImageRectToView(candidate.rect))
+            NSColor.systemRed.withAlphaComponent(0.25).setFill()
+            path.fill()
+            NSColor.systemRed.setStroke()
+            path.lineWidth = 1.5
+            path.stroke()
+        }
+    }
+
+    func applyRedactions(from candidates: [RedactionCandidate]) {
+        redactionRegions = candidates.filter(\.isEnabled).map(\.rect)
+        previewRedactions = []
+        rebuildComposite()
+        needsDisplay = true
+    }
+
+    private func mapImageRectToView(_ rect: CGRect) -> CGRect {
+        guard let baseImage else { return rect }
+        let sx = bounds.width / max(baseImage.size.width, 1)
+        let sy = bounds.height / max(baseImage.size.height, 1)
+        return CGRect(x: rect.origin.x * sx, y: rect.origin.y * sy, width: rect.width * sx, height: rect.height * sy)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -124,8 +154,12 @@ final class AnnotationCanvasView: NSView {
         let image = NSImage(size: size)
         image.lockFocus()
         baseImage.draw(in: NSRect(origin: .zero, size: size))
+        let canvas = NSRect(origin: .zero, size: size)
+        for region in redactionRegions {
+            pixelate(from: CGPoint(x: region.minX, y: region.minY), to: CGPoint(x: region.maxX, y: region.maxY), in: canvas)
+        }
         for stroke in strokes {
-            drawStroke(stroke, in: NSRect(origin: .zero, size: size))
+            drawStroke(stroke, in: canvas)
         }
         image.unlockFocus()
         renderedImage = image

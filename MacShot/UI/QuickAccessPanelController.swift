@@ -5,6 +5,7 @@ struct QuickAccessActions {
     var onCopy: () -> Void
     var onSave: () -> Void
     var onAnnotate: () -> Void
+    var onAskAI: (() -> Void)?
     var onClose: () -> Void
 }
 
@@ -180,6 +181,9 @@ private struct QuickAccessCard: View {
                     QuickAccessButton(symbol: "doc.on.doc", help: "Copy", action: actions.onCopy)
                     QuickAccessButton(symbol: "square.and.arrow.down", help: "Save", action: actions.onSave)
                     QuickAccessButton(symbol: "pencil.tip.crop.circle", help: "Annotate", action: actions.onAnnotate)
+                    if let onAskAI = actions.onAskAI {
+                        QuickAccessButton(symbol: "brain", help: "Ask AI", action: onAskAI)
+                    }
                     QuickAccessButton(symbol: "xmark", help: "Close", action: onClose)
                 }
                 .padding(.horizontal, 10)

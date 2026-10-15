@@ -6,10 +6,14 @@ final class AnnotationWindowController {
     private let window: NSWindow
     private var canvasView: AnnotationCanvasView?
     private let toolbarModel = AnnotationToolbarModel()
+    private var aiPanel: NSPanel?
+    private var redactionPanel: NSPanel?
+    private var redactionCandidates: [RedactionCandidate] = []
+    private var currentImage: NSImage?
 
     init() {
         window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 640),
+            contentRect: NSRect(x: 0, y: 0, width: 1100, height: 640),
             styleMask: [.titled, .closable, .resizable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -20,11 +24,18 @@ final class AnnotationWindowController {
     }
 
     func open(with image: NSImage) {
+        currentImage = image
         canvasView?.baseImage = image
         canvasView?.strokes = []
+        canvasView?.redactionRegions = []
+        canvasView?.previewRedactions = []
         canvasView?.rebuildComposite()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+
+        if AppSettings.shared.autoRedactOnAnnotate {
+            Task { await runAutoRedactPreview() }
+        }
     }
 
     private func setupContent() {
@@ -36,6 +47,8 @@ final class AnnotationWindowController {
         toolbarModel.onUndo = { [weak canvas] in canvas?.undo() }
         toolbarModel.onCopy = { [weak self] in self?.copyImage() }
         toolbarModel.onSave = { [weak self] in self?.saveImage() }
+        toolbarModel.onAutoRedact = { [weak self] in Task { await self?.runAutoRedactPreview() } }
+        toolbarModel.onAskAI = { [weak self] in self?.toggleAIPanel() }
 
         let toolbar = NSHostingView(rootView: AnnotationToolbarView(model: toolbarModel))
         toolbar.translatesAutoresizingMaskIntoConstraints = false
@@ -58,6 +71,69 @@ final class AnnotationWindowController {
         ])
 
         window.contentView = container
+    }
+
+    private func toggleAIPanel() {
+        guard let image = currentImage else { return }
+        if let aiPanel {
+            aiPanel.close()
+            self.aiPanel = nil
+            return
+        }
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 340, height: 480),
+            styleMask: [.titled, .closable, .resizable],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "Ask Local AI"
+        panel.isFloatingPanel = true
+        panel.contentView = NSHostingView(rootView: AIAssistantPanelView(image: image))
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+        aiPanel = panel
+    }
+
+    private func runAutoRedactPreview() async {
+        guard let image = currentImage else { return }
+        do {
+            redactionCandidates = try await RedactionDetector.detect(in: image)
+            canvasView?.previewRedactions = redactionCandidates
+            showRedactionReview()
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func showRedactionReview() {
+        redactionPanel?.close()
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 360),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        panel.title = "Auto Redact"
+        panel.isFloatingPanel = true
+        panel.hidesOnDeactivate = false
+        let view = RedactionReviewView(
+            candidates: Binding(
+                get: { self.redactionCandidates },
+                set: { self.redactionCandidates = $0; self.canvasView?.previewRedactions = $0 }
+            ),
+            onApply: { [weak self] in
+                self?.canvasView?.applyRedactions(from: self?.redactionCandidates ?? [])
+                self?.redactionPanel?.close()
+            },
+            onCancel: { [weak self] in
+                self?.canvasView?.previewRedactions = []
+                self?.redactionPanel?.close()
+            }
+        )
+        panel.contentView = NSHostingView(rootView: view)
+        panel.center()
+        panel.makeKeyAndOrderFront(nil)
+        redactionPanel = panel
     }
 
     private func copyImage() {
@@ -88,6 +164,8 @@ final class AnnotationToolbarModel: ObservableObject {
     var onUndo: (() -> Void)?
     var onCopy: (() -> Void)?
     var onSave: (() -> Void)?
+    var onAutoRedact: (() -> Void)?
+    var onAskAI: (() -> Void)?
 
     func select(_ tool: AnnotationTool) {
         selectedTool = tool
@@ -113,6 +191,8 @@ struct AnnotationToolbarView: View {
                 .help(tool.label)
             }
             Spacer()
+            Button("Auto Redact") { model.onAutoRedact?() }
+            Button("Ask AI") { model.onAskAI?() }
             Button("Undo") { model.onUndo?() }
             Button("Copy") { model.onCopy?() }
             Button("Save") { model.onSave?() }
