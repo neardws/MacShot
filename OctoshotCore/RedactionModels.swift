@@ -11,9 +11,9 @@ public enum RedactionKind: String, Codable, CaseIterable, Identifiable {
     case face
     case other
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    var label: String {
+    public var label: String {
         switch self {
         case .phone: return "Phone"
         case .email: return "Email"
@@ -28,11 +28,11 @@ public enum RedactionKind: String, Codable, CaseIterable, Identifiable {
 }
 
 public struct RedactionCandidate: Identifiable, Equatable {
-    let id: UUID
-    var rect: CGRect
-    var kind: RedactionKind
-    var detail: String
-    var isEnabled: Bool
+    public let id: UUID
+    public var rect: CGRect
+    public var kind: RedactionKind
+    public var detail: String
+    public var isEnabled: Bool
 
     public init(id: UUID = UUID(), rect: CGRect, kind: RedactionKind, detail: String, isEnabled: Bool = true) {
         self.id = id

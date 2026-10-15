@@ -7,7 +7,7 @@ public enum CaptureError: LocalizedError {
     case captureFailed(String)
     case emptySelection
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .noDisplays: return "No displays available for capture."
         case .noWindows: return "No on-screen windows found."
