@@ -79,6 +79,8 @@ final class AppSettings: ObservableObject {
         static let filenamePattern = "filenamePattern"
         static let quickAccessAutoClose = "quickAccessAutoCloseSeconds"
         static let captureWindowWithShadow = "captureWindowWithShadow"
+        static let developerMode = "developerModeEnabled"
+        static let markdownAbsolutePath = "markdownImageUseAbsolutePath"
     }
 
     @Published var saveDirectory: URL {
@@ -161,6 +163,14 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(captureWindowWithShadow, forKey: Keys.captureWindowWithShadow) }
     }
 
+    @Published var developerModeEnabled: Bool {
+        didSet { UserDefaults.standard.set(developerModeEnabled, forKey: Keys.developerMode) }
+    }
+
+    @Published var markdownImageUseAbsolutePath: Bool {
+        didSet { UserDefaults.standard.set(markdownImageUseAbsolutePath, forKey: Keys.markdownAbsolutePath) }
+    }
+
     private init() {
         let desktop = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Desktop", isDirectory: true)
@@ -200,6 +210,8 @@ final class AppSettings: ObservableObject {
         filenamePattern = UserDefaults.standard.string(forKey: Keys.filenamePattern) ?? Self.defaultFilenamePattern
         quickAccessAutoCloseSeconds = UserDefaults.standard.object(forKey: Keys.quickAccessAutoClose) as? Double ?? 0
         captureWindowWithShadow = UserDefaults.standard.object(forKey: Keys.captureWindowWithShadow) as? Bool ?? true
+        developerModeEnabled = UserDefaults.standard.object(forKey: Keys.developerMode) as? Bool ?? false
+        markdownImageUseAbsolutePath = UserDefaults.standard.object(forKey: Keys.markdownAbsolutePath) as? Bool ?? true
     }
 
     func resetHotkeysToDefaults() {

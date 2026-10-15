@@ -12,12 +12,18 @@ struct MacShotSettingsView: View {
                 .tabItem { Label("Output", systemImage: "folder") }
             QuickAccessSettingsPane()
                 .tabItem { Label("Quick Access", systemImage: "photo.on.rectangle.angled") }
+            RedactionSettingsPane()
+                .tabItem { Label("Redaction", systemImage: "eye.slash") }
+            AISettingsPane()
+                .tabItem { Label("AI", systemImage: "brain") }
+            DeveloperSettingsPane()
+                .tabItem { Label("Developer", systemImage: "hammer") }
             PermissionsSettingsPane()
                 .tabItem { Label("Permissions", systemImage: "lock.shield") }
             AboutSettingsPane()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(minWidth: 560, minHeight: 440)
+        .frame(minWidth: 620, minHeight: 520)
         .padding(8)
     }
 }

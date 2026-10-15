@@ -11,6 +11,8 @@ final class AreaSelectionController: NSResponder {
     private(set) var dragStart: NSPoint?
     private var currentPoint: NSPoint?
     private(set) var lastMouseGlobal: NSPoint = NSEvent.mouseLocation
+    private(set) var lastSampledColor: ScreenColorInfo?
+    private(set) var colorCopyHint: String?
 
     func begin() {
         end()
@@ -32,8 +34,14 @@ final class AreaSelectionController: NSResponder {
                 cancel()
                 return nil
             }
+            if event.type == .keyDown, AppSettings.shared.developerModeEnabled,
+               event.charactersIgnoringModifiers?.lowercased() == "c" {
+                copyColorUnderCursor()
+                return nil
+            }
             if event.type == .mouseMoved || event.type == .leftMouseDragged {
                 lastMouseGlobal = NSEvent.mouseLocation
+                refreshSampledColorIfNeeded()
                 redrawAll()
             }
             return event
@@ -44,10 +52,34 @@ final class AreaSelectionController: NSResponder {
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             guard let self else { return }
             lastMouseGlobal = NSEvent.mouseLocation
+            refreshSampledColorIfNeeded()
             focusWindowUnderMouse()
             redrawAll()
         }
+        refreshSampledColorIfNeeded()
         redrawAll()
+    }
+
+    func refreshSampledColorIfNeeded() {
+        guard AppSettings.shared.developerModeEnabled else {
+            lastSampledColor = nil
+            return
+        }
+        lastSampledColor = ScreenColorSampler.sample(at: lastMouseGlobal)
+    }
+
+    func copyColorUnderCursor() {
+        guard AppSettings.shared.developerModeEnabled else { return }
+        refreshSampledColorIfNeeded()
+        guard let color = lastSampledColor else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(color.pasteboardText, forType: .string)
+        colorCopyHint = "Copied \(color.hexRGB)"
+        redrawAll()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+            self?.colorCopyHint = nil
+            self?.redrawAll()
+        }
     }
 
     func beginDrag(at point: NSPoint) {
@@ -91,6 +123,7 @@ final class AreaSelectionController: NSResponder {
 
     func noteMousePosition(_ global: NSPoint) {
         lastMouseGlobal = global
+        refreshSampledColorIfNeeded()
         redrawAll()
     }
 
@@ -195,7 +228,10 @@ final class AreaOverlayView: NSView {
         if mouseOnThisScreen {
             drawCrosshair(at: mouseLocal)
             drawCursorLabel(at: mouseLocal, global: mouseGlobal, selection: controller.selectionRectGlobal())
-            drawMagnifier(at: mouseLocal, global: mouseGlobal)
+            drawMagnifier(at: mouseLocal, global: mouseGlobal, controller: controller)
+            if AppSettings.shared.developerModeEnabled, let hint = controller.colorCopyHint {
+                drawLabel(hint, near: NSPoint(x: mouseLocal.x + 16, y: mouseLocal.y - 36))
+            }
         }
     }
 
@@ -276,7 +312,7 @@ final class AreaOverlayView: NSView {
         (text as NSString).draw(in: rect.insetBy(dx: 6, dy: 4), withAttributes: attributes)
     }
 
-    private func drawMagnifier(at local: NSPoint, global: NSPoint) {
+    private func drawMagnifier(at local: NSPoint, global: NSPoint, controller: AreaSelectionController) {
         let loupeSize: CGFloat = 96
         let zoom: CGFloat = 6
         let sampleSize = loupeSize / zoom
@@ -311,5 +347,24 @@ final class AreaOverlayView: NSView {
         let border = NSBezierPath(roundedRect: loupeRect, xRadius: 8, yRadius: 8)
         border.lineWidth = 2
         border.stroke()
+
+        if AppSettings.shared.developerModeEnabled, let color = controller.lastSampledColor {
+            let swatch = CGRect(x: loupeRect.minX + 6, y: loupeRect.maxY - 18, width: 12, height: 12)
+            NSColor(
+                red: CGFloat(color.red) / 255,
+                green: CGFloat(color.green) / 255,
+                blue: CGFloat(color.blue) / 255,
+                alpha: 1
+            ).setFill()
+            NSBezierPath(ovalIn: swatch).fill()
+
+            let colorLine = "\(color.hexRGB)  \(color.rgbText)"
+            let labelY = loupeRect.maxY + 6
+            let labelX = min(loupeRect.minX, bounds.width - 220)
+            drawLabel(colorLine, near: NSPoint(x: labelX, y: labelY))
+            if controller.colorCopyHint == nil {
+                drawLabel("Press C to copy", near: NSPoint(x: labelX, y: labelY + 26))
+            }
+        }
     }
 }

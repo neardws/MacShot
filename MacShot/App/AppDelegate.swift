@@ -48,6 +48,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(menuItem("Capture Window", action: #selector(captureWindow)))
         menu.addItem(menuItem("Capture Fullscreen", action: #selector(captureFullscreen)))
         menu.addItem(.separator())
+        menu.addItem(menuItem("Capture Formula (LaTeX)…", action: #selector(captureLaTeX)))
+        menu.addItem(menuItem("Capture Figure / Table to Clips…", action: #selector(capturePaperClip)))
+        menu.addItem(.separator())
         let settingsItem = menuItem("Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = .command
         menu.addItem(settingsItem)
@@ -110,6 +113,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func captureFullscreen() {
         CaptureCoordinator.shared.startFullscreenCapture()
+    }
+
+    @objc private func captureLaTeX() {
+        FeatureCoordinator.shared.startLaTeXAreaCapture()
+    }
+
+    @objc private func capturePaperClip() {
+        FeatureCoordinator.shared.startPaperClipAreaCapture()
     }
 
     private func reregisterHotkeys() {

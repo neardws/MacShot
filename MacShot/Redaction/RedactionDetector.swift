@@ -1,0 +1,119 @@
+import AppKit
+import Vision
+
+enum RedactionDetector {
+    static func detect(in image: NSImage) async throws -> [RedactionCandidate] {
+        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return []
+        }
+        let settings = await MainActor.run { RedactionSettingsSnapshot.fromAppSettings() }
+        var candidates: [RedactionCandidate] = []
+
+        let textCandidates = try await detectSensitiveText(in: cgImage, imageSize: image.size, settings: settings)
+        candidates.append(contentsOf: textCandidates)
+
+        if settings.redactFaces {
+            let faces = try await detectFaces(in: cgImage, imageSize: image.size)
+            candidates.append(contentsOf: faces)
+        }
+        return mergeOverlapping(candidates)
+    }
+
+    private static func detectSensitiveText(
+        in cgImage: CGImage,
+        imageSize: NSSize,
+        settings: RedactionSettingsSnapshot
+    ) async throws -> [RedactionCandidate] {
+        try await withCheckedThrowingContinuation { continuation in
+            let request = VNRecognizeTextRequest { request, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                let observations = request.results as? [VNRecognizedTextObservation] ?? []
+                var found: [RedactionCandidate] = []
+                for observation in observations {
+                    guard let top = observation.topCandidates(1).first else { continue }
+                    let matches = SensitivePatternMatcher.matches(in: top.string, settings: settings)
+                    for match in matches {
+                        let visionBox: CGRect
+                        if let observation = try? top.boundingBox(for: match.range) {
+                            visionBox = observation.boundingBox
+                        } else {
+                            visionBox = observation.boundingBox
+                        }
+                        let rect = visionRectToImage(visionBox, imageSize: imageSize)
+                        found.append(RedactionCandidate(
+                            rect: rect.insetBy(dx: -4, dy: -4),
+                            kind: match.kind,
+                            detail: match.value
+                        ))
+                    }
+                }
+                continuation.resume(returning: found)
+            }
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+            request.recognitionLanguages = ["zh-Hans", "en-US"]
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            do {
+                try handler.perform([request])
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
+    private static func detectFaces(in cgImage: CGImage, imageSize: NSSize) async throws -> [RedactionCandidate] {
+        try await withCheckedThrowingContinuation { continuation in
+            let request = VNDetectFaceRectanglesRequest { request, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                let observations = request.results as? [VNFaceObservation] ?? []
+                let faces = observations.map { face in
+                    RedactionCandidate(
+                        rect: visionRectToImage(face.boundingBox, imageSize: imageSize).insetBy(dx: -8, dy: -8),
+                        kind: .face,
+                        detail: "Face"
+                    )
+                }
+                continuation.resume(returning: faces)
+            }
+            let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
+            do {
+                try handler.perform([request])
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
+    /// Vision bounding boxes are normalized with origin bottom-left.
+    private static func visionRectToImage(_ box: CGRect, imageSize: NSSize) -> CGRect {
+        let w = imageSize.width * box.width
+        let h = imageSize.height * box.height
+        let x = imageSize.width * box.origin.x
+        let y = imageSize.height * (1 - box.origin.y - box.height)
+        return CGRect(x: x, y: y, width: w, height: h)
+    }
+
+    private static func mergeOverlapping(_ items: [RedactionCandidate]) -> [RedactionCandidate] {
+        var merged = items
+        var index = 0
+        while index < merged.count {
+            var j = index + 1
+            while j < merged.count {
+                if merged[index].rect.intersects(merged[j].rect) {
+                    merged[index].rect = merged[index].rect.union(merged[j].rect)
+                    merged.remove(at: j)
+                } else {
+                    j += 1
+                }
+            }
+            index += 1
+        }
+        return merged
+    }
+}
