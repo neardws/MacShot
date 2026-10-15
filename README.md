@@ -49,6 +49,37 @@ xcodegen generate
 xcodebuild -scheme MacShot -configuration Debug -destination 'platform=macOS' build
 ```
 
+### Code signing & Screen Recording (TCC)
+
+macOS ties **Screen Recording** permission to your app’s **code signature**. If every debug build is **ad-hoc** signed (`CODE_SIGN_IDENTITY=-`), the bundle identity changes and System Settings may show MacShot as allowed while capture APIs still fail or `CGPreflightScreenCaptureAccess()` stays `false`.
+
+**Recommended for local development**
+
+1. Open `MacShot.xcodeproj` in Xcode.
+2. Select the **MacShot** target → **Signing & Capabilities**.
+3. Enable **Automatically manage signing** and choose your **Apple Development** team (or a stable self-signed certificate you control).
+4. Run from Xcode or `open` the signed `.app` in DerivedData — avoid ad-hoc `CODE_SIGN_IDENTITY=-` for permission testing.
+
+Bundle ID: `com.macshot.MacShot`
+
+**Reset Screen Recording permission** (after changing signing identity or if status is stuck):
+
+```bash
+tccutil reset ScreenCapture com.macshot.MacShot
+```
+
+Then launch MacShot again and re-enable it under **Privacy & Security → Screen Recording**.
+
+MacShot’s UI checks access by calling **ScreenCaptureKit** (`SCShareableContent`) because the CoreGraphics preflight API can lag behind the real TCC state.
+
+### 代码签名与屏幕录制权限
+
+调试时请使用稳定的 **Apple Development** 签名，不要使用 ad-hoc 签名，否则系统权限可能失效。重置权限：
+
+```bash
+tccutil reset ScreenCapture com.macshot.MacShot
+```
+
 ## Project layout
 
 | Path | Purpose |

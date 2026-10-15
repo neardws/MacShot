@@ -25,10 +25,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
-        if !PermissionManager.hasScreenRecordingAccess {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                PermissionManager.ensureScreenRecordingAccess(promptIfNeeded: true)
-            }
+        PermissionManager.installActivationRefresh()
+        Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await PermissionManager.presentInitialGuidanceIfNeeded()
         }
     }
 

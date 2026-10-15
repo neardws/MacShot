@@ -25,35 +25,36 @@ final class CaptureCoordinator {
     }
 
     func startAreaCapture() {
-        guard beginCaptureFlow() else { return }
-        areaSelection.begin()
+        Task {
+            guard await beginCaptureFlow() else { return }
+            areaSelection.begin()
+        }
     }
 
     func startWindowCapture() {
-        guard beginCaptureFlow() else { return }
         Task {
+            guard await beginCaptureFlow() else { return }
             do {
                 let content = try await ScreenCaptureService.shared.shareableContent()
+                ScreenRecordingAccessCache.shared.lastKnownGranted = true
                 let appWindows = content.windows.filter { window in
                     window.owningApplication?.bundleIdentifier != Bundle.main.bundleIdentifier
                 }
                 windowSelection.begin(windows: appWindows)
             } catch {
+                await PermissionManager.handleCaptureFailure(error)
                 finishWithError(error)
             }
         }
     }
 
     func startFullscreenCapture() {
-        guard beginCaptureFlow() else { return }
         Task { await performFullscreenCapture() }
     }
 
-    private func beginCaptureFlow() -> Bool {
+    private func beginCaptureFlow() async -> Bool {
         if isCapturing { return false }
-        guard PermissionManager.ensureScreenRecordingAccess(promptIfNeeded: true) else {
-            return false
-        }
+        await PermissionManager.prepareForCaptureIfNeeded()
         isCapturing = true
         return true
     }
@@ -62,8 +63,10 @@ final class CaptureCoordinator {
         defer { isCapturing = false }
         do {
             let image = try await ScreenCaptureService.shared.captureRegion(globalRect: rect)
+            ScreenRecordingAccessCache.shared.lastKnownGranted = true
             presentResult(image)
         } catch {
+            await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
         }
     }
@@ -72,13 +75,16 @@ final class CaptureCoordinator {
         defer { isCapturing = false }
         do {
             let image = try await ScreenCaptureService.shared.captureWindow(window)
+            ScreenRecordingAccessCache.shared.lastKnownGranted = true
             presentResult(image)
         } catch {
+            await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
         }
     }
 
     private func performFullscreenCapture() async {
+        guard await beginCaptureFlow() else { return }
         defer { isCapturing = false }
         do {
             let mouse = NSEvent.mouseLocation
@@ -86,8 +92,10 @@ final class CaptureCoordinator {
             let content = try await ScreenCaptureService.shared.shareableContent()
             let display = content.displays.first { $0.displayID == screen?.displayID } ?? content.displays.first
             let image = try await ScreenCaptureService.shared.captureFullscreen(display: display)
+            ScreenRecordingAccessCache.shared.lastKnownGranted = true
             presentResult(image)
         } catch {
+            await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
         }
     }

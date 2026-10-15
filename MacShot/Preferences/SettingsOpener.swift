@@ -13,36 +13,16 @@ enum SettingsOpener {
             queue: .main
         ) { notification in
             guard let window = notification.object as? NSWindow else { return }
-            let title = window.title.lowercased()
-            guard title.contains("settings") || title.contains("macshot") else { return }
+            guard window.title == "MacShot Settings" else { return }
             if NSApp.activationPolicy() == .regular {
                 NSApp.setActivationPolicy(.accessory)
             }
         }
     }
 
+    /// Opens settings using a dedicated `NSWindowController` (reliable for LSUIElement apps).
     static func open() {
         installAccessoryRestoreOnClose()
-        if NSApp.activationPolicy() == .accessory {
-            NSApp.setActivationPolicy(.regular)
-        }
-        NSApp.activate(ignoringOtherApps: true)
-
-        let showSettings = Selector(("showSettingsWindow:"))
-        if NSApp.responds(to: showSettings) {
-            NSApp.sendAction(showSettings, to: nil, from: nil)
-        }
-        bringSettingsWindowToFront()
-    }
-
-    private static func bringSettingsWindowToFront() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            let settingsWindow = NSApp.windows.first { window in
-                let title = window.title.lowercased()
-                return title.contains("settings") || title.contains("macshot")
-            }
-            settingsWindow?.makeKeyAndOrderFront(nil)
-            settingsWindow?.orderFrontRegardless()
-        }
+        SettingsWindowController.shared.show()
     }
 }

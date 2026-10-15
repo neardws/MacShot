@@ -187,29 +187,53 @@ private struct QuickAccessSettingsPane: View {
 // MARK: - Permissions
 
 private struct PermissionsSettingsPane: View {
-    @State private var hasAccess = PermissionManager.hasScreenRecordingAccess
+    @ObservedObject private var accessCache = ScreenRecordingAccessCache.shared
+    @State private var isChecking = false
+    @State private var statusMessage = "Checking Screen Recording access…"
+
+    private var hasAccess: Bool {
+        accessCache.lastKnownGranted ?? PermissionManager.legacyPreflightAccess
+    }
 
     var body: some View {
         Form {
             HStack {
                 Image(systemName: hasAccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .foregroundStyle(hasAccess ? .green : .orange)
-                Text(hasAccess ? "Screen Recording is enabled for MacShot." : "Screen Recording permission is required.")
+                Text(statusMessage)
                 Spacer()
-                Button("Refresh") { hasAccess = PermissionManager.hasScreenRecordingAccess }
+                Button(isChecking ? "Checking…" : "Refresh") {
+                    Task { await refreshStatus() }
+                }
+                .disabled(isChecking)
             }
 
             Button("Open System Settings") {
                 PermissionManager.openScreenRecordingSettings()
             }
 
-            Text("System Settings → Privacy & Security → Screen Recording → enable MacShot, then restart capture if needed.")
+            Text("Status uses ScreenCaptureKit (live) because CGPreflightScreenCaptureAccess can be stale after you grant permission, especially with ad-hoc debug builds.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text("System Settings → Privacy & Security → Screen Recording → enable MacShot, then quit and reopen.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
         .padding()
-        .onAppear { hasAccess = PermissionManager.hasScreenRecordingAccess }
+        .task { await refreshStatus() }
+    }
+
+    @MainActor
+    private func refreshStatus() async {
+        isChecking = true
+        let granted = await PermissionManager.refreshAccessStatus()
+        accessCache.lastKnownGranted = granted
+        statusMessage = granted
+            ? "Screen Recording is enabled for MacShot (verified via ScreenCaptureKit)."
+            : "Screen Recording not detected — enable MacShot in System Settings."
+        isChecking = false
     }
 }
 
