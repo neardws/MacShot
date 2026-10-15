@@ -10,14 +10,16 @@ enum OllamaService {
     static let defaultHost = URL(string: "http://127.0.0.1:11434")!
 
     static func hostURL(from settingsBase: URL) -> URL {
-        var components = URLComponents(url: settingsBase, resolvingAgainstBaseURL: false)
-        if components?.path.hasSuffix("/v1") == true {
-            components?.path = String(components!.path.dropLast(2))
+        guard var components = URLComponents(url: settingsBase, resolvingAgainstBaseURL: false) else {
+            return defaultHost
         }
-        if components?.path == "/" || components?.path.isEmpty == true {
-            components?.path = ""
+        if components.path.hasSuffix("/v1") {
+            components.path = String(components.path.dropLast(2))
         }
-        return components?.url ?? defaultHost
+        if components.path == "/" || components.path.isEmpty {
+            components.path = ""
+        }
+        return components.url ?? defaultHost
     }
 
     static func isReachable(baseURL: URL = AgentConfiguration.aiBaseURL) async -> Bool {
