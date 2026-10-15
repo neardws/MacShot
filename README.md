@@ -71,6 +71,7 @@ open Octoshot.xcodeproj
 ```bash
 xcodegen generate
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
+xcodebuild -scheme octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 
 首次使用请在 **系统设置 → 隐私与安全性 → 屏幕录制** 中允许 Octoshot（简体系统列表中可能显示为 **章鱼君**）。
@@ -127,6 +128,26 @@ Planned or in-progress work is tracked in GitHub issues:
 | [#7](https://github.com/neardws/Octoshot/issues/7) | Screenshot → LaTeX |
 | [#8](https://github.com/neardws/Octoshot/issues/8) | Paper figure/table assistant & Clips library |
 | [#9](https://github.com/neardws/Octoshot/issues/9) | Developer mode (color picker, ruler, Markdown for issues) |
+| [#13](https://github.com/neardws/Octoshot/issues/13) | Agent interface: `octoshot` CLI, stdio MCP, URL scheme, Shortcuts |
+
+### Agent interface (#13)
+
+Build the **`octoshot`** CLI and run **`octoshot mcp`** for a stdio MCP server. Shared logic lives in the **`OctoshotCore`** framework (used by the app, CLI, and MCP). Local-only by default; requires Screen Recording permission.
+
+**Cursor / Claude Code** (`mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "octoshot": {
+      "command": "/path/to/DerivedData/.../octoshot",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, `ocr`, `auto_redact`, `ask_ai`, `to_latex`, `extract_table`, `annotate`. URL example: `octoshot://capture?mode=window` (interactive area/window flows open the app).
 
 ## Requirements
 
@@ -149,6 +170,7 @@ Select the **Octoshot** scheme in Xcode and press **⌘R**.
 ```bash
 xcodegen generate
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
+xcodebuild -scheme octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 
 Grant **Screen Recording** under **System Settings → Privacy & Security** on first run (may appear as **章鱼君** in Chinese locales).
