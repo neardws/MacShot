@@ -64,16 +64,21 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
+      - target: octoshot
+        link: false
+        embed: false
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
-          set -e
+          set -euo pipefail
           CLI_SRC="${BUILT_PRODUCTS_DIR}/octoshot"
-          CLI_DST="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/MacOS/octoshot"
+          HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          CLI_DST="${HELPERS_DIR}/octoshot"
           if [ ! -f "$CLI_SRC" ]; then
-            echo "warning: octoshot binary not found at $CLI_SRC"
-            exit 0
+            echo "error: octoshot binary not found at $CLI_SRC (build the octoshot target first)"
+            exit 1
           fi
+          mkdir -p "$HELPERS_DIR"
           cp "$CLI_SRC" "$CLI_DST"
           chmod +x "$CLI_DST"
         basedOnDependencyAnalysis: false
@@ -97,24 +102,3 @@ targets:
         targets:
           octoshot: [build]
           Octoshot: all
-
-  octoshot:
-    type: tool
-    platform: macOS
-    sources:
-      - path: octoshot-cli
-    dependencies:
-      - target: OctoshotCore
-    settings:
-      PRODUCT_NAME: octoshot
-      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.octoshot-cli
-      GENERATE_INFOPLIST_FILE: YES
-      LD_RUNPATH_SEARCH_PATHS:
-        - $(inherited)
-        - "@executable_path"
-        - "@executable_path/../Frameworks"
-        - "@executable_path/.."
-        - "@loader_path"
-        - "@loader_path/../Frameworks"
-    scheme:
-      gatherCoverageData: false

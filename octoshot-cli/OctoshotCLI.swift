@@ -7,6 +7,10 @@ struct OctoshotCLI {
     static func main() async {
         _ = NSApplication.shared
         let args = Array(CommandLine.arguments.dropFirst())
+        if args.isEmpty || args.first == "--help" || args.first == "-h" {
+            printUsage()
+            return
+        }
         guard let command = args.first else {
             printUsage()
             exit(1)

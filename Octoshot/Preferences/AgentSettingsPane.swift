@@ -73,7 +73,7 @@ struct AgentSettingsPane: View {
             \(error.localizedDescription)
 
             You may need to run once with administrator privileges, for example:
-            sudo ln -sf "\(CommandLineToolInstaller.bundledToolURL()?.path ?? "…/Octoshot.app/Contents/MacOS/octoshot")" /usr/local/bin/octoshot
+            sudo ln -sf "\(CommandLineToolInstaller.bundledToolURL()?.path ?? "…/Octoshot.app/Contents/Helpers/octoshot")" /usr/local/bin/octoshot
             """
             alert.runModal()
         }

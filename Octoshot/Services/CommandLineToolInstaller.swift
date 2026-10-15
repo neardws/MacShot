@@ -9,14 +9,14 @@ enum CommandLineToolInstaller {
         URL(fileURLWithPath: installPath)
     }
 
-    /// `octoshot` shipped inside Octoshot.app (set by build embed script).
+    /// `octoshot` shipped inside Octoshot.app at `Contents/Helpers/octoshot` (avoids MacOS name collision with `Octoshot`).
     static func bundledToolURL() -> URL? {
+        let helpers = Bundle.main.bundleURL.appendingPathComponent("Contents/Helpers/octoshot")
+        if FileManager.default.fileExists(atPath: helpers.path) {
+            return helpers
+        }
         if let auxiliary = Bundle.main.url(forAuxiliaryExecutable: "octoshot") {
             return auxiliary
-        }
-        let macOS = Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/octoshot")
-        if FileManager.default.fileExists(atPath: macOS.path) {
-            return macOS
         }
         return nil
     }

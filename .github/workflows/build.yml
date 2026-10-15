@@ -27,11 +27,19 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             build
-          xcodebuild \
-            -scheme octoshot \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
         env:
           NSUnbufferedIO: "YES"
+
+      - name: Verify embedded CLI helper
+        run: |
+          set -euo pipefail
+          APP_PATH=$(find "$HOME/Library/Developer/Xcode/DerivedData" -path '*/Build/Products/Debug/Octoshot.app' -type d | head -1)
+          if [ -z "$APP_PATH" ]; then
+            echo "Octoshot.app not found in DerivedData"
+            exit 1
+          fi
+          CLI="$APP_PATH/Contents/Helpers/octoshot"
+          test -f "$CLI"
+          test -x "$CLI"
+          "$CLI" --help
+          echo "Verified: $CLI --help"
