@@ -21,7 +21,7 @@ struct MacShotSettingsView: View {
             AboutSettingsPane()
                 .tabItem { Label("About", systemImage: "info.circle") }
         }
-        .frame(minWidth: 560, minHeight: 440)
+        .frame(minWidth: 620, minHeight: 520)
         .padding(8)
     }
 }

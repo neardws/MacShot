@@ -1,5 +1,6 @@
 import AppKit
 import ScreenCaptureKit
+import SwiftUI
 
 @MainActor
 final class CaptureCoordinator {

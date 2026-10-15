@@ -88,6 +88,15 @@ tccutil reset ScreenCapture com.macshot.MacShot
 | `MacShot/` | Application source |
 | `.github/workflows/build.yml` | macOS CI build |
 
+## Signature features (beta)
+
+- **Auto-redact** (Vision on-device): phones, emails, IDs, cards, API keys, IPs, faces — review toggles in Annotate
+- **Ask local AI** (OpenAI-compatible, default Ollama `http://localhost:11434/v1`): Explain / Summarize / Translate / custom prompt with streaming
+- **Screenshot → LaTeX**: area capture from menu, local vision model returns LaTeX
+- **Paper figure/table clips**: save captures to `Pictures/MacShot Clips` with metadata JSON (+ optional table Markdown/CSV via local AI)
+
+Configure under **Settings → AI** and **Settings → Redaction**.
+
 ## Roadmap (not in MVP)
 
 - Scrolling capture
