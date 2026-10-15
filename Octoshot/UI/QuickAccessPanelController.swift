@@ -13,6 +13,7 @@ struct QuickAccessActions {
 }
 
 @MainActor
+@MainActor
 private final class QuickAccessEntry: Identifiable {
     let id = UUID()
     let image: NSImage
@@ -70,7 +71,6 @@ final class QuickAccessPanelController: NSObject {
 
     private func cancelSpeculative(for entry: QuickAccessEntry) {
         SpeculativeCapturePipeline.shared.cancel(entryID: entry.id)
-        entry.speculativeState.workTask?.cancel()
         entry.speculativeState.phase = .hidden
     }
 
