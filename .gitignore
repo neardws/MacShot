@@ -5,3 +5,9 @@ Config/Signing.local.xcconfig
 *.xcodeproj
 DerivedData/
 .DS_Store
+
+# Packaging output
+dist/
+.derivedData/
+.derivedData-release/
+build/
