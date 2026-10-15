@@ -8,45 +8,56 @@ final class WindowSelectionController {
     private var overlayWindows: [WindowOverlayWindow] = []
     private var windows: [SCWindow] = []
     private var localMonitor: Any?
-    private var globalMonitor: Any?
-    private var mouseMoveMonitor: Any?
+    private var globalKeyMonitor: Any?
+    private var globalMouseMonitor: Any?
     private var highlighted: SCWindow?
+    private var lastMouseGlobal: NSPoint = NSEvent.mouseLocation
 
     func begin(windows: [SCWindow]) {
         end()
-        self.windows = windows.filter { $0.isOnScreen && $0.frame.width > 40 && $0.frame.height > 40 }
+        self.windows = windows
+        lastMouseGlobal = NSEvent.mouseLocation
         for screen in NSScreen.screens {
             let window = WindowOverlayWindow(screen: screen)
             window.controller = self
-            window.makeKeyAndOrderFront(nil)
             overlayWindows.append(window)
         }
+        for overlay in overlayWindows {
+            overlay.makeKeyAndOrderFront(nil)
+        }
+        overlayWindows.first?.makeKey()
         NSApp.activate(ignoringOtherApps: true)
 
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            if event.keyCode == 53 {
+        updateHighlightAtMouse()
+
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .mouseMoved]) { [weak self] event in
+            if event.type == .keyDown, event.keyCode == 53 {
                 self?.cancel()
                 return nil
             }
+            if event.type == .mouseMoved {
+                self?.noteMouse(NSEvent.mouseLocation)
+            }
             return event
         }
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
             if event.keyCode == 53 { self?.cancel() }
         }
-        mouseMoveMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
-            self?.updateHighlightAtMouse()
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+            self?.noteMouse(NSEvent.mouseLocation)
         }
+    }
+
+    func noteMouse(_ point: NSPoint) {
+        lastMouseGlobal = point
+        if let window = overlayWindows.first(where: { $0.frame.contains(point) }) {
+            window.makeKey()
+        }
+        updateHighlightAtMouse()
     }
 
     private func updateHighlightAtMouse() {
-        setHighlighted(windowAtGlobalPoint(NSEvent.mouseLocation))
-    }
-
-    func windowAtGlobalPoint(_ point: NSPoint) -> SCWindow? {
-        let sorted = windows.sorted { $0.windowLayer > $1.windowLayer }
-        return sorted.first { window in
-            DisplayGeometry.cocoaRect(fromTopLeftFrame: window.frame).contains(point)
-        }
+        setHighlighted(ShareableWindowFilter.window(at: lastMouseGlobal, in: windows))
     }
 
     func setHighlighted(_ window: SCWindow?) {
@@ -66,13 +77,17 @@ final class WindowSelectionController {
 
     func highlightedWindow() -> SCWindow? { highlighted }
 
+    func windowAtMouse() -> SCWindow? {
+        ShareableWindowFilter.window(at: lastMouseGlobal, in: windows)
+    }
+
     private func end() {
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
-        if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
-        if let mouseMoveMonitor { NSEvent.removeMonitor(mouseMoveMonitor) }
+        if let globalKeyMonitor { NSEvent.removeMonitor(globalKeyMonitor) }
+        if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
         localMonitor = nil
-        globalMonitor = nil
-        mouseMoveMonitor = nil
+        globalKeyMonitor = nil
+        globalMouseMonitor = nil
         overlayWindows.forEach { $0.orderOut(nil) }
         overlayWindows.removeAll()
         highlighted = nil
@@ -99,6 +114,7 @@ final class WindowOverlayWindow: NSWindow {
         backgroundColor = .clear
         level = .screenSaver
         ignoresMouseEvents = false
+        acceptsMouseMovedEvents = true
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         contentView = WindowOverlayView()
         (contentView as? WindowOverlayView)?.overlayWindow = self
@@ -108,53 +124,8 @@ final class WindowOverlayWindow: NSWindow {
 final class WindowOverlayView: NSView {
     weak var overlayWindow: WindowOverlayWindow?
 
+    override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
-
-    override func draw(_ dirtyRect: NSRect) {
-        NSColor.black.withAlphaComponent(0.2).setFill()
-        bounds.fill()
-
-        guard let controller = overlayWindow?.controller,
-              let window = controller.highlightedWindow(),
-              let screen = overlayWindow?.screen else { return }
-
-        let global = DisplayGeometry.cocoaRect(fromTopLeftFrame: window.frame)
-        let local = global.offsetBy(dx: -screen.frame.origin.x, dy: -screen.frame.origin.y)
-        let flipped = CGRect(
-            x: local.origin.x,
-            y: bounds.height - local.origin.y - local.height,
-            width: local.width,
-            height: local.height
-        )
-        NSColor.clear.setFill()
-        flipped.fill(using: .copy)
-        NSColor.systemBlue.setStroke()
-        let path = NSBezierPath(rect: flipped)
-        path.lineWidth = 3
-        path.stroke()
-
-        let title = window.title ?? "Window"
-        let attributes: [NSAttributedString.Key: Any] = [
-            .font: NSFont.systemFont(ofSize: 13, weight: .semibold),
-            .foregroundColor: NSColor.white,
-            .backgroundColor: NSColor.systemBlue
-        ]
-        (title as NSString).draw(at: NSPoint(x: flipped.minX + 6, y: flipped.maxY - 22), withAttributes: attributes)
-    }
-
-    override func mouseMoved(with event: NSEvent) {
-        updateHighlight()
-    }
-
-    override func mouseDown(with event: NSEvent) {
-        if let window = overlayWindow?.controller?.windowAtGlobalPoint(globalMouse()) {
-            overlayWindow?.controller?.select(window)
-        }
-    }
-
-    override func rightMouseDown(with event: NSEvent) {
-        overlayWindow?.controller?.cancel()
-    }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -167,14 +138,59 @@ final class WindowOverlayView: NSView {
         addTrackingArea(area)
     }
 
-    private func updateHighlight() {
-        overlayWindow?.controller?.setHighlighted(
-            overlayWindow?.controller?.windowAtGlobalPoint(globalMouse())
-        )
-        needsDisplay = true
+    override func draw(_ dirtyRect: NSRect) {
+        NSColor.black.withAlphaComponent(0.25).setFill()
+        bounds.fill()
+
+        guard let controller = overlayWindow?.controller,
+              let window = controller.highlightedWindow(),
+              let screen = overlayWindow?.screen else { return }
+
+        let cocoa = DisplayGeometry.cocoaRect(fromTopLeftFrame: window.frame)
+        let local = DisplayGeometry.flippedLocalRect(cocoaGlobal: cocoa, screen: screen)
+
+        NSColor.systemBlue.withAlphaComponent(0.22).setFill()
+        NSBezierPath(roundedRect: local, xRadius: 8, yRadius: 8).fill()
+
+        NSColor.systemBlue.setStroke()
+        let border = NSBezierPath(roundedRect: local, xRadius: 8, yRadius: 8)
+        border.lineWidth = 3
+        border.stroke()
+
+        let title = ShareableWindowFilter.displayLabel(for: window)
+        drawTitle(title, above: local)
     }
 
-    private func globalMouse() -> NSPoint {
-        NSEvent.mouseLocation
+    override func mouseMoved(with event: NSEvent) {
+        overlayWindow?.controller?.noteMouse(NSEvent.mouseLocation)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        window?.makeKey()
+        if let scWindow = overlayWindow?.controller?.windowAtMouse() {
+            overlayWindow?.controller?.select(scWindow)
+        }
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        overlayWindow?.controller?.cancel()
+    }
+
+    private func drawTitle(_ title: String, above rect: CGRect) {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 12, weight: .semibold),
+            .foregroundColor: NSColor.white
+        ]
+        let size = (title as NSString).size(withAttributes: attributes)
+        let bgRect = CGRect(
+            x: rect.minX,
+            y: max(4, rect.minY - size.height - 10),
+            width: min(size.width + 14, bounds.width - rect.minX - 4),
+            height: size.height + 8
+        )
+        let bg = NSBezierPath(roundedRect: bgRect, xRadius: 6, yRadius: 6)
+        NSColor.systemBlue.withAlphaComponent(0.92).setFill()
+        bg.fill()
+        (title as NSString).draw(in: bgRect.insetBy(dx: 7, dy: 4), withAttributes: attributes)
     }
 }

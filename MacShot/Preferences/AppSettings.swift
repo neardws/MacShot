@@ -78,6 +78,7 @@ final class AppSettings: ObservableObject {
         static let afterCaptureSave = "afterCaptureSave"
         static let filenamePattern = "filenamePattern"
         static let quickAccessAutoClose = "quickAccessAutoCloseSeconds"
+        static let captureWindowWithShadow = "captureWindowWithShadow"
     }
 
     @Published var saveDirectory: URL {
@@ -156,6 +157,10 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(quickAccessAutoCloseSeconds, forKey: Keys.quickAccessAutoClose) }
     }
 
+    @Published var captureWindowWithShadow: Bool {
+        didSet { UserDefaults.standard.set(captureWindowWithShadow, forKey: Keys.captureWindowWithShadow) }
+    }
+
     private init() {
         let desktop = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Desktop", isDirectory: true)
@@ -194,6 +199,7 @@ final class AppSettings: ObservableObject {
 
         filenamePattern = UserDefaults.standard.string(forKey: Keys.filenamePattern) ?? Self.defaultFilenamePattern
         quickAccessAutoCloseSeconds = UserDefaults.standard.object(forKey: Keys.quickAccessAutoClose) as? Double ?? 0
+        captureWindowWithShadow = UserDefaults.standard.object(forKey: Keys.captureWindowWithShadow) as? Bool ?? true
     }
 
     func resetHotkeysToDefaults() {

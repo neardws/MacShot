@@ -6,47 +6,61 @@ final class AreaSelectionController: NSResponder {
 
     private var overlayWindows: [AreaOverlayWindow] = []
     private var localMonitor: Any?
-    private var globalMonitor: Any?
+    private var globalKeyMonitor: Any?
+    private var globalMouseMonitor: Any?
     private(set) var dragStart: NSPoint?
     private var currentPoint: NSPoint?
-    private var isDragging = false
+    private(set) var lastMouseGlobal: NSPoint = NSEvent.mouseLocation
 
     func begin() {
         end()
+        lastMouseGlobal = NSEvent.mouseLocation
         for screen in NSScreen.screens {
             let window = AreaOverlayWindow(screen: screen)
             window.controller = self
-            window.makeKeyAndOrderFront(nil)
             overlayWindows.append(window)
         }
+        for window in overlayWindows {
+            window.makeKeyAndOrderFront(nil)
+        }
+        overlayWindows.first?.makeKey()
         NSApp.activate(ignoringOtherApps: true)
 
-        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            if event.keyCode == 53 { // ESC
-                self?.cancel()
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .mouseMoved, .leftMouseDragged]) { [weak self] event in
+            guard let self else { return event }
+            if event.type == .keyDown, event.keyCode == 53 {
+                cancel()
                 return nil
+            }
+            if event.type == .mouseMoved || event.type == .leftMouseDragged {
+                lastMouseGlobal = NSEvent.mouseLocation
+                redrawAll()
             }
             return event
         }
-        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            if event.keyCode == 53 {
-                self?.cancel()
-            }
+        globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
+            if event.keyCode == 53 { self?.cancel() }
         }
+        globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
+            guard let self else { return }
+            lastMouseGlobal = NSEvent.mouseLocation
+            focusWindowUnderMouse()
+            redrawAll()
+        }
+        redrawAll()
     }
 
     func beginDrag(at point: NSPoint) {
         dragStart = point
         currentPoint = point
-        isDragging = true
-        overlayWindows.forEach { $0.contentView?.needsDisplay = true }
+        redrawAll()
     }
 
-    func updateSelection(start: NSPoint, current: NSPoint, dragging: Bool) {
+    func updateSelection(start: NSPoint, current: NSPoint) {
         if dragStart == nil { dragStart = start }
         currentPoint = current
-        isDragging = dragging
-        overlayWindows.forEach { $0.contentView?.needsDisplay = true }
+        lastMouseGlobal = current
+        redrawAll()
     }
 
     func finishSelection(at point: NSPoint) {
@@ -73,20 +87,35 @@ final class AreaSelectionController: NSResponder {
         return DisplayGeometry.normalizedSelection(from: start, to: current)
     }
 
-    func mouseLocation() -> NSPoint {
-        NSEvent.mouseLocation
+    func isDragging() -> Bool { dragStart != nil && currentPoint != nil }
+
+    func noteMousePosition(_ global: NSPoint) {
+        lastMouseGlobal = global
+        redrawAll()
+    }
+
+    func redrawAll() {
+        overlayWindows.forEach { $0.contentView?.needsDisplay = true }
+    }
+
+    private func focusWindowUnderMouse() {
+        let mouse = NSEvent.mouseLocation
+        if let window = overlayWindows.first(where: { $0.frame.contains(mouse) }) {
+            window.makeKey()
+        }
     }
 
     private func end() {
         if let localMonitor { NSEvent.removeMonitor(localMonitor) }
-        if let globalMonitor { NSEvent.removeMonitor(globalMonitor) }
+        if let globalKeyMonitor { NSEvent.removeMonitor(globalKeyMonitor) }
+        if let globalMouseMonitor { NSEvent.removeMonitor(globalMouseMonitor) }
         localMonitor = nil
-        globalMonitor = nil
+        globalKeyMonitor = nil
+        globalMouseMonitor = nil
         overlayWindows.forEach { $0.orderOut(nil) }
         overlayWindows.removeAll()
         dragStart = nil
         currentPoint = nil
-        isDragging = false
     }
 }
 
@@ -107,9 +136,10 @@ final class AreaOverlayWindow: NSWindow {
         )
         setFrame(screen.frame, display: false)
         isOpaque = false
-        backgroundColor = NSColor.black.withAlphaComponent(0.25)
+        backgroundColor = .clear
         level = .screenSaver
         ignoresMouseEvents = false
+        acceptsMouseMovedEvents = true
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
         contentView = AreaOverlayView()
         (contentView as? AreaOverlayView)?.overlayWindow = self
@@ -120,6 +150,7 @@ final class AreaOverlayView: NSView {
     weak var overlayWindow: AreaOverlayWindow?
     private var tracking: NSTrackingArea?
 
+    override var isFlipped: Bool { true }
     override var acceptsFirstResponder: Bool { true }
 
     override func updateTrackingAreas() {
@@ -127,7 +158,7 @@ final class AreaOverlayView: NSView {
         if let tracking { removeTrackingArea(tracking) }
         let area = NSTrackingArea(
             rect: bounds,
-            options: [.activeAlways, .mouseMoved, .enabledDuringMouseDrag, .inVisibleRect],
+            options: [.activeAlways, .mouseMoved, .enabledDuringMouseDrag, .inVisibleRect, .cursorUpdate],
             owner: self,
             userInfo: nil
         )
@@ -136,108 +167,149 @@ final class AreaOverlayView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        guard let controller = overlayWindow?.controller else { return }
-        let mouse = convertMouseToGlobal()
+        guard let controller = overlayWindow?.controller, let screen = overlayWindow?.screen else { return }
+        let mouseGlobal = controller.lastMouseGlobal
+        let mouseLocal = DisplayGeometry.flippedLocalPoint(cocoaGlobal: mouseGlobal, screen: screen)
+        let mouseOnThisScreen = screen.frame.contains(mouseGlobal)
 
-        NSColor.black.withAlphaComponent(0.35).setFill()
-        bounds.fill()
-
-        if let selection = controller.selectionRectGlobal(),
-           let window = overlayWindow,
-           let screen = window.screen {
-            let local = selection.offsetBy(dx: -screen.frame.origin.x, dy: -screen.frame.origin.y)
-            let flipped = CGRect(
-                x: local.origin.x,
-                y: bounds.height - local.origin.y - local.height,
-                width: local.width,
-                height: local.height
-            )
-            NSColor.clear.setFill()
-            flipped.fill(using: .copy)
+        if let selection = controller.selectionRectGlobal() {
+            let dimPath = NSBezierPath(rect: bounds)
+            let hole = DisplayGeometry.flippedLocalRect(cocoaGlobal: selection, screen: screen)
+            dimPath.append(NSBezierPath(rect: hole))
+            dimPath.windingRule = .evenOdd
+            NSColor.black.withAlphaComponent(0.45).setFill()
+            dimPath.fill()
 
             NSColor.systemBlue.setStroke()
-            let path = NSBezierPath(rect: flipped)
-            path.lineWidth = 2
-            path.stroke()
+            let border = NSBezierPath(roundedRect: hole, xRadius: 2, yRadius: 2)
+            border.lineWidth = 2
+            border.stroke()
 
             let label = "\(Int(selection.width)) × \(Int(selection.height))"
-            drawLabel(label, near: NSPoint(x: flipped.maxX + 8, y: flipped.maxY - 20))
+            drawLabel(label, near: labelPoint(for: hole))
+        } else {
+            NSColor.black.withAlphaComponent(0.28).setFill()
+            bounds.fill()
         }
 
-        drawCrosshair(at: convertGlobalToLocal(mouse))
+        if mouseOnThisScreen {
+            drawCrosshair(at: mouseLocal)
+            drawCursorLabel(at: mouseLocal, global: mouseGlobal, selection: controller.selectionRectGlobal())
+            drawMagnifier(at: mouseLocal, global: mouseGlobal)
+        }
     }
 
     override func mouseDown(with event: NSEvent) {
+        window?.makeKey()
         window?.makeFirstResponder(self)
-        overlayWindow?.controller?.beginDrag(at: convertMouseToGlobal())
+        overlayWindow?.controller?.beginDrag(at: NSEvent.mouseLocation)
     }
 
     override func mouseDragged(with event: NSEvent) {
-        let global = convertMouseToGlobal()
+        let global = NSEvent.mouseLocation
         if let start = overlayWindow?.controller?.dragStart {
-            overlayWindow?.controller?.updateSelection(start: start, current: global, dragging: true)
+            overlayWindow?.controller?.updateSelection(start: start, current: global)
         }
-        needsDisplay = true
     }
 
     override func mouseUp(with event: NSEvent) {
-        overlayWindow?.controller?.finishSelection(at: convertMouseToGlobal())
+        overlayWindow?.controller?.finishSelection(at: NSEvent.mouseLocation)
     }
 
     override func mouseMoved(with event: NSEvent) {
-        needsDisplay = true
+        overlayWindow?.controller?.noteMousePosition(NSEvent.mouseLocation)
     }
 
     override func rightMouseDown(with event: NSEvent) {
         overlayWindow?.controller?.cancel()
     }
 
-    private func convertMouseToGlobal() -> NSPoint {
-        let local = convert(eventLocation(), from: nil)
-        let windowPoint = convert(local, to: nil)
-        guard let screen = window?.screen else { return windowPoint }
-        return NSPoint(
-            x: windowPoint.x + screen.frame.origin.x,
-            y: windowPoint.y + screen.frame.origin.y
-        )
-    }
-
-    private func eventLocation() -> NSPoint {
-        window?.mouseLocationOutsideOfEventStream ?? .zero
-    }
-
-    private func convertGlobalToLocal(_ global: NSPoint) -> NSPoint {
-        guard let screen = window?.screen else { return global }
-        let windowPoint = NSPoint(
-            x: global.x - screen.frame.origin.x,
-            y: global.y - screen.frame.origin.y
-        )
-        return NSPoint(x: windowPoint.x, y: bounds.height - windowPoint.y)
-    }
-
     private func drawCrosshair(at point: NSPoint) {
-        NSColor.white.withAlphaComponent(0.9).setStroke()
-        let v = NSBezierPath()
-        v.move(to: NSPoint(x: point.x, y: 0))
-        v.line(to: NSPoint(x: point.x, y: bounds.height))
-        v.lineWidth = 1
-        v.stroke()
+        NSColor.white.withAlphaComponent(0.85).setStroke()
+        NSColor.black.withAlphaComponent(0.35).setStroke()
 
-        let h = NSBezierPath()
-        h.move(to: NSPoint(x: 0, y: point.y))
-        h.line(to: NSPoint(x: bounds.width, y: point.y))
-        h.lineWidth = 1
-        h.stroke()
+        let paths = [
+            (NSPoint(x: point.x, y: 0), NSPoint(x: point.x, y: bounds.height)),
+            (NSPoint(x: 0, y: point.y), NSPoint(x: bounds.width, y: point.y))
+        ]
+        for (start, end) in paths {
+            let shadow = NSBezierPath()
+            shadow.move(to: start)
+            shadow.line(to: end)
+            shadow.lineWidth = 1.5
+            shadow.stroke()
+
+            let line = NSBezierPath()
+            line.move(to: start)
+            line.line(to: end)
+            line.lineWidth = 1
+            NSColor.white.withAlphaComponent(0.9).setStroke()
+            line.stroke()
+        }
+    }
+
+    private func drawCursorLabel(at local: NSPoint, global: NSPoint, selection: CGRect?) {
+        let text: String
+        if let selection {
+            text = "\(Int(selection.width)) × \(Int(selection.height)) px"
+        } else {
+            text = "x: \(Int(global.x))  y: \(Int(global.y))"
+        }
+        let offset = NSPoint(x: local.x + 16, y: local.y + 16)
+        drawLabel(text, near: offset)
+    }
+
+    private func labelPoint(for rect: CGRect) -> NSPoint {
+        NSPoint(x: min(rect.maxX + 8, bounds.width - 120), y: max(rect.minY - 28, 8))
     }
 
     private func drawLabel(_ text: String, near point: NSPoint) {
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .medium),
-            .foregroundColor: NSColor.white,
-            .backgroundColor: NSColor.black.withAlphaComponent(0.65)
+            .foregroundColor: NSColor.white
         ]
         let size = (text as NSString).size(withAttributes: attributes)
-        let rect = CGRect(x: point.x, y: point.y, width: size.width + 8, height: size.height + 4)
-        (text as NSString).draw(in: rect.insetBy(dx: 4, dy: 2), withAttributes: attributes)
+        let rect = CGRect(x: point.x, y: point.y, width: size.width + 12, height: size.height + 8)
+        let bg = NSBezierPath(roundedRect: rect, xRadius: 6, yRadius: 6)
+        NSColor.black.withAlphaComponent(0.72).setFill()
+        bg.fill()
+        (text as NSString).draw(in: rect.insetBy(dx: 6, dy: 4), withAttributes: attributes)
+    }
+
+    private func drawMagnifier(at local: NSPoint, global: NSPoint) {
+        let loupeSize: CGFloat = 96
+        let zoom: CGFloat = 6
+        let sampleSize = loupeSize / zoom
+        guard let screen = overlayWindow?.screen else { return }
+
+        let sampleGlobal = CGRect(
+            x: global.x - sampleSize / 2,
+            y: global.y - sampleSize / 2,
+            width: sampleSize,
+            height: sampleSize
+        )
+        guard let cgImage = CGWindowListCreateImage(
+            sampleGlobal,
+            .optionOnScreenOnly,
+            kCGNullWindowID,
+            .bestResolution
+        ) else { return }
+
+        let loupeOrigin = NSPoint(
+            x: min(max(8, local.x + 20), bounds.width - loupeSize - 8),
+            y: min(max(8, local.y + 20), bounds.height - loupeSize - 8)
+        )
+        let loupeRect = CGRect(origin: loupeOrigin, size: CGSize(width: loupeSize, height: loupeSize))
+        let image = NSImage(cgImage: cgImage, size: NSSize(width: sampleSize, height: sampleSize))
+        NSGraphicsContext.saveGraphicsState()
+        let clip = NSBezierPath(roundedRect: loupeRect, xRadius: 8, yRadius: 8)
+        clip.addClip()
+        image.draw(in: loupeRect)
+        NSGraphicsContext.restoreGraphicsState()
+
+        NSColor.white.withAlphaComponent(0.9).setStroke()
+        let border = NSBezierPath(roundedRect: loupeRect, xRadius: 8, yRadius: 8)
+        border.lineWidth = 2
+        border.stroke()
     }
 }

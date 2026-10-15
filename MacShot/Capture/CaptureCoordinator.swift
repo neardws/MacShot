@@ -37,9 +37,7 @@ final class CaptureCoordinator {
             do {
                 let content = try await ScreenCaptureService.shared.shareableContent()
                 ScreenRecordingAccessCache.shared.lastKnownGranted = true
-                let appWindows = content.windows.filter { window in
-                    window.owningApplication?.bundleIdentifier != Bundle.main.bundleIdentifier
-                }
+                let appWindows = ShareableWindowFilter.pickableWindows(from: content)
                 windowSelection.begin(windows: appWindows)
             } catch {
                 await PermissionManager.handleCaptureFailure(error)

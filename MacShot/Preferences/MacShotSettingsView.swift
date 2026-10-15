@@ -111,6 +111,8 @@ private struct OutputSettingsPane: View {
 
     var body: some View {
         Form {
+            Toggle("Include window shadow in window capture", isOn: $settings.captureWindowWithShadow)
+
             HStack {
                 Text("Save folder")
                 Spacer()

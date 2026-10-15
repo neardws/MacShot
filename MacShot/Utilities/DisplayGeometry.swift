@@ -17,6 +17,23 @@ enum DisplayGeometry {
         )
     }
 
+    static func topLeftPoint(fromCocoaGlobal point: NSPoint) -> CGPoint {
+        CGPoint(x: point.x, y: virtualDesktopHeight - point.y)
+    }
+
+    /// View-local rect for an `NSView` with `isFlipped == true` filling a screen-sized overlay.
+    static func flippedLocalRect(cocoaGlobal rect: CGRect, screen: NSScreen) -> CGRect {
+        let x = rect.origin.x - screen.frame.origin.x
+        let flippedY = screen.frame.maxY - rect.origin.y - rect.height
+        return CGRect(x: x, y: flippedY, width: rect.width, height: rect.height)
+    }
+
+    static func flippedLocalPoint(cocoaGlobal point: NSPoint, screen: NSScreen) -> NSPoint {
+        let x = point.x - screen.frame.origin.x
+        let y = screen.frame.maxY - point.y
+        return NSPoint(x: x, y: y)
+    }
+
     /// Converts a rect in AppKit global coordinates (bottom-left origin) to a rect
     /// relative to the given screen's frame, still in bottom-left origin.
     static func rectInScreenSpace(globalRect: CGRect, screen: NSScreen) -> CGRect {

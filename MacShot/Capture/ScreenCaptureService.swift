@@ -50,6 +50,8 @@ final class ScreenCaptureService {
         config.width = Int(window.frame.width * scale)
         config.height = Int(window.frame.height * scale)
         config.showsCursor = true
+        let includeShadow = UserDefaults.standard.object(forKey: "captureWindowWithShadow") as? Bool ?? true
+        config.showsWindowShadow = includeShadow
         config.captureResolution = .best
         let cgImage = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
         return NSImage(cgImage: cgImage, size: NSSize(width: window.frame.width, height: window.frame.height))
