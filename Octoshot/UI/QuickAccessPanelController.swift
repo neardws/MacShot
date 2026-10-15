@@ -12,10 +12,11 @@ struct QuickAccessActions {
     var onClose: () -> Void
 }
 
-private struct QuickAccessEntry: Identifiable {
+private final class QuickAccessEntry: Identifiable {
     let id = UUID()
     let image: NSImage
     let actions: QuickAccessActions
+    let speculativeState = SpeculativeActionState()
 }
 
 @MainActor
@@ -29,10 +30,14 @@ final class QuickAccessPanelController: NSObject {
     private let maxStackCount = 6
 
     func show(image: NSImage, actions: QuickAccessActions) {
-        entries.insert(QuickAccessEntry(image: image, actions: actions), at: 0)
+        let entry = QuickAccessEntry(image: image, actions: actions)
+        entries.insert(entry, at: 0)
         if entries.count > maxStackCount {
+            let removed = entries.suffix(from: maxStackCount)
+            removed.forEach { SpeculativeCapturePipeline.shared.cancel(entryID: $0.id) }
             entries.removeLast(entries.count - maxStackCount)
         }
+        SpeculativeCapturePipeline.shared.start(entryID: entry.id, image: image, state: entry.speculativeState)
         rebuildPanel()
         scheduleAutoCloseIfNeeded()
     }
@@ -40,12 +45,14 @@ final class QuickAccessPanelController: NSObject {
     func closePanel() {
         autoCloseTimer?.invalidate()
         autoCloseTimer = nil
+        SpeculativeCapturePipeline.shared.cancelAll()
         entries.removeAll()
         panel?.orderOut(nil)
         panel = nil
     }
 
     private func removeEntry(id: UUID) {
+        SpeculativeCapturePipeline.shared.cancel(entryID: id)
         entries.removeAll { $0.id == id }
         if entries.isEmpty {
             closePanel()
@@ -54,18 +61,27 @@ final class QuickAccessPanelController: NSObject {
         }
     }
 
+    private func cancelSpeculative(for entry: QuickAccessEntry) {
+        SpeculativeCapturePipeline.shared.cancel(entryID: entry.id)
+        entry.speculativeState.workTask?.cancel()
+        entry.speculativeState.phase = .hidden
+    }
+
     private func rebuildPanel() {
         let root = QuickAccessStackView(
             entries: entries,
             maxThumbWidth: maxThumbWidth,
             maxThumbHeight: maxThumbHeight,
-            onDismissEntry: { [weak self] id in self?.removeEntry(id: id) }
+            onDismissEntry: { [weak self] id in self?.removeEntry(id: id) },
+            onUserChoseAlternateAction: { [weak self] entry in
+                self?.cancelSpeculative(for: entry)
+            }
         )
 
         let hosting = NSHostingView(rootView: root)
         let fitting = hosting.fittingSize
         let size = NSSize(
-            width: min(max(fitting.width, 120), maxThumbWidth + 32),
+            width: min(max(fitting.width, 160), maxThumbWidth + 48),
             height: fitting.height
         )
 
@@ -144,19 +160,20 @@ private struct QuickAccessStackView: View {
     let maxThumbWidth: CGFloat
     let maxThumbHeight: CGFloat
     let onDismissEntry: (UUID) -> Void
+    let onUserChoseAlternateAction: (QuickAccessEntry) -> Void
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 10) {
             ForEach(entries) { entry in
                 QuickAccessCard(
-                    image: entry.image,
+                    entry: entry,
                     thumbSize: QuickAccessPanelController.aspectFitSize(
                         for: entry.image,
                         maxWidth: maxThumbWidth,
                         maxHeight: maxThumbHeight
                     ),
-                    actions: entry.actions,
-                    onClose: { onDismissEntry(entry.id) }
+                    onClose: { onDismissEntry(entry.id) },
+                    onAlternateAction: { onUserChoseAlternateAction(entry) }
                 )
             }
         }
@@ -165,44 +182,138 @@ private struct QuickAccessStackView: View {
 }
 
 private struct QuickAccessCard: View {
-    let image: NSImage
+    @ObservedObject var speculativeState: SpeculativeActionState
+    let entry: QuickAccessEntry
     let thumbSize: NSSize
-    let actions: QuickAccessActions
     let onClose: () -> Void
+    let onAlternateAction: () -> Void
     @State private var isHovering = false
 
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            DraggableThumbnailView(image: image, size: thumbSize)
-                .frame(width: thumbSize.width, height: thumbSize.height)
-                .background(Color.black.opacity(0.15))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+    init(
+        entry: QuickAccessEntry,
+        thumbSize: NSSize,
+        onClose: @escaping () -> Void,
+        onAlternateAction: @escaping () -> Void
+    ) {
+        self.entry = entry
+        self.speculativeState = entry.speculativeState
+        self.thumbSize = thumbSize
+        self.onClose = onClose
+        self.onAlternateAction = onAlternateAction
+    }
 
-            if isHovering {
-                HStack(spacing: 8) {
-                    QuickAccessButton(symbol: "doc.on.doc", help: "Copy", action: actions.onCopy)
-                    QuickAccessButton(symbol: "square.and.arrow.down", help: "Save", action: actions.onSave)
-                    QuickAccessButton(symbol: "pencil.tip.crop.circle", help: "Annotate", action: actions.onAnnotate)
-                    if let onAskAI = actions.onAskAI {
-                        QuickAccessButton(symbol: "brain", help: "Ask AI", action: onAskAI)
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 8) {
+            SpeculativePrimaryButton(
+                phase: speculativeState.phase,
+                onApply: { applySpeculativeResult() }
+            )
+
+            ZStack(alignment: .bottom) {
+                DraggableThumbnailView(image: entry.image, size: thumbSize)
+                    .frame(width: thumbSize.width, height: thumbSize.height)
+                    .background(Color.black.opacity(0.15))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+
+                if isHovering {
+                    HStack(spacing: 8) {
+                        QuickAccessButton(symbol: "doc.on.doc", help: "Copy", action: wrapAlternate(entry.actions.onCopy))
+                        QuickAccessButton(symbol: "square.and.arrow.down", help: "Save", action: wrapAlternate(entry.actions.onSave))
+                        QuickAccessButton(symbol: "pencil.tip.crop.circle", help: "Annotate", action: wrapAlternate(entry.actions.onAnnotate))
+                        if let onAskAI = entry.actions.onAskAI {
+                            QuickAccessButton(symbol: "brain", help: "Ask AI", action: wrapAlternate(onAskAI))
+                        }
+                        if let onCopyMarkdown = entry.actions.onCopyMarkdown {
+                            QuickAccessButton(symbol: "doc.richtext", help: "Copy Markdown", action: wrapAlternate(onCopyMarkdown))
+                        }
+                        if let onCopyPath = entry.actions.onCopyPath {
+                            QuickAccessButton(symbol: "link", help: "Copy file path", action: wrapAlternate(onCopyPath))
+                        }
+                        QuickAccessButton(symbol: "xmark", help: "Close", action: onClose)
                     }
-                    if let onCopyMarkdown = actions.onCopyMarkdown {
-                        QuickAccessButton(symbol: "doc.richtext", help: "Copy Markdown", action: onCopyMarkdown)
-                    }
-                    if let onCopyPath = actions.onCopyPath {
-                        QuickAccessButton(symbol: "link", help: "Copy file path", action: onCopyPath)
-                    }
-                    QuickAccessButton(symbol: "xmark", help: "Close", action: onClose)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 8)
+                    .background(.ultraThinMaterial, in: Capsule())
+                    .padding(.bottom, 8)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 8)
-                .background(.ultraThinMaterial, in: Capsule())
-                .padding(.bottom, 8)
             }
         }
         .onHover { isHovering = $0 }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
+    }
+
+    private func wrapAlternate(_ action: @escaping () -> Void) -> () -> Void {
+        {
+            onAlternateAction()
+            action()
+        }
+    }
+
+    private func applySpeculativeResult() {
+        guard case .ready(_, let result) = speculativeState.phase else { return }
+        switch result {
+        case .latex(let text), .tableMarkdown(let text), .codeText(let text):
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+        case .redactedImage(let image):
+            ImageFormats.copyToPasteboard(image)
+        }
+        onAlternateAction()
+        speculativeState.phase = .hidden
+    }
+}
+
+private struct SpeculativePrimaryButton: View {
+    let phase: SpeculativeActionState.Phase
+    let onApply: () -> Void
+
+    var body: some View {
+        switch phase {
+        case .hidden:
+            EmptyView()
+        case .classifying:
+            pill(label: "Analyzing…", systemImage: "sparkles", progress: true, enabled: false)
+        case .running(let kind, let detail):
+            pill(label: detail, systemImage: kind.systemImage, progress: true, enabled: false)
+        case .ready(let kind, _):
+            Button(action: onApply) {
+                pillContent(label: "Apply \(kind.displayName)", systemImage: kind.systemImage, progress: false)
+            }
+            .buttonStyle(.plain)
+        case .suggestionOnly(let kind, let reason):
+            pill(label: "\(kind.displayName) — \(reason)", systemImage: kind.systemImage, progress: false, enabled: false)
+                .opacity(0.75)
+        case .failed(let message):
+            pill(label: message, systemImage: "exclamationmark.triangle", progress: false, enabled: false)
+                .foregroundStyle(.orange)
+        }
+    }
+
+    @ViewBuilder
+    private func pill(label: String, systemImage: String, progress: Bool, enabled: Bool) -> some View {
+        HStack(spacing: 8) {
+            pillContent(label: label, systemImage: systemImage, progress: progress)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.ultraThickMaterial, in: Capsule())
+        .opacity(enabled ? 1 : 0.95)
+    }
+
+    private func pillContent(label: String, systemImage: String, progress: Bool) -> some View {
+        HStack(spacing: 8) {
+            if progress {
+                ProgressView()
+                    .controlSize(.small)
+            } else {
+                Image(systemName: systemImage)
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            Text(label)
+                .font(.system(size: 12, weight: .semibold))
+                .lineLimit(1)
+        }
     }
 }
 
