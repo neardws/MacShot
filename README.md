@@ -10,10 +10,11 @@ MacShot 是一款受 CleanShot X 启发的原生 macOS 截图应用，使用 Swi
 - Area selection overlay with crosshair and size readout, ESC to cancel, multi-display support
 - Quick-access floating thumbnail (corner placement) with copy, save, annotate, close, and drag-out
 - Annotation window: arrow, rectangle, text, pixelate, undo, save/copy
-- Preferences: save folder, hotkeys, PNG/JPEG format, quick-access corner
+- Settings window (⌘,): General, Shortcuts, Output, Quick Access, Permissions, About
+- Custom app icon and template menu bar icon
 - Screen Recording permission prompts and link to System Settings
 
-**默认快捷键（可在偏好设置中修改）**
+**默认快捷键（可在「Shortcuts」设置中修改）**
 
 | Action | Default |
 |--------|---------|
