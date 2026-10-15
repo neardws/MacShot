@@ -9,7 +9,7 @@ enum EmbeddedAIFriendlyErrors {
                 return "\(embedded.localizedDescription) Tap Download in Settings → AI."
             case .inferenceUnavailableInThisBuild:
                 return """
-                On-device MLX inference is not linked in this build. Add the mlx-swift-lm package (MLXVLM) in Xcode, or enable Ollama fallback in Settings → AI.
+                On-device MLX inference is disabled in this build (EMBEDDED_MLX=0). Use a release build with EMBEDDED_MLX=1, or enable Ollama fallback in Settings → AI.
                 """
             case .specialistFailed(let detail):
                 return detail

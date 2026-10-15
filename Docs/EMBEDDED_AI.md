@@ -11,25 +11,23 @@ Weights are **never** bundled in the app; use **Settings → AI** or onboarding 
 
 ## MLX (SmolVLM2)
 
-1. In Xcode: **File → Add Package Dependencies** → `https://github.com/ml-explore/mlx-swift-lm`
-2. Link products **MLXVLM** and **MLXLMCommon** to the **Octoshot** target.
-3. Build and run; download SmolVLM2 in Settings → AI.
+`project.yml` pins **[mlx-swift-lm 2.29.3](https://github.com/ml-explore/mlx-swift-lm)** and links **MLXVLM** + **MLXLMCommon** into the **Octoshot** app target.
 
-Without the package, the app still downloads models but inference returns a clear error unless Ollama fallback is enabled.
+`Config/EmbeddedAI.xcconfig` sets `EMBEDDED_MLX=1` (adds Swift condition `EMBEDDED_MLX`). Set `EMBEDDED_MLX=0` and remove `EMBEDDED_MLX` from `SWIFT_ACTIVE_COMPILATION_CONDITIONS` in `xcodebuild` if you need a stub MLX build (CI fallback).
+
+Inference loads weights from Application Support via `VLMModelFactory.shared.loadContainer(configuration: ModelConfiguration(directory: …))`.
 
 ## pix2tex (llama.cpp mtmd)
 
-Install a multimodal `llama-mtmd-cli` build (e.g. from [llama.cpp](https://github.com/ggml-org/llama.cpp)) and place it at:
-
-`~/Library/Application Support/Octoshot/bin/llama-mtmd-cli`
-
-or on your PATH via Homebrew. Download the pix2tex GGUF in Settings → AI.
+- **Bundled**: `Scripts/fetch-llama-mtmd.sh` (pinned `b11514`) runs in CI and dev builds; `llama-mtmd-cli` is copied to `Octoshot.app/Contents/Helpers/`.
+- **First use**: if the helper is missing, `LaTeXEngineInstaller` downloads the same release into `~/Library/Application Support/Octoshot/bin/` (no Homebrew).
 
 ## Licenses
 
 - Octoshot app: **MIT**
-- SmolVLM2 weights: **Apache-2.0** (see model card on Hugging Face)
-- pix2tex-mfr GGUF: **MIT** (cstr)
+- SmolVLM2 weights: **Apache-2.0**
+- pix2tex-mfr GGUF: **MIT**
 - mlx-swift-lm: **Apache-2.0**
+- llama.cpp binaries: **MIT**
 
 See **Settings → About** for a short attribution blurb.

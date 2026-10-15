@@ -30,6 +30,23 @@ struct SettingsAIPane: View {
                 Toggle("Use on-device vision model (SmolVLM2)", isOn: $settings.embeddedAIUseOnDeviceVLM)
                 modelRow(.smolVLM2_500M_4bit)
                 modelRow(.pix2texMFR_Q4)
+                HStack {
+                    Text("LaTeX runtime (llama-mtmd-cli)")
+                    Spacer()
+                    if Pix2TexLlamaRunner.llamaMtmdCLI() != nil {
+                        Text("Ready").foregroundStyle(.green).font(.caption)
+                    } else {
+                        Button("Install") {
+                            Task {
+                                do {
+                                    _ = try await LaTeXEngineInstaller.shared.ensureCLI()
+                                } catch {
+                                    downloadStatus[.pix2texMFR_Q4] = error.localizedDescription
+                                }
+                            }
+                        }
+                    }
+                }
                 Text("Weights download to \(EmbeddedAIModelPaths.modelsRoot().path) and are never bundled in the app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)

@@ -18,6 +18,9 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      - name: Fetch llama-mtmd-cli
+        run: bash Scripts/fetch-llama-mtmd.sh build/llama-mtmd
+
       - name: Build Octoshot
         run: |
           set -o pipefail
@@ -59,3 +62,8 @@ jobs:
           test -x "$CLI"
           "$CLI" --help
           echo "Verified: $CLI --help"
+          MTMD="$APP_PATH/Contents/Helpers/llama-mtmd-cli"
+          if [ -x "$MTMD" ]; then
+            "$MTMD" --help >/dev/null 2>&1 || true
+            echo "Verified: bundled llama-mtmd-cli"
+          fi

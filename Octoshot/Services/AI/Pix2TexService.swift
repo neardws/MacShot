@@ -8,7 +8,7 @@ final class Pix2TexService: EmbeddedLaTeXBackend, @unchecked Sendable {
     private init() {}
 
     func isReady() -> Bool {
-        EmbeddedAIModelPaths.isInstalled(.pix2texMFR_Q4) && Pix2TexLlamaRunner.llamaMtmdCLI() != nil
+        EmbeddedAIModelPaths.isInstalled(.pix2texMFR_Q4)
     }
 
     func toLaTeX(image: NSImage) async throws -> String {

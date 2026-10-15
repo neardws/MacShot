@@ -13,6 +13,10 @@ options:
 configs:
   Debug: debug
   Release: release
+packages:
+  mlx-swift-lm:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    from: 2.29.3
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
@@ -74,6 +78,10 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
+      - package: mlx-swift-lm
+        product: MLXVLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
@@ -91,6 +99,22 @@ targets:
           mkdir -p "$HELPERS_DIR"
           cp "$CLI_SRC" "$CLI_DST"
           chmod +x "$CLI_DST"
+        basedOnDependencyAnalysis: false
+      - name: Embed llama-mtmd-cli in app bundle
+        script: |
+          set -euo pipefail
+          HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          mkdir -p "$HELPERS_DIR"
+          SRC_DIR="${PROJECT_DIR}/build/llama-mtmd/bin"
+          if [ ! -x "${SRC_DIR}/llama-mtmd-cli" ]; then
+            echo "warning: llama-mtmd-cli not found at ${SRC_DIR}/llama-mtmd-cli (run Scripts/fetch-llama-mtmd.sh)"
+            exit 0
+          fi
+          cp -f "${SRC_DIR}/llama-mtmd-cli" "${HELPERS_DIR}/llama-mtmd-cli"
+          chmod +x "${HELPERS_DIR}/llama-mtmd-cli"
+          for lib in "${SRC_DIR}"/*.dylib; do
+            [ -f "$lib" ] && cp -f "$lib" "${HELPERS_DIR}/"
+          done
         basedOnDependencyAnalysis: false
     settings:
       PRODUCT_NAME: Octoshot

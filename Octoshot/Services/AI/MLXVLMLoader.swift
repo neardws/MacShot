@@ -2,33 +2,34 @@ import AppKit
 import Foundation
 import OctoshotCore
 
-#if canImport(MLXVLM) && canImport(MLXLMCommon)
+#if EMBEDDED_MLX
 import MLXVLM
 import MLXLMCommon
 #endif
 
 /// Loads SmolVLM2 from `~/Library/Application Support/Octoshot/Models/`.
+@MainActor
 enum MLXVLMLoader {
     static let shared = Loader()
 
-    final class Loader: @unchecked Sendable {
-        #if canImport(MLXVLM) && canImport(MLXLMCommon)
+    final class Loader {
+        #if EMBEDDED_MLX
         private var session: ChatSession?
         private var loadTask: Task<Void, Error>?
         #endif
 
         func respond(prompt: String, image: NSImage) async throws -> String {
-            #if canImport(MLXVLM) && canImport(MLXLMCommon)
+            #if EMBEDDED_MLX
             try await ensureLoaded()
             guard let session else { throw EmbeddedAIError.backendMissing }
-            let imageInput = try writeTempPNG(image)
-            return try await session.respond(to: prompt, image: .url(imageInput))
+            let imageURL = try writeTempPNG(image)
+            return try await session.respond(to: prompt, image: .url(imageURL))
             #else
             throw EmbeddedAIError.inferenceUnavailableInThisBuild
             #endif
         }
 
-        #if canImport(MLXVLM) && canImport(MLXLMCommon)
+        #if EMBEDDED_MLX
         private func ensureLoaded() async throws {
             if session != nil { return }
             if let loadTask {
@@ -38,8 +39,8 @@ enum MLXVLMLoader {
             let task = Task { @MainActor in
                 let directory = EmbeddedAIModelPaths.directory(for: .smolVLM2_500M_4bit)
                 let configuration = ModelConfiguration(directory: directory)
-                let model = try await loadModel(configuration: configuration)
-                self.session = ChatSession(model)
+                let container = try await VLMModelFactory.shared.loadContainer(configuration: configuration)
+                self.session = ChatSession(container)
             }
             loadTask = task
             try await task.value
