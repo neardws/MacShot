@@ -68,7 +68,7 @@ final class SpeculativeCapturePipeline {
 
         guard classification.confidence >= settings.speculativeConfidenceThreshold else {
             state.phase = .suggestionOnly(
-                classification.kind,
+                kind: classification.kind,
                 reason: "Low confidence (\(Int(classification.confidence * 100))%)"
             )
             ClassificationLog.append(classification, speculativeStarted: false)
@@ -120,7 +120,7 @@ final class SpeculativeCapturePipeline {
     private func performLaTeX(image: NSImage, state: SpeculativeActionState) async throws -> SpeculativeResult {
         state.phase = .running(kind: .formula, detail: "Converting to LaTeX…")
         guard await OllamaService.isReachable() else {
-            state.phase = .suggestionOnly(.formula, reason: "Ollama not available")
+            state.phase = .suggestionOnly(kind: .formula, reason: "Ollama not available")
             throw CancellationError()
         }
         let client = OpenAICompatibleClient.fromSettings()
@@ -133,7 +133,7 @@ final class SpeculativeCapturePipeline {
     private func performTable(image: NSImage, state: SpeculativeActionState) async throws -> SpeculativeResult {
         state.phase = .running(kind: .table, detail: "Extracting table…")
         guard await OllamaService.isReachable() else {
-            state.phase = .suggestionOnly(.table, reason: "Ollama not available")
+            state.phase = .suggestionOnly(kind: .table, reason: "Ollama not available")
             throw CancellationError()
         }
         let markdown = try await AgentProcessing.extractTable(image: image)
