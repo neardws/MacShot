@@ -9,7 +9,11 @@
 - **区域 / 窗口 / 全屏**截图与全局快捷键
 - **快速访问**浮层缩略图：复制、保存、标注、关闭、拖出
 - **标注**窗口：箭头、矩形、文字、马赛克、撤销、复制/保存
-- **设置**：通用、快捷键、输出、快速访问、权限、关于等
+- **设置**（侧边栏）：通用、快捷键、捕获、标注、AI、开发者（含 Agent/CLI）、关于；版本号显示在侧栏底部
+- **首次运行引导**：屏幕录制、快捷键接管、Ollama 可选配置
+- **菜单栏**：捕获项旁显示快捷键、最近截图、打开保存文件夹、Clips 库
+- **本机 AI**：设置中检测 Ollama、列出模型、一键拉取 `qwen2.5vl`；LaTeX / 表格流程在模型不可用时给出友好提示
+- **系统截图快捷键**：读取 `symbolichotkeys.plist`，支持用 ⌘⇧3/4/5 接管并引导关闭系统快捷键
 
 ## 路线图
 
@@ -33,7 +37,7 @@
 
 **Cursor / Claude Code MCP 配置示例**（路径请改为你本机构建产物）：
 
-在 Octoshot **设置 → Agent** 中点击 **Install Command Line Tool**，将 `octoshot` 安装到 `/usr/local/bin/octoshot`（符号链接到 `Octoshot.app/Contents/Helpers/octoshot`，避免与 `MacOS/Octoshot` 主程序在大小写不敏感磁盘上冲突）。
+在 Octoshot **设置 → Developer** 中点击 **Install Command Line Tool**，将 `octoshot` 安装到 `/usr/local/bin/octoshot`（符号链接到 `Octoshot.app/Contents/Helpers/octoshot`，避免与 `MacOS/Octoshot` 主程序在大小写不敏感磁盘上冲突）。
 
 ```json
 {
@@ -74,8 +78,9 @@ open Octoshot.xcodeproj
 
 ```bash
 xcodegen generate
-xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
-xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
+DERIVED="$PWD/.derivedData"
+xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot -configuration Debug build
+xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 
 首次使用请在 **系统设置 → 隐私与安全性 → 屏幕录制** 中允许 Octoshot（简体系统列表中可能显示为 **章鱼君**）。
@@ -116,7 +121,11 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 - **Area, window, and fullscreen** capture with global hotkeys
 - **Quick access** floating thumbnail: copy, save, annotate, close, drag-out
 - **Annotate** window: arrow, rectangle, text, pixelate, undo, copy/save
-- **Settings**: General, Shortcuts, Output, Quick Access, Permissions, About, and more
+- **Settings** sidebar: General, Shortcuts, Capture, Annotation, AI, Developer (Agent/CLI), About — version in the sidebar footer
+- **First-run onboarding**: Screen Recording, shortcut takeover, optional Ollama setup
+- **Menu bar**: shortcuts beside capture actions, recent files, open save folder, Clips library browser
+- **Local AI**: Ollama discovery, model list, pull `qwen2.5vl`; friendly errors when the vision model is missing
+- **macOS screenshot hotkeys**: reads `symbolichotkeys.plist`, optional ⌘⇧3/4/5 takeover with Keyboard settings guidance
 
 ## Roadmap
 
@@ -138,7 +147,7 @@ Planned or in-progress work is tracked in GitHub issues:
 
 Build the **`octoshot`** CLI and run **`octoshot mcp`** for a stdio MCP server. Shared logic lives in the **`OctoshotCore`** framework (used by the app, CLI, and MCP). Local-only by default; requires Screen Recording permission.
 
-Use **Settings → Agent → Install Command Line Tool** to install `octoshot` at `/usr/local/bin/octoshot` (symlink to the CLI embedded in `Octoshot.app`).
+Use **Settings → Developer → Install Command Line Tool** to install `octoshot` at `/usr/local/bin/octoshot` (symlink to `Octoshot.app/Contents/Helpers/octoshot`).
 
 **Cursor / Claude Code** (`mcp.json`):
 
@@ -177,8 +186,9 @@ Signing: default team in `Config/Signing.xcconfig` (see `.sample` for overrides)
 
 ```bash
 xcodegen generate
-xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
-xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
+DERIVED="$PWD/.derivedData"
+xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot -configuration Debug build
+xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 
 Grant **Screen Recording** under **System Settings → Privacy & Security** on first run (may appear as **章鱼君** in Chinese locales).

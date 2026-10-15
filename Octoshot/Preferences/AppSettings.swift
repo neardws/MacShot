@@ -34,9 +34,9 @@ struct HotkeyBinding: Codable, Equatable {
     var keyCode: UInt32
     var modifiers: UInt32
 
-    static let areaDefault = HotkeyBinding(keyCode: 21, modifiers: UInt32(cmdKey | shiftKey)) // ⌘⇧5
-    static let windowDefault = HotkeyBinding(keyCode: 23, modifiers: UInt32(cmdKey | shiftKey)) // ⌘⇧6
-    static let fullscreenDefault = HotkeyBinding(keyCode: 22, modifiers: UInt32(cmdKey | shiftKey)) // ⌘⇧7
+    static let areaDefault = HotkeyBinding.systemAreaCapture // ⌘⇧4
+    static let windowDefault = HotkeyBinding.systemScreenshotOptions // ⌘⇧5
+    static let fullscreenDefault = HotkeyBinding.systemFullscreenCapture // ⌘⇧3
 }
 
 extension Notification.Name {

@@ -55,7 +55,7 @@ final class AIAssistantModel: ObservableObject {
                     output += chunk
                 }
             } catch {
-                errorMessage = error.localizedDescription
+                errorMessage = OllamaService.friendlyAIError(error, model: AppSettings.shared.aiVisionModel)
             }
             isStreaming = false
         }

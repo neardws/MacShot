@@ -25,11 +25,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: .octoshotMenuBarVisibilityDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(rebuildMenu),
+            name: .octoshotRecentCapturesDidChange,
+            object: nil
+        )
 
         PermissionManager.installActivationRefresh()
         Task {
             try? await Task.sleep(nanoseconds: 500_000_000)
-            await PermissionManager.presentInitialGuidanceIfNeeded()
+            if !OnboardingStore.isComplete {
+                OnboardingPresenter.presentIfNeeded()
+            } else {
+                await PermissionManager.presentInitialGuidanceIfNeeded()
+            }
         }
     }
 
@@ -49,21 +59,56 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         rebuildMenu()
     }
 
-    private func rebuildMenu() {
+    @objc private func rebuildMenu() {
+        let settings = AppSettings.shared
         let menu = NSMenu()
-        menu.addItem(menuItem("Capture Area", action: #selector(captureArea)))
-        menu.addItem(menuItem("Capture Window", action: #selector(captureWindow)))
-        menu.addItem(menuItem("Capture Fullscreen", action: #selector(captureFullscreen)))
+
+        menu.addItem(captureItem("Capture Area", shortcut: settings.hotkeyArea, action: #selector(captureArea)))
+        menu.addItem(captureItem("Capture Window", shortcut: settings.hotkeyWindow, action: #selector(captureWindow)))
+        menu.addItem(captureItem("Capture Fullscreen", shortcut: settings.hotkeyFullscreen, action: #selector(captureFullscreen)))
         menu.addItem(.separator())
+
         menu.addItem(menuItem("Capture Formula (LaTeX)…", action: #selector(captureLaTeX)))
         menu.addItem(menuItem("Capture Figure / Table to Clips…", action: #selector(capturePaperClip)))
         menu.addItem(.separator())
+
+        let recents = RecentCapturesStore.recentURLs()
+        if !recents.isEmpty {
+            let recentMenu = NSMenu()
+            for url in recents {
+                let item = NSMenuItem(title: url.lastPathComponent, action: #selector(openRecentCapture(_:)), keyEquivalent: "")
+                item.target = self
+                item.representedObject = url
+                recentMenu.addItem(item)
+            }
+            let recentParent = NSMenuItem(title: "Recent Captures", action: nil, keyEquivalent: "")
+            recentParent.submenu = recentMenu
+            menu.addItem(recentParent)
+        }
+
+        menu.addItem(menuItem("Open Screenshots Folder", action: #selector(openScreenshotsFolder)))
+        menu.addItem(menuItem("Clips Library…", action: #selector(openClipsBrowser)))
+        menu.addItem(.separator())
+
         let settingsItem = menuItem("Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = .command
         menu.addItem(settingsItem)
+
+        let versionItem = NSMenuItem(title: "Version \(AppVersion.display)", action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+
         menu.addItem(.separator())
         menu.addItem(menuItem("Quit Octoshot", action: #selector(quit), keyEquivalent: "q"))
+
         statusItem?.menu = menu
+    }
+
+    private func captureItem(_ title: String, shortcut: HotkeyBinding, action: Selector) -> NSMenuItem {
+        let shortcutLabel = HotkeyFormatter.displayString(for: shortcut)
+        let item = NSMenuItem(title: "\(title)  \(shortcutLabel)", action: action, keyEquivalent: "")
+        item.target = self
+        return item
     }
 
     private func updateStatusItemImage() {
@@ -104,6 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func handleHotkeysChanged() {
         reregisterHotkeys()
+        rebuildMenu()
     }
 
     @objc private func handleMenuBarVisibilityChanged() {
@@ -128,6 +174,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func capturePaperClip() {
         FeatureCoordinator.shared.startPaperClipAreaCapture()
+    }
+
+    @objc private func openRecentCapture(_ sender: NSMenuItem) {
+        guard let url = sender.representedObject as? URL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
+    @objc private func openScreenshotsFolder() {
+        NSWorkspace.shared.open(AppSettings.shared.saveDirectory)
+    }
+
+    @objc private func openClipsBrowser() {
+        ClipsBrowserWindowController.shared.show()
     }
 
     private func reregisterHotkeys() {
