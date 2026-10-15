@@ -11,17 +11,11 @@ final class LaTeXEngineInstaller {
 
     private init() {}
 
-    static var applicationSupportCLI: URL {
-        EmbeddedAIModelPaths.modelsRoot()
-            .deletingLastPathComponent()
-            .appendingPathComponent("bin/llama-mtmd-cli", isDirectory: false)
-    }
-
     func ensureCLI() async throws -> URL {
         if let bundled = Pix2TexLlamaRunner.bundledCLI(), FileManager.default.isExecutableFile(atPath: bundled.path) {
             return bundled
         }
-        let dest = Self.applicationSupportCLI
+        let dest = EmbeddedAIModelPaths.latexEngineCLI
         if FileManager.default.isExecutableFile(atPath: dest.path) {
             return dest
         }

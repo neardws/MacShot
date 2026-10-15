@@ -170,9 +170,9 @@ MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, 
 
 ### Embedded AI (SmolVLM2 + pix2tex)
 
-- **Vision**: `mlx-community/SmolVLM2-500M-Video-Instruct-mlx-4bit` via [mlx-swift-lm](https://github.com/ml-explore/mlx-swift-lm) (`MLXVLM`) when the package is linked in Xcode.
-- **LaTeX**: `cstr/pix2tex-mfr-gguf` (`pix2tex-mfr-Q4_K.gguf`) through `llama-mtmd-cli` (Homebrew llama.cpp or `~/Library/Application Support/Octoshot/bin/`).
-- **CI** does not download weights; unit tests only validate paths/catalog. Add SPM dependency `mlx-swift-lm` locally for full on-device inference.
+- **Vision**: `mlx-community/SmolVLM2-500M-Video-Instruct-mlx-4bit` via pinned [mlx-swift-lm 2.29.3](https://github.com/ml-explore/mlx-swift-lm) (`MLXVLM` + `MLXLMCommon` in `project.yml`).
+- **LaTeX**: `cstr/pix2tex-mfr-gguf` via bundled or auto-downloaded `llama-mtmd-cli` (`Scripts/fetch-llama-mtmd.sh`, Application Support fallback).
+- **CI** does not download ML weights; builds MLX on macOS Apple Silicon when `EMBEDDED_MLX=1` (see `Config/EmbeddedAI.xcconfig`).
 
 ## Requirements
 

@@ -52,6 +52,12 @@ public enum EmbeddedAIModelPaths {
         return support.appendingPathComponent("Octoshot/Models", isDirectory: true)
     }
 
+    public static var latexEngineCLI: URL {
+        modelsRoot()
+            .deletingLastPathComponent()
+            .appendingPathComponent("bin/llama-mtmd-cli", isDirectory: false)
+    }
+
     public static func directory(for model: EmbeddedModelID) -> URL {
         modelsRoot().appendingPathComponent(model.rawValue, isDirectory: true)
     }

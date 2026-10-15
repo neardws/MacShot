@@ -17,7 +17,7 @@ enum Pix2TexLlamaRunner {
 
     static func llamaMtmdCLI() -> URL? {
         if let bundled = bundledCLI() { return bundled }
-        let appSupport = LaTeXEngineInstaller.applicationSupportCLI
+        let appSupport = EmbeddedAIModelPaths.latexEngineCLI
         if FileManager.default.isExecutableFile(atPath: appSupport.path) {
             return appSupport
         }
