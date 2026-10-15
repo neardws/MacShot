@@ -10,11 +10,15 @@ options:
     - en
     - Base
     - zh-Hans
+configs:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
 settings:
   base:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: YNQ2233752
+    CODE_SIGN_STYLE: Automatic
 targets:
   OctoshotCore:
     type: framework
@@ -26,6 +30,7 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotCore
       GENERATE_INFOPLIST_FILE: YES
       DEFINES_MODULE: YES
+      MACH_O_TYPE: staticlib
       SKIP_INSTALL: YES
 
   octoshot:
@@ -39,6 +44,13 @@ targets:
       PRODUCT_NAME: octoshot
       PRODUCT_BUNDLE_IDENTIFIER: com.neardws.octoshot-cli
       GENERATE_INFOPLIST_FILE: YES
+      LD_RUNPATH_SEARCH_PATHS:
+        - $(inherited)
+        - "@executable_path"
+        - "@executable_path/../Frameworks"
+        - "@executable_path/.."
+        - "@loader_path"
+        - "@loader_path/../Frameworks"
 
   Octoshot:
     type: application
@@ -49,17 +61,33 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
+      - target: octoshot
+    postBuildScripts:
+      - name: Embed octoshot CLI in app bundle
+        script: |
+          set -e
+          CLI_SRC="${BUILD_DIR}/${CONFIGURATION}/octoshot"
+          CLI_DST="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/MacOS/octoshot"
+          if [ ! -f "$CLI_SRC" ]; then
+            echo "warning: octoshot binary not found at $CLI_SRC"
+            exit 0
+          fi
+          cp "$CLI_SRC" "$CLI_DST"
+          chmod +x "$CLI_DST"
+        basedOnDependencyAnalysis: false
     settings:
       PRODUCT_NAME: Octoshot
       PRODUCT_BUNDLE_IDENTIFIER: com.neardws.Octoshot
       INFOPLIST_FILE: Octoshot/Info.plist
       CODE_SIGN_ENTITLEMENTS: Octoshot/Octoshot.entitlements
       ENABLE_HARDENED_RUNTIME: YES
-      CODE_SIGN_STYLE: Automatic
       ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       COMBINE_HIDPI_IMAGES: YES
       CURRENT_PROJECT_VERSION: 1
       MARKETING_VERSION: 0.1.0
+      LD_RUNPATH_SEARCH_PATHS:
+        - $(inherited)
+        - "@executable_path/../Frameworks"
     scheme:
       gatherCoverageData: false
       testTargets: []

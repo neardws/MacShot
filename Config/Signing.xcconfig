@@ -1,0 +1,3 @@
+// Default signing team for local Release/Debug builds (not a secret).
+// Override by editing this file or replacing with your own xcconfig (see .sample).
+DEVELOPMENT_TEAM = YNQ2233752

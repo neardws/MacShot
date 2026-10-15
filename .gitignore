@@ -1,0 +1,7 @@
+# Local signing overrides (optional; defaults are in Config/Signing.xcconfig)
+Config/Signing.local.xcconfig
+
+# Xcode
+*.xcodeproj
+DerivedData/
+.DS_Store
