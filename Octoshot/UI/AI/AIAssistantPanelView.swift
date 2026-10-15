@@ -48,14 +48,15 @@ final class AIAssistantModel: ObservableObject {
         errorMessage = nil
         isStreaming = true
         let prompt = selectedAction.prompt(custom: customPrompt)
-        let client = OpenAICompatibleClient.fromSettings()
         task = Task {
             do {
-                for try await chunk in client.streamVisionChat(prompt: prompt, image: image) {
+                let reachable = await AgentOllama.isReachable()
+                let settings = EmbeddedAISettings.fromUserDefaults(ollamaReachable: reachable)
+                for try await chunk in EmbeddedAIRouter.streamAskAI(image: image, prompt: prompt, settings: settings) {
                     output += chunk
                 }
             } catch {
-                errorMessage = OllamaService.friendlyAIError(error, model: AppSettings.shared.aiVisionModel)
+                errorMessage = EmbeddedAIFriendlyErrors.message(for: error, model: AppSettings.shared.aiVisionModel)
             }
             isStreaming = false
         }
@@ -75,7 +76,7 @@ struct AIAssistantPanelView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Local AI")
                 .font(.headline)
-            Text("Requests stay on your machine via the configured OpenAI-compatible endpoint.")
+            Text("Uses on-device SmolVLM2 when installed, with optional Ollama fallback in Settings → AI.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

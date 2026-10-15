@@ -8,26 +8,30 @@ public enum AgentProcessing {
     }
 
     public static func askAI(image: NSImage, prompt: String) async throws -> String {
-        let client = AgentConfiguration.openAIClient()
-        return try await client.completeVisionChat(prompt: prompt, image: image)
+        let reachable = await AgentOllama.isReachable()
+        let settings = EmbeddedAISettings.fromUserDefaults(ollamaReachable: reachable)
+        return try await EmbeddedAIRouter.askAI(image: image, prompt: prompt, settings: settings)
     }
 
     public static func toLaTeX(image: NSImage, prompt: String? = nil) async throws -> String {
-        let client = AgentConfiguration.openAIClient()
         let p = prompt ?? UserDefaults.standard.string(forKey: "aiLatexPrompt") ?? AIPrompts.latex
-        return try await client.completeVisionChat(prompt: p, image: image)
+        let reachable = await AgentOllama.isReachable()
+        let settings = EmbeddedAISettings.fromUserDefaults(ollamaReachable: reachable)
+        return try await EmbeddedAIRouter.toLaTeX(image: image, vlmPrompt: p, settings: settings)
     }
 
     public static func extractTable(image: NSImage) async throws -> String {
-        let client = AgentConfiguration.openAIClient()
-        return try await client.completeVisionChat(prompt: AIPrompts.tableExtract, image: image)
+        let reachable = await AgentOllama.isReachable()
+        let settings = EmbeddedAISettings.fromUserDefaults(ollamaReachable: reachable)
+        return try await EmbeddedAIRouter.extractTable(image: image, settings: settings)
     }
 
     public static func extractTableAndSaveClip(image: NSImage) async throws -> URL {
         let source = CaptureSourceRecorder.current()
-        let client = AgentConfiguration.openAIClient()
-        let description = try await client.completeVisionChat(prompt: AIPrompts.figureDescribe, image: image)
-        let tableMarkdown = try? await client.completeVisionChat(prompt: AIPrompts.tableExtract, image: image)
+        let reachable = await AgentOllama.isReachable()
+        let settings = EmbeddedAISettings.fromUserDefaults(ollamaReachable: reachable)
+        let description = try await EmbeddedAIRouter.askAI(image: image, prompt: AIPrompts.figureDescribe, settings: settings)
+        let tableMarkdown = try? await EmbeddedAIRouter.extractTable(image: image, settings: settings)
         let csv = tableMarkdown.flatMap(convertMarkdownTableToCSV)
         return try ClipLibrary.save(
             image: image,

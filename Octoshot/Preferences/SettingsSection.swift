@@ -45,7 +45,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
         case .capture: return "Save folder, format, and quick access"
         case .recording: return "Video, GIF, scroll capture, and mode bar"
         case .annotation: return "Redaction and annotate defaults"
-        case .ai: return "Ollama, LaTeX, and Clips library"
+        case .ai: return "Embedded SmolVLM2, pix2tex, optional Ollama"
         case .developer: return "Dev tools and Agent CLI"
         case .about: return "Version and license"
         }

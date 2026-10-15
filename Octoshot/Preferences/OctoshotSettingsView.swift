@@ -211,7 +211,7 @@ private struct CaptureSettingsPane: View {
                             .monospacedDigit()
                             .frame(width: 40, alignment: .trailing)
                     }
-                    Text("LaTeX and table extraction are skipped when Ollama is unreachable; redaction and OCR still run on-device.")
+                    Text("LaTeX uses pix2tex then SmolVLM2; tables use SmolVLM2. Redaction and OCR stay on Apple Vision.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -307,6 +307,10 @@ private struct AboutSettingsPane: View {
             Text("Released under the MIT License.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            Text("Embedded AI weights: SmolVLM2 (Apache-2.0, mlx-community) and pix2tex-mfr GGUF (MIT, cstr). MLX Swift LM is Apache-2.0.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

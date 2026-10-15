@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyManager = HotkeyManager()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        EmbeddedAIRegistrar.install()
         NSApp.setActivationPolicy(.accessory)
         SettingsOpener.installAccessoryRestoreOnClose()
         setupStatusItem()

@@ -18,7 +18,9 @@ struct OnboardingView: View {
     @ObservedObject private var accessCache = ScreenRecordingAccessCache.shared
     @State private var step = 0
     @State private var isCheckingPermission = false
-    @State private var ollamaOK = false
+    @State private var vlmInstalled = EmbeddedAIModelPaths.isInstalled(.smolVLM2_500M_4bit)
+    @State private var downloadNote = ""
+    @State private var isDownloading = false
     @Environment(\.dismiss) private var dismiss
 
     private var hasScreenRecording: Bool {
@@ -64,7 +66,7 @@ struct OnboardingView: View {
                 .frame(width: 72, height: 72)
             Text("Welcome to Octoshot")
                 .font(.title.bold())
-            Text("Local-first screenshots with annotation, redaction, and optional on-device AI via Ollama.")
+            Text("Local-first screenshots with annotation, redaction, and on-device AI (SmolVLM2 + pix2tex).")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
                 .padding(.horizontal)
@@ -117,26 +119,43 @@ struct OnboardingView: View {
 
     private var aiStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Local AI (optional)")
+            Text("On-device AI")
                 .font(.title2.bold())
-            Text("Install Ollama and pull a vision model for Ask AI, LaTeX, and table extraction.")
+            Text("Download SmolVLM2 (~292 MB) for Ask AI and tables. Add pix2tex (~18 MB) for fast LaTeX. Models stay in Application Support — not in the app bundle.")
                 .foregroundStyle(.secondary)
+            if vlmInstalled {
+                Label("SmolVLM2 is installed.", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            } else {
+                Button(isDownloading ? "Downloading…" : "Download SmolVLM2") {
+                    Task { await downloadSmolVLM() }
+                }
+                .disabled(isDownloading)
+            }
+            if !downloadNote.isEmpty {
+                Text(downloadNote).font(.caption).foregroundStyle(.secondary)
+            }
             Button("Open Settings → AI") {
                 NotificationCenter.default.post(name: .octoshotOpenSettingsSection, object: SettingsSection.ai)
                 SettingsOpener.open()
             }
-            Button("Test Ollama") {
-                Task {
-                    ollamaOK = await OllamaService.isReachable()
-                }
-            }
-            if ollamaOK {
-                Label("Ollama is reachable.", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            }
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+
+    @MainActor
+    private func downloadSmolVLM() async {
+        isDownloading = true
+        downloadNote = "Downloading…"
+        defer { isDownloading = false }
+        do {
+            try await ModelDownloadService.shared.download(.smolVLM2_500M_4bit)
+            vlmInstalled = true
+            downloadNote = "Download complete."
+        } catch {
+            downloadNote = error.localizedDescription
+        }
     }
 
     @MainActor

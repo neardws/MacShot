@@ -36,6 +36,16 @@ targets:
       MACH_O_TYPE: staticlib
       SKIP_INSTALL: YES
 
+  OctoshotCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OctoshotCoreTests
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+
   octoshot:
     type: tool
     platform: macOS
@@ -113,3 +123,10 @@ schemes:
         octoshot: all
     run:
       config: Debug
+  OctoshotCoreTests:
+    build:
+      targets:
+        OctoshotCoreTests: all
+    test:
+      targets:
+        - OctoshotCoreTests

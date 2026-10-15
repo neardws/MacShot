@@ -73,13 +73,11 @@ struct LaTeXResultView: View {
         isLoading = true
         error = nil
         defer { isLoading = false }
-        let client = OpenAICompatibleClient.fromSettings()
         let prompt = AppSettings.shared.aiLatexPrompt
         do {
-            latex = try await client.completeVisionChat(prompt: prompt, image: image)
-                .trimmingCharacters(in: .whitespacesAndNewlines)
+            latex = try await AgentProcessing.toLaTeX(image: image, prompt: prompt)
         } catch {
-            self.error = OllamaService.friendlyAIError(error, model: AppSettings.shared.aiVisionModel)
+            self.error = EmbeddedAIFriendlyErrors.message(for: error, model: AppSettings.shared.aiVisionModel)
         }
     }
 }

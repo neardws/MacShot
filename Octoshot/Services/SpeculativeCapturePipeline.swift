@@ -119,25 +119,31 @@ final class SpeculativeCapturePipeline {
 
     private func performLaTeX(image: NSImage, state: SpeculativeActionState) async throws -> SpeculativeResult {
         state.phase = .running(kind: .formula, detail: "Converting to LaTeX…")
-        guard await OllamaService.isReachable() else {
-            state.phase = .suggestionOnly(kind: .formula, reason: "Ollama not available")
-            throw CancellationError()
-        }
-        let client = OpenAICompatibleClient.fromSettings()
         let prompt = AppSettings.shared.aiLatexPrompt
-        let latex = try await client.completeVisionChat(prompt: prompt, image: image)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        return .latex(latex)
+        do {
+            let latex = try await AgentProcessing.toLaTeX(image: image, prompt: prompt)
+            return .latex(latex)
+        } catch {
+            if case EmbeddedAIError.modelNotInstalled = error {
+                state.phase = .suggestionOnly(kind: .formula, reason: "Download LaTeX or VLM models in Settings → AI")
+                throw CancellationError()
+            }
+            throw error
+        }
     }
 
     private func performTable(image: NSImage, state: SpeculativeActionState) async throws -> SpeculativeResult {
         state.phase = .running(kind: .table, detail: "Extracting table…")
-        guard await OllamaService.isReachable() else {
-            state.phase = .suggestionOnly(kind: .table, reason: "Ollama not available")
-            throw CancellationError()
+        do {
+            let markdown = try await AgentProcessing.extractTable(image: image)
+            return .tableMarkdown(markdown)
+        } catch {
+            if case EmbeddedAIError.modelNotInstalled = error {
+                state.phase = .suggestionOnly(kind: .table, reason: "Download the on-device VLM in Settings → AI")
+                throw CancellationError()
+            }
+            throw error
         }
-        let markdown = try await AgentProcessing.extractTable(image: image)
-        return .tableMarkdown(markdown)
     }
 
     private func performRedact(image: NSImage, state: SpeculativeActionState) async throws -> SpeculativeResult {
