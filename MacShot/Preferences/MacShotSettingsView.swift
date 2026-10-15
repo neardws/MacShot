@@ -16,6 +16,8 @@ struct MacShotSettingsView: View {
                 .tabItem { Label("Redaction", systemImage: "eye.slash") }
             AISettingsPane()
                 .tabItem { Label("AI", systemImage: "brain") }
+            DeveloperSettingsPane()
+                .tabItem { Label("Developer", systemImage: "hammer") }
             PermissionsSettingsPane()
                 .tabItem { Label("Permissions", systemImage: "lock.shield") }
             AboutSettingsPane()

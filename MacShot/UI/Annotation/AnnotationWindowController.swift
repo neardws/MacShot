@@ -10,6 +10,7 @@ final class AnnotationWindowController {
     private var redactionPanel: NSPanel?
     private var redactionCandidates: [RedactionCandidate] = []
     private var currentImage: NSImage?
+    private var lastSavedURL: URL?
 
     init() {
         window = NSWindow(
@@ -49,6 +50,8 @@ final class AnnotationWindowController {
         toolbarModel.onSave = { [weak self] in self?.saveImage() }
         toolbarModel.onAutoRedact = { [weak self] in Task { await self?.runAutoRedactPreview() } }
         toolbarModel.onAskAI = { [weak self] in self?.toggleAIPanel() }
+        toolbarModel.onCopyMarkdown = { [weak self] in self?.copyMarkdown() }
+        toolbarModel.onCopyPath = { [weak self] in self?.copyFilePath() }
 
         let toolbar = NSHostingView(rootView: AnnotationToolbarView(model: toolbarModel))
         toolbar.translatesAutoresizingMaskIntoConstraints = false
@@ -71,6 +74,7 @@ final class AnnotationWindowController {
         ])
 
         window.contentView = container
+        window.makeFirstResponder(canvas)
     }
 
     private func toggleAIPanel() {
@@ -151,6 +155,27 @@ final class AnnotationWindowController {
                 format: AppSettings.shared.format,
                 jpegQuality: AppSettings.shared.jpegQuality
             )
+            lastSavedURL = url
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func copyMarkdown() {
+        guard let image = canvasView?.currentImage() else { return }
+        do {
+            let url = try DeveloperClipboard.copyMarkdownSnippet(for: image, existingURL: lastSavedURL)
+            lastSavedURL = url
+        } catch {
+            NSAlert(error: error).runModal()
+        }
+    }
+
+    private func copyFilePath() {
+        guard let image = canvasView?.currentImage() else { return }
+        do {
+            let url = try DeveloperClipboard.copyFilePath(for: image, existingURL: lastSavedURL)
+            lastSavedURL = url
         } catch {
             NSAlert(error: error).runModal()
         }
@@ -166,6 +191,8 @@ final class AnnotationToolbarModel: ObservableObject {
     var onSave: (() -> Void)?
     var onAutoRedact: (() -> Void)?
     var onAskAI: (() -> Void)?
+    var onCopyMarkdown: (() -> Void)?
+    var onCopyPath: (() -> Void)?
 
     func select(_ tool: AnnotationTool) {
         selectedTool = tool
@@ -175,10 +202,11 @@ final class AnnotationToolbarModel: ObservableObject {
 
 struct AnnotationToolbarView: View {
     @ObservedObject var model: AnnotationToolbarModel
+    @ObservedObject private var settings = AppSettings.shared
 
     var body: some View {
         HStack {
-            ForEach(AnnotationTool.allCases) { tool in
+            ForEach(AnnotationTool.visibleTools(developerMode: settings.developerModeEnabled)) { tool in
                 Button {
                     model.select(tool)
                 } label: {
@@ -193,6 +221,11 @@ struct AnnotationToolbarView: View {
             Spacer()
             Button("Auto Redact") { model.onAutoRedact?() }
             Button("Ask AI") { model.onAskAI?() }
+            if settings.developerModeEnabled {
+                Button("Copy MD") { model.onCopyMarkdown?() }
+                    .help("Copy Markdown image snippet for GitHub issues")
+                Button("Copy Path") { model.onCopyPath?() }
+            }
             Button("Undo") { model.onUndo?() }
             Button("Copy") { model.onCopy?() }
             Button("Save") { model.onSave?() }

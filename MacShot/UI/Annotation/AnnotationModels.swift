@@ -5,8 +5,17 @@ enum AnnotationTool: String, CaseIterable, Identifiable {
     case rectangle
     case text
     case pixelate
+    case measure
 
     var id: String { rawValue }
+
+    static var standardTools: [AnnotationTool] {
+        allCases.filter { $0 != .measure }
+    }
+
+    static func visibleTools(developerMode: Bool) -> [AnnotationTool] {
+        developerMode ? allCases : standardTools
+    }
 
     var label: String {
         switch self {
@@ -14,6 +23,7 @@ enum AnnotationTool: String, CaseIterable, Identifiable {
         case .rectangle: return "Rectangle"
         case .text: return "Text"
         case .pixelate: return "Pixelate"
+        case .measure: return "Measure"
         }
     }
 
@@ -23,6 +33,7 @@ enum AnnotationTool: String, CaseIterable, Identifiable {
         case .rectangle: return "rectangle"
         case .text: return "textformat"
         case .pixelate: return "checkerboard.rectangle"
+        case .measure: return "ruler"
         }
     }
 }

@@ -94,8 +94,9 @@ tccutil reset ScreenCapture com.macshot.MacShot
 - **Ask local AI** (OpenAI-compatible, default Ollama `http://localhost:11434/v1`): Explain / Summarize / Translate / custom prompt with streaming
 - **Screenshot → LaTeX**: area capture from menu, local vision model returns LaTeX
 - **Paper figure/table clips**: save captures to `Pictures/MacShot Clips` with metadata JSON (+ optional table Markdown/CSV via local AI)
+- **Developer mode**: loupe color picker during area capture (hex/RGB, **C** to copy), measure/ruler in Annotate (px + pt), **Copy MD** / **Copy Path** for GitHub issue workflows
 
-Configure under **Settings → AI** and **Settings → Redaction**.
+Configure under **Settings → AI**, **Redaction**, and **Developer**.
 
 ## Roadmap (not in MVP)
 

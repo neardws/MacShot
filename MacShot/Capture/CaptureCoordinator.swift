@@ -127,6 +127,7 @@ final class CaptureCoordinator {
     private func presentResult(_ image: NSImage) {
         CaptureFeedback.playCaptureSoundIfEnabled()
         let settings = AppSettings.shared
+        var savedURL: URL?
 
         if settings.afterCaptureCopyToClipboard {
             ImageFormats.copyToPasteboard(image)
@@ -141,6 +142,7 @@ final class CaptureCoordinator {
                     format: settings.format,
                     jpegQuality: settings.jpegQuality
                 )
+                savedURL = url
             } catch {
                 finishWithError(error)
             }
@@ -148,6 +150,8 @@ final class CaptureCoordinator {
 
         guard settings.afterCaptureShowQuickAccess else { return }
 
+        var captureURL = savedURL
+        let developer = settings.developerModeEnabled
         quickAccess.show(image: image, actions: QuickAccessActions(
             onCopy: { ImageFormats.copyToPasteboard(image) },
             onSave: {
@@ -159,12 +163,27 @@ final class CaptureCoordinator {
                         format: AppSettings.shared.format,
                         jpegQuality: AppSettings.shared.jpegQuality
                     )
+                    captureURL = url
                 } catch {
                     self.finishWithError(error)
                 }
             },
             onAnnotate: { self.annotation.open(with: image) },
             onAskAI: { self.showAI(for: image) },
+            onCopyMarkdown: developer ? {
+                do {
+                    captureURL = try DeveloperClipboard.copyMarkdownSnippet(for: image, existingURL: captureURL)
+                } catch {
+                    self.finishWithError(error)
+                }
+            } : nil,
+            onCopyPath: developer ? {
+                do {
+                    captureURL = try DeveloperClipboard.copyFilePath(for: image, existingURL: captureURL)
+                } catch {
+                    self.finishWithError(error)
+                }
+            } : nil,
             onClose: {}
         ))
     }
