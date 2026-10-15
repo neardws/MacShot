@@ -28,8 +28,8 @@ final class ScrollingCaptureController {
 
     private func showPanel() {
         let view = ScrollCapturePanelView(
-            frameCount: { frames.count },
-            preview: { frames.last },
+            frameCount: { [weak self] in self?.frames.count ?? 0 },
+            preview: { [weak self] in self?.frames.last },
             onDone: { [weak self] in self?.finish() },
             onCancel: { [weak self] in self?.cancel() }
         )
@@ -68,7 +68,7 @@ final class ScrollingCaptureController {
         autoScrollTimer = Timer.scheduledTimer(withTimeInterval: 0.35, repeats: true) { [weak self] _ in
             guard let self else { return }
             let event = CGEvent(scrollWheelEvent2Source: nil, units: .line, wheelCount: 1, wheel1: -3, wheel2: 0, wheel3: 0)
-            event?.post(tkCGHIDEventTap)
+            event?.post(tap: .cghidEventTap)
             Task { @MainActor in await self.captureFrame() }
         }
     }

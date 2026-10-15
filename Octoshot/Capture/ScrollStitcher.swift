@@ -23,11 +23,12 @@ enum ScrollStitcher {
         let width = max(topCG.width, bottomCG.width)
 
         let output = NSImage(size: NSSize(width: width, height: newHeight))
+        let trimmedHeight = CGFloat(trimmedBottomHeight)
         output.lockFocus()
-        top.draw(in: NSRect(x: 0, y: trimmedBottomHeight, width: width, height: top.size.height))
+        top.draw(in: NSRect(x: 0, y: trimmedHeight, width: width, height: top.size.height))
         if let slice = bottomCG.cropping(to: CGRect(x: 0, y: 0, width: bottomCG.width, height: trimmedBottomHeight)) {
-            NSImage(cgImage: slice, size: NSSize(width: CGFloat(slice.width), height: CGFloat(trimmedBottomHeight)))
-                .draw(in: NSRect(x: 0, y: 0, width: width, height: CGFloat(trimmedBottomHeight)))
+            NSImage(cgImage: slice, size: NSSize(width: CGFloat(slice.width), height: trimmedHeight))
+                .draw(in: NSRect(x: 0, y: 0, width: width, height: trimmedHeight))
         }
         output.unlockFocus()
         return output
