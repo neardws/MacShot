@@ -1,5 +1,6 @@
 import AppKit
 import ImageIO
+import OctoshotCore
 import UniformTypeIdentifiers
 
 enum GIFExporter {
