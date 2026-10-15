@@ -1,13 +1,13 @@
 import AppKit
 import ScreenCaptureKit
 
-enum CaptureError: LocalizedError {
+public enum CaptureError: LocalizedError {
     case noDisplays
     case noWindows
     case captureFailed(String)
     case emptySelection
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .noDisplays: return "No displays available for capture."
         case .noWindows: return "No on-screen windows found."
@@ -17,16 +17,16 @@ enum CaptureError: LocalizedError {
     }
 }
 
-final class ScreenCaptureService {
-    static let shared = ScreenCaptureService()
+public final class ScreenCaptureService {
+    public static let shared = ScreenCaptureService()
 
     private init() {}
 
-    func shareableContent() async throws -> SCShareableContent {
+    public func shareableContent() async throws -> SCShareableContent {
         try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }
 
-    func captureFullscreen(display: SCDisplay? = nil) async throws -> NSImage {
+    public func captureFullscreen(display: SCDisplay? = nil) async throws -> NSImage {
         let content = try await shareableContent()
         guard let targetDisplay = display ?? content.displays.first else {
             throw CaptureError.noDisplays
@@ -43,7 +43,7 @@ final class ScreenCaptureService {
         return NSImage(cgImage: cgImage, size: NSSize(width: targetDisplay.width, height: targetDisplay.height))
     }
 
-    func captureWindow(_ window: SCWindow) async throws -> NSImage {
+    public func captureWindow(_ window: SCWindow) async throws -> NSImage {
         let filter = SCContentFilter(desktopIndependentWindow: window)
         let scale = backingScaleFactor(forWindow: window)
         let config = SCStreamConfiguration()
@@ -57,7 +57,7 @@ final class ScreenCaptureService {
         return NSImage(cgImage: cgImage, size: NSSize(width: window.frame.width, height: window.frame.height))
     }
 
-    func captureRegion(globalRect: CGRect) async throws -> NSImage {
+    public func captureRegion(globalRect: CGRect) async throws -> NSImage {
         guard globalRect.width >= 2, globalRect.height >= 2 else {
             throw CaptureError.emptySelection
         }

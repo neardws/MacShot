@@ -1,4 +1,5 @@
 import SwiftUI
+import OctoshotCore
 
 struct RedactionSettingsPane: View {
     @State private var autoRedact = AppSettings.shared.autoRedactOnAnnotate

@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OctoshotCore
 
 struct OctoshotSettingsView: View {
     var body: some View {
@@ -18,6 +19,8 @@ struct OctoshotSettingsView: View {
                 .tabItem { Label("AI", systemImage: "brain") }
             DeveloperSettingsPane()
                 .tabItem { Label("Developer", systemImage: "hammer") }
+            AgentSettingsPane()
+                .tabItem { Label("Agent", systemImage: "terminal") }
             PermissionsSettingsPane()
                 .tabItem { Label("Permissions", systemImage: "lock.shield") }
             AboutSettingsPane()

@@ -1,4 +1,5 @@
 import Foundation
+import OctoshotCore
 
 extension AppSettings {
     private enum SignatureKeys {

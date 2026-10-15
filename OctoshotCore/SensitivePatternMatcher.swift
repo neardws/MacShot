@@ -1,6 +1,6 @@
 import Foundation
 
-enum SensitivePatternMatcher {
+public enum SensitivePatternMatcher {
     struct Match {
         let kind: RedactionKind
         let range: Range<String.Index>
@@ -54,26 +54,31 @@ enum SensitivePatternMatcher {
     }
 }
 
-struct RedactionSettingsSnapshot {
-    var redactPhones: Bool
-    var redactEmails: Bool
-    var redactNationalIDs: Bool
-    var redactCreditCards: Bool
-    var redactAPIKeys: Bool
-    var redactIPAddresses: Bool
-    var redactFaces: Bool
+public struct RedactionSettingsSnapshot: Sendable {
+    public var redactPhones: Bool
+    public var redactEmails: Bool
+    public var redactNationalIDs: Bool
+    public var redactCreditCards: Bool
+    public var redactAPIKeys: Bool
+    public var redactIPAddresses: Bool
+    public var redactFaces: Bool
 
-    @MainActor
-    static func fromAppSettings() -> RedactionSettingsSnapshot {
-        let s = AppSettings.shared
-        return RedactionSettingsSnapshot(
-            redactPhones: s.redactPhones,
-            redactEmails: s.redactEmails,
-            redactNationalIDs: s.redactNationalIDs,
-            redactCreditCards: s.redactCreditCards,
-            redactAPIKeys: s.redactAPIKeys,
-            redactIPAddresses: s.redactIPAddresses,
-            redactFaces: s.redactFaces
-        )
+    public init(
+        redactPhones: Bool,
+        redactEmails: Bool,
+        redactNationalIDs: Bool,
+        redactCreditCards: Bool,
+        redactAPIKeys: Bool,
+        redactIPAddresses: Bool,
+        redactFaces: Bool
+    ) {
+        self.redactPhones = redactPhones
+        self.redactEmails = redactEmails
+        self.redactNationalIDs = redactNationalIDs
+        self.redactCreditCards = redactCreditCards
+        self.redactAPIKeys = redactAPIKeys
+        self.redactIPAddresses = redactIPAddresses
+        self.redactFaces = redactFaces
     }
 }
+

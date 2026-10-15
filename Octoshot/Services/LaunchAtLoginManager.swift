@@ -1,5 +1,6 @@
 import Foundation
 import ServiceManagement
+import OctoshotCore
 
 enum LaunchAtLoginManager {
     static var isEnabled: Bool {

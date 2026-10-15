@@ -1,5 +1,6 @@
 import AppKit
 import CoreImage
+import OctoshotCore
 
 final class AnnotationCanvasView: NSView {
     var baseImage: NSImage? {

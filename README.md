@@ -25,6 +25,30 @@
 | [#7](https://github.com/neardws/Octoshot/issues/7) | 截图 → LaTeX |
 | [#8](https://github.com/neardws/Octoshot/issues/8) | 论文图/表助手与 Clips 库 |
 | [#9](https://github.com/neardws/Octoshot/issues/9) | 开发者模式（取色、标尺、Markdown 粘贴） |
+| [#13](https://github.com/neardws/Octoshot/issues/13) | Agent 接口：`octoshot` CLI、stdio MCP、URL scheme、快捷指令 |
+
+### Agent 接口（#13）
+
+构建后可在 DerivedData 或安装路径使用 **`octoshot`** CLI，以及 **`octoshot mcp`**（stdio MCP 服务）。核心能力在 **`OctoshotCore`** 框架中，与 GUI 应用共享。默认仅访问本机；需已授予屏幕录制权限。
+
+**Cursor / Claude Code MCP 配置示例**（路径请改为你本机构建产物）：
+
+在 Octoshot **设置 → Agent** 中点击 **Install Command Line Tool**，将 `octoshot` 安装到 `/usr/local/bin/octoshot`（符号链接到 `Octoshot.app/Contents/Helpers/octoshot`，避免与 `MacOS/Octoshot` 主程序在大小写不敏感磁盘上冲突）。
+
+```json
+{
+  "mcpServers": {
+    "octoshot": {
+      "command": "/usr/local/bin/octoshot",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Claude Desktop（`claude_desktop_config.json`）同样使用 `command` + `args: ["mcp"]`。工具包括：`capture_screen`、`capture_window`、`list_windows`、`list_displays`、`ocr`、`auto_redact`、`ask_ai`、`to_latex`、`extract_table`、`annotate`。
+
+URL 示例：`octoshot://capture?mode=fullscreen`（区域/窗口模式会打开应用内交互流程）。
 
 ## 环境要求
 
@@ -44,10 +68,13 @@ open Octoshot.xcodeproj
 
 在 Xcode 中选择 **Octoshot** scheme，按 **⌘R** 运行。
 
+本地签名：默认团队 ID 在 `Config/Signing.xcconfig`（可复制 `Config/Signing.xcconfig.sample` 自定义）。避免空 `DEVELOPMENT_TEAM` 导致 ad-hoc 签名与屏幕录制权限失效。
+
 命令行构建：
 
 ```bash
 xcodegen generate
+xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 
@@ -105,6 +132,28 @@ Planned or in-progress work is tracked in GitHub issues:
 | [#7](https://github.com/neardws/Octoshot/issues/7) | Screenshot → LaTeX |
 | [#8](https://github.com/neardws/Octoshot/issues/8) | Paper figure/table assistant & Clips library |
 | [#9](https://github.com/neardws/Octoshot/issues/9) | Developer mode (color picker, ruler, Markdown for issues) |
+| [#13](https://github.com/neardws/Octoshot/issues/13) | Agent interface: `octoshot` CLI, stdio MCP, URL scheme, Shortcuts |
+
+### Agent interface (#13)
+
+Build the **`octoshot`** CLI and run **`octoshot mcp`** for a stdio MCP server. Shared logic lives in the **`OctoshotCore`** framework (used by the app, CLI, and MCP). Local-only by default; requires Screen Recording permission.
+
+Use **Settings → Agent → Install Command Line Tool** to install `octoshot` at `/usr/local/bin/octoshot` (symlink to the CLI embedded in `Octoshot.app`).
+
+**Cursor / Claude Code** (`mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "octoshot": {
+      "command": "/usr/local/bin/octoshot",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, `ocr`, `auto_redact`, `ask_ai`, `to_latex`, `extract_table`, `annotate`. URL example: `octoshot://capture?mode=window` (interactive area/window flows open the app).
 
 ## Requirements
 
@@ -122,10 +171,13 @@ xcodegen generate
 open Octoshot.xcodeproj
 ```
 
-Select the **Octoshot** scheme in Xcode and press **⌘R**.
+Select the **Octoshot** scheme in Xcode and press **⌘R** (builds the `octoshot` CLI target first, then embeds it at `Octoshot.app/Contents/Helpers/octoshot` — not `MacOS/`, which collides with the `Octoshot` executable on case-insensitive volumes).
+
+Signing: default team in `Config/Signing.xcconfig` (see `.sample` for overrides). Do not leave `DEVELOPMENT_TEAM` empty or TCC may treat each build as a new app.
 
 ```bash
 xcodegen generate
+xcodebuild -target octoshot -configuration Debug -destination 'platform=macOS' build
 xcodebuild -scheme Octoshot -configuration Debug -destination 'platform=macOS' build
 ```
 

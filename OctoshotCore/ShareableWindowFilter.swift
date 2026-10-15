@@ -1,8 +1,8 @@
 import AppKit
 import ScreenCaptureKit
 
-enum ShareableWindowFilter {
-    static func pickableWindows(from content: SCShareableContent) -> [SCWindow] {
+public enum ShareableWindowFilter {
+    public static func pickableWindows(from content: SCShareableContent) -> [SCWindow] {
         let ownBundle = Bundle.main.bundleIdentifier
         return content.windows
             .filter { window in
@@ -18,12 +18,12 @@ enum ShareableWindowFilter {
             .sorted { $0.windowLayer > $1.windowLayer }
     }
 
-    static func window(at cocoaGlobalPoint: NSPoint, in windows: [SCWindow]) -> SCWindow? {
+    public static func window(at cocoaGlobalPoint: NSPoint, in windows: [SCWindow]) -> SCWindow? {
         let topLeft = DisplayGeometry.topLeftPoint(fromCocoaGlobal: cocoaGlobalPoint)
         return windows.first { $0.frame.contains(topLeft) }
     }
 
-    static func displayLabel(for window: SCWindow) -> String {
+    public static func displayLabel(for window: SCWindow) -> String {
         if let title = window.title, !title.isEmpty {
             if let app = window.owningApplication?.applicationName, !app.isEmpty {
                 return "\(app) — \(title)"

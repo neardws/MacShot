@@ -1,24 +1,13 @@
 import AppKit
 import Carbon.HIToolbox
 import Foundation
+import OctoshotCore
 
-enum ScreenshotFormat: String, CaseIterable, Identifiable, Codable {
-    case png
-    case jpeg
-
-    var id: String { rawValue }
-
+extension ScreenshotFormat {
     var displayName: String {
         switch self {
         case .png: return "PNG"
         case .jpeg: return "JPEG"
-        }
-    }
-
-    var fileExtension: String {
-        switch self {
-        case .png: return "png"
-        case .jpeg: return "jpg"
         }
     }
 }

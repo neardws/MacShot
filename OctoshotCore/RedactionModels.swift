@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-enum RedactionKind: String, Codable, CaseIterable, Identifiable {
+public enum RedactionKind: String, Codable, CaseIterable, Identifiable {
     case phone
     case email
     case nationalID
@@ -11,9 +11,9 @@ enum RedactionKind: String, Codable, CaseIterable, Identifiable {
     case face
     case other
 
-    var id: String { rawValue }
+    public var id: String { rawValue }
 
-    var label: String {
+    public var label: String {
         switch self {
         case .phone: return "Phone"
         case .email: return "Email"
@@ -27,14 +27,14 @@ enum RedactionKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-struct RedactionCandidate: Identifiable, Equatable {
-    let id: UUID
-    var rect: CGRect
-    var kind: RedactionKind
-    var detail: String
-    var isEnabled: Bool
+public struct RedactionCandidate: Identifiable, Equatable {
+    public let id: UUID
+    public var rect: CGRect
+    public var kind: RedactionKind
+    public var detail: String
+    public var isEnabled: Bool
 
-    init(id: UUID = UUID(), rect: CGRect, kind: RedactionKind, detail: String, isEnabled: Bool = true) {
+    public init(id: UUID = UUID(), rect: CGRect, kind: RedactionKind, detail: String, isEnabled: Bool = true) {
         self.id = id
         self.rect = rect
         self.kind = kind

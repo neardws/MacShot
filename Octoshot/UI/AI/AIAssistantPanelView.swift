@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OctoshotCore
 
 enum AIAssistantAction: String, CaseIterable, Identifiable {
     case explain

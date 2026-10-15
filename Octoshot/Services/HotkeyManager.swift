@@ -1,6 +1,7 @@
 import AppKit
 import Carbon
 import Carbon.HIToolbox
+import OctoshotCore
 
 enum HotkeyAction: Int {
     case area = 1
