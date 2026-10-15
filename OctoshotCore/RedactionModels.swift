@@ -1,7 +1,7 @@
 import CoreGraphics
 import Foundation
 
-public public enum RedactionKind: String, Codable, CaseIterable, Identifiable {
+public enum RedactionKind: String, Codable, CaseIterable, Identifiable {
     case phone
     case email
     case nationalID
