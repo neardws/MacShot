@@ -13,7 +13,6 @@ struct QuickAccessActions {
 }
 
 @MainActor
-@MainActor
 private final class QuickAccessEntry: Identifiable {
     let id = UUID()
     let image: NSImage
