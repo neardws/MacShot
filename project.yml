@@ -11,6 +11,9 @@ options:
     - Base
     - zh-Hans
 configs:
+  Debug: debug
+  Release: release
+configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
 settings:
