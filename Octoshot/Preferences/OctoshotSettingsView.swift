@@ -57,6 +57,8 @@ struct OctoshotSettingsView: View {
             SettingsShortcutsPane()
         case .capture:
             CaptureSettingsPane()
+        case .recording:
+            SettingsRecordingPane()
         case .annotation:
             AnnotationSettingsPane()
         case .ai:

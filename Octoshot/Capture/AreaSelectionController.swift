@@ -2,8 +2,12 @@ import AppKit
 import OctoshotCore
 
 final class AreaSelectionController: NSResponder {
-    var onComplete: ((CGRect) -> Void)?
+    var onComplete: ((CGRect, AreaCaptureMode) -> Void)?
     var onCancel: (() -> Void)?
+
+    private(set) var captureMode: AreaCaptureMode = AppSettings.shared.rememberAreaCaptureMode
+        ? AppSettings.shared.lastAreaCaptureMode
+        : .screenshot
 
     private var overlayWindows: [AreaOverlayWindow] = []
     private var localMonitor: Any?
@@ -38,6 +42,13 @@ final class AreaSelectionController: NSResponder {
             if event.type == .keyDown, AppSettings.shared.developerModeEnabled,
                event.charactersIgnoringModifiers?.lowercased() == "c" {
                 copyColorUnderCursor()
+                return nil
+            }
+            if event.type == .keyDown,
+               let char = event.charactersIgnoringModifiers,
+               let mode = AreaCaptureMode.modeForModeBarKey(char) {
+                captureMode = mode
+                redrawAll()
                 return nil
             }
             if event.type == .mouseMoved || event.type == .leftMouseDragged {
@@ -104,7 +115,10 @@ final class AreaSelectionController: NSResponder {
         let rect = DisplayGeometry.normalizedSelection(from: start, to: point)
         end()
         if rect.width >= 2, rect.height >= 2 {
-            onComplete?(rect)
+            if AppSettings.shared.rememberAreaCaptureMode {
+                AppSettings.shared.lastAreaCaptureMode = captureMode
+            }
+            onComplete?(rect, captureMode)
         } else {
             onCancel?()
         }
@@ -121,6 +135,11 @@ final class AreaSelectionController: NSResponder {
     }
 
     func isDragging() -> Bool { dragStart != nil && currentPoint != nil }
+
+    func setCaptureMode(_ mode: AreaCaptureMode) {
+        captureMode = mode
+        redrawAll()
+    }
 
     func noteMousePosition(_ global: NSPoint) {
         lastMouseGlobal = global
@@ -221,6 +240,7 @@ final class AreaOverlayView: NSView {
 
             let label = "\(Int(selection.width)) × \(Int(selection.height))"
             drawLabel(label, near: labelPoint(for: hole))
+            drawModeBar(below: hole, controller: controller)
         } else {
             NSColor.black.withAlphaComponent(0.28).setFill()
             bounds.fill()
@@ -298,6 +318,29 @@ final class AreaOverlayView: NSView {
 
     private func labelPoint(for rect: CGRect) -> NSPoint {
         NSPoint(x: min(rect.maxX + 8, bounds.width - 120), y: max(rect.minY - 28, 8))
+    }
+
+    private func drawModeBar(below rect: CGRect, controller: AreaSelectionController) {
+        let modes: [AreaCaptureMode] = [.screenshot, .scrolling, .recordVideo, .recordGIF, .formulaLaTeX, .figureTable]
+        let labels = modes.map { mode -> String in
+            let active = controller.captureMode == mode
+            return active ? "[\(mode.modeBarLabel)]" : mode.modeBarLabel
+        }
+        let text = labels.joined(separator: "  ")
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .semibold),
+            .foregroundColor: NSColor.white
+        ]
+        let size = (text as NSString).size(withAttributes: attributes)
+        let barWidth = size.width + 20
+        let barHeight = size.height + 10
+        let x = min(max(rect.minX, 8), bounds.width - barWidth - 8)
+        let y = max(rect.minY - barHeight - 8, 8)
+        let barRect = CGRect(x: x, y: y, width: barWidth, height: barHeight)
+        let bg = NSBezierPath(roundedRect: barRect, xRadius: 8, yRadius: 8)
+        NSColor.black.withAlphaComponent(0.78).setFill()
+        bg.fill()
+        (text as NSString).draw(in: barRect.insetBy(dx: 10, dy: 5), withAttributes: attributes)
     }
 
     private func drawLabel(_ text: String, near point: NSPoint) {

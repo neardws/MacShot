@@ -6,10 +6,12 @@
 
 ## 现已可用
 
-- **区域 / 窗口 / 全屏**截图与全局快捷键
-- **快速访问**浮层缩略图：复制、保存、标注、关闭、拖出
+- **区域 / 窗口 / 全屏**截图与全局快捷键；区域选择时 **模式条**（S 截图 / R 滚动拼接 / V 视频 / G GIF / L LaTeX / T 图或表）
+- **滚动截图**：滚轮采集多帧并纵向拼接；可选自动滚动（需辅助功能权限）
+- **屏幕录制**：ScreenCaptureKit 区域或全屏 H.264 MP4；**GIF** 定时帧导出；录制中浮动 **停止** 面板与菜单栏指示
+- **快速访问**浮层缩略图：复制、保存、标注、关闭、拖出；**推测式 top-1 智能操作**（本机分类，需点 Apply）
 - **标注**窗口：箭头、矩形、文字、马赛克、撤销、复制/保存
-- **设置**（侧边栏）：通用、快捷键、捕获、标注、AI、开发者（含 Agent/CLI）、关于；版本号显示在侧栏底部
+- **设置**（侧边栏）：通用、快捷键、捕获、**录制**、标注、AI、开发者（含 Agent/CLI）、关于；版本号显示在侧栏底部
 - **首次运行引导**：屏幕录制、快捷键接管、Ollama 可选配置
 - **菜单栏**：捕获项旁显示快捷键、最近截图、打开保存文件夹、Clips 库
 - **本机 AI**：设置中检测 Ollama、列出模型、一键拉取 `qwen2.5vl`；LaTeX / 表格流程在模型不可用时给出友好提示
@@ -50,9 +52,9 @@
 }
 ```
 
-Claude Desktop（`claude_desktop_config.json`）同样使用 `command` + `args: ["mcp"]`。工具包括：`capture_screen`、`capture_window`、`list_windows`、`list_displays`、`ocr`、`auto_redact`、`ask_ai`、`to_latex`、`extract_table`、`annotate`。
+Claude Desktop（`claude_desktop_config.json`）同样使用 `command` + `args: ["mcp"]`。工具包括：`capture_screen`、`capture_window`、`list_windows`、`list_displays`、`ocr`、`auto_redact`、`ask_ai`、`to_latex`、`extract_table`、`annotate`、`record_start`、`record_stop`。
 
-URL 示例：`octoshot://capture?mode=fullscreen`（区域/窗口模式会打开应用内交互流程）。
+URL 示例：`octoshot://capture?mode=fullscreen`（区域/窗口模式会打开应用内交互流程）；`octoshot://record?action=start&mode=fullscreen&format=video`；`octoshot record stop`（通过 URL 唤起应用）。
 
 ## 环境要求
 
@@ -118,10 +120,12 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 
 ## Available now
 
-- **Area, window, and fullscreen** capture with global hotkeys
-- **Quick access** floating thumbnail: copy, save, annotate, close, drag-out
+- **Area, window, and fullscreen** capture with global hotkeys; **mode bar** on area select (S screenshot / R scroll stitch / V video / G GIF / L LaTeX / T figure or table)
+- **Scrolling capture**: scroll-wheel frames stitched vertically; optional auto-scroll (Accessibility)
+- **Screen recording**: ScreenCaptureKit region or fullscreen H.264 MP4; **GIF** frame export; floating **Stop** control and menu bar indicator while recording
+- **Quick access** floating thumbnail: copy, save, annotate, close, drag-out; **speculative top-1 smart actions** (on-device classify; Apply to copy)
 - **Annotate** window: arrow, rectangle, text, pixelate, undo, copy/save
-- **Settings** sidebar: General, Shortcuts, Capture, Annotation, AI, Developer (Agent/CLI), About — version in the sidebar footer
+- **Settings** sidebar: General, Shortcuts, Capture, **Recording**, Annotation, AI, Developer (Agent/CLI), About — version in the sidebar footer
 - **First-run onboarding**: Screen Recording, shortcut takeover, optional Ollama setup
 - **Menu bar**: shortcuts beside capture actions, recent files, open save folder, Clips library browser
 - **Local AI**: Ollama discovery, model list, pull `qwen2.5vl`; friendly errors when the vision model is missing
@@ -162,7 +166,7 @@ Use **Settings → Developer → Install Command Line Tool** to install `octosho
 }
 ```
 
-MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, `ocr`, `auto_redact`, `ask_ai`, `to_latex`, `extract_table`, `annotate`. URL example: `octoshot://capture?mode=window` (interactive area/window flows open the app).
+MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, `ocr`, `auto_redact`, `ask_ai`, `to_latex`, `extract_table`, `annotate`, `record_start`, `record_stop`. URL examples: `octoshot://capture?mode=window`; `octoshot://record?action=start&format=gif`; CLI `octoshot record stop` (opens the app via URL).
 
 ## Requirements
 

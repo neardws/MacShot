@@ -36,6 +36,8 @@ struct OctoshotCLI {
                 try await runExtractTable(rest)
             case "annotate":
                 try await runAnnotate(rest)
+            case "record":
+                try runRecord(rest)
             case "mcp":
                 await MCPServer.run()
             case "help", "--help", "-h":
@@ -65,8 +67,48 @@ struct OctoshotCLI {
           to-latex --input PATH [--output PATH]
           extract-table --input PATH [--save-clip]
           annotate --input PATH --spec PATH.json [--output PATH]
+          record start [--mode fullscreen|region] [--format video|gif] [--rect x,y,w,h]
+          record stop
           mcp   Start Model Context Protocol server on stdio
         """)
+    }
+
+    private static func runRecord(_ args: [String]) throws {
+        guard let sub = args.first else {
+            throw CaptureError.captureFailed("record requires start or stop")
+        }
+        switch sub {
+        case "stop":
+            let url = AgentAppLauncher.recordURL(action: "stop")
+            AgentAppLauncher.openOctoshotURL(url)
+            printJSON(["status": "stop_requested", "url": url.absoluteString])
+        case "start":
+            var mode = "fullscreen"
+            var format = "video"
+            var rect: String?
+            var i = 1
+            while i < args.count {
+                switch args[i] {
+                case "--mode":
+                    i += 1
+                    mode = args[i]
+                case "--format":
+                    i += 1
+                    format = args[i]
+                case "--rect":
+                    i += 1
+                    rect = args[i]
+                default:
+                    break
+                }
+                i += 1
+            }
+            let url = AgentAppLauncher.recordURL(action: "start", mode: mode, format: format, rect: rect)
+            AgentAppLauncher.openOctoshotURL(url)
+            printJSON(["status": "start_requested", "url": url.absoluteString])
+        default:
+            throw CaptureError.captureFailed("record requires start or stop")
+        }
     }
 
     private static func runCapture(_ args: [String]) async throws {
