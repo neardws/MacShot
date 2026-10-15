@@ -1,0 +1,30 @@
+name: Build (full MLX)
+
+on:
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
+
+jobs:
+  macos-mlx:
+    runs-on: macos-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen generate
+      - run: bash Scripts/fetch-llama-mtmd.sh build/llama-mtmd
+      - name: Build Octoshot with mlx-swift-lm
+        run: |
+          set -o pipefail
+          DERIVED="$PWD/.derivedData-mlx"
+          xcodebuild \
+            -derivedDataPath "$DERIVED" \
+            -scheme Octoshot \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            -skipPackagePluginValidation \
+            build
+        env:
+          NSUnbufferedIO: "YES"

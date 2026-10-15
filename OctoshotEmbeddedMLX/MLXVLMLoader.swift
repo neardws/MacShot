@@ -9,16 +9,16 @@ import MLXLMCommon
 
 /// Loads SmolVLM2 from `~/Library/Application Support/Octoshot/Models/`.
 @MainActor
-enum MLXVLMLoader {
-    static let shared = Loader()
+public enum MLXVLMLoader {
+    public static let shared = Loader()
 
-    final class Loader {
+    public final class Loader {
         #if EMBEDDED_MLX
         private var session: ChatSession?
         private var loadTask: Task<Void, Error>?
         #endif
 
-        func respond(prompt: String, image: NSImage) async throws -> String {
+        public func respond(prompt: String, image: NSImage) async throws -> String {
             #if EMBEDDED_MLX
             try await ensureLoaded()
             guard let session else { throw EmbeddedAIError.backendMissing }

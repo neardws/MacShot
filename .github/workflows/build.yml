@@ -15,8 +15,8 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate Xcode project
-        run: xcodegen generate
+      - name: Generate Xcode project (CI MLX stub)
+        run: bash Scripts/ci-xcodegen.sh
 
       - name: Fetch llama-mtmd-cli
         run: bash Scripts/fetch-llama-mtmd.sh build/llama-mtmd

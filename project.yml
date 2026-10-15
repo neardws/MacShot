@@ -40,6 +40,24 @@ targets:
       MACH_O_TYPE: staticlib
       SKIP_INSTALL: YES
 
+  OctoshotEmbeddedMLX:
+    type: framework
+    platform: macOS
+    sources:
+      - path: OctoshotEmbeddedMLX
+    dependencies:
+      - target: OctoshotCore
+      - package: mlx-swift-lm
+        product: MLXVLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
+    settings:
+      PRODUCT_NAME: OctoshotEmbeddedMLX
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotEmbeddedMLX
+      GENERATE_INFOPLIST_FILE: YES
+      DEFINES_MODULE: YES
+      SKIP_INSTALL: YES
+
   OctoshotCoreTests:
     type: bundle.unit-test
     platform: macOS
@@ -78,10 +96,7 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
-      - package: mlx-swift-lm
-        product: MLXVLM
-      - package: mlx-swift-lm
-        product: MLXLMCommon
+      - target: OctoshotEmbeddedMLX
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
@@ -129,6 +144,7 @@ targets:
       LD_RUNPATH_SEARCH_PATHS:
         - $(inherited)
         - "@executable_path/../Frameworks"
+        - "@executable_path/../Frameworks"
 
 schemes:
   Octoshot:
@@ -136,6 +152,7 @@ schemes:
       parallelizeBuild: false
       targets:
         octoshot: build
+        OctoshotEmbeddedMLX: build
         Octoshot: all
     run:
       config: Debug

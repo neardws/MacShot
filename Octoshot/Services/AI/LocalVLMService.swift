@@ -1,9 +1,8 @@
 import AppKit
 import Foundation
 import OctoshotCore
+import OctoshotEmbeddedMLX
 
-/// On-device SmolVLM2 via mlx-swift-lm (MLXVLM). Link the `mlx-swift-lm` package in Xcode to enable
-/// inference; CI builds compile the stub path below when MLXVLM is not linked.
 @MainActor
 final class LocalVLMService: EmbeddedVisionBackend, @unchecked Sendable {
     static let shared = LocalVLMService()
