@@ -45,7 +45,7 @@ enum CaptureContentClassifier {
         let sensitiveScore = await sensitiveScore(image: image)
         let formulaScore = formulaScore(text: text)
         let codeScore = codeScore(text: text)
-        let plainScore = max(0.15, 1.0 - max(formulaScore, tableScore: rectangleScore, sensitiveScore, codeScore) * 0.85)
+        let plainScore = max(0.15, 1.0 - max(formulaScore, rectangleScore, sensitiveScore, codeScore) * 0.85)
 
         let scores: [CaptureContentKind: Double] = [
             .formula: formulaScore,

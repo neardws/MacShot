@@ -12,11 +12,18 @@ struct QuickAccessActions {
     var onClose: () -> Void
 }
 
+@MainActor
 private final class QuickAccessEntry: Identifiable {
     let id = UUID()
     let image: NSImage
     let actions: QuickAccessActions
-    let speculativeState = SpeculativeActionState()
+    let speculativeState: SpeculativeActionState
+
+    init(image: NSImage, actions: QuickAccessActions) {
+        self.image = image
+        self.actions = actions
+        self.speculativeState = SpeculativeActionState()
+    }
 }
 
 @MainActor
