@@ -1,4 +1,5 @@
 import AppKit
+import OctoshotCore
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -34,6 +35,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         hotkeyManager.unregisterAll()
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            AgentURLRouter.handle(url)
+        }
     }
 
     private func setupStatusItem() {

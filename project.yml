@@ -16,6 +16,30 @@ settings:
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     DEVELOPMENT_TEAM: ""
 targets:
+  OctoshotCore:
+    type: framework
+    platform: macOS
+    sources:
+      - path: OctoshotCore
+    settings:
+      PRODUCT_NAME: OctoshotCore
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotCore
+      GENERATE_INFOPLIST_FILE: YES
+      DEFINES_MODULE: YES
+      SKIP_INSTALL: YES
+
+  octoshot:
+    type: tool
+    platform: macOS
+    sources:
+      - path: octoshot-cli
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      PRODUCT_NAME: octoshot
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.octoshot-cli
+      GENERATE_INFOPLIST_FILE: YES
+
   Octoshot:
     type: application
     platform: macOS
@@ -23,6 +47,8 @@ targets:
       - path: Octoshot
         excludes:
           - "**/*.md"
+    dependencies:
+      - target: OctoshotCore
     settings:
       PRODUCT_NAME: Octoshot
       PRODUCT_BUNDLE_IDENTIFIER: com.neardws.Octoshot

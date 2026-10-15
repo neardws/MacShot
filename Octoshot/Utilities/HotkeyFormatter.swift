@@ -1,5 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
+import OctoshotCore
 
 enum HotkeyFormatter {
     static func displayString(for binding: HotkeyBinding) -> String {

@@ -1,4 +1,5 @@
 import AppKit
+import OctoshotCore
 
 enum AnnotationTool: String, CaseIterable, Identifiable {
     case arrow

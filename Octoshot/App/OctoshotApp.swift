@@ -1,4 +1,5 @@
 import SwiftUI
+import OctoshotCore
 
 @main
 struct OctoshotApp: App {

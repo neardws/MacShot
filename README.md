@@ -25,6 +25,28 @@
 | [#7](https://github.com/neardws/Octoshot/issues/7) | 截图 → LaTeX |
 | [#8](https://github.com/neardws/Octoshot/issues/8) | 论文图/表助手与 Clips 库 |
 | [#9](https://github.com/neardws/Octoshot/issues/9) | 开发者模式（取色、标尺、Markdown 粘贴） |
+| [#13](https://github.com/neardws/Octoshot/issues/13) | Agent 接口：`octoshot` CLI、stdio MCP、URL scheme、快捷指令 |
+
+### Agent 接口（#13）
+
+构建后可在 DerivedData 或安装路径使用 **`octoshot`** CLI，以及 **`octoshot mcp`**（stdio MCP 服务）。核心能力在 **`OctoshotCore`** 框架中，与 GUI 应用共享。默认仅访问本机；需已授予屏幕录制权限。
+
+**Cursor / Claude Code MCP 配置示例**（路径请改为你本机构建产物）：
+
+```json
+{
+  "mcpServers": {
+    "octoshot": {
+      "command": "/path/to/DerivedData/.../octoshot",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+Claude Desktop（`claude_desktop_config.json`）同样使用 `command` + `args: ["mcp"]`。工具包括：`capture_screen`、`capture_window`、`list_windows`、`list_displays`、`ocr`、`auto_redact`、`ask_ai`、`to_latex`、`extract_table`、`annotate`。
+
+URL 示例：`octoshot://capture?mode=fullscreen`（区域/窗口模式会打开应用内交互流程）。
 
 ## 环境要求
 

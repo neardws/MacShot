@@ -1,12 +1,12 @@
 import AppKit
 import Foundation
 
-enum AIClientError: LocalizedError {
+public enum AIClientError: LocalizedError {
     case invalidEndpoint
     case emptyResponse
     case server(String)
 
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
         case .invalidEndpoint: return "Invalid AI endpoint URL."
         case .emptyResponse: return "Empty response from local model."
@@ -15,12 +15,18 @@ enum AIClientError: LocalizedError {
     }
 }
 
-struct OpenAICompatibleClient {
-    var baseURL: URL
-    var model: String
-    var apiKey: String?
+public struct OpenAICompatibleClient {
+    public var baseURL: URL
+    public var model: String
+    public var apiKey: String?
 
-    func streamVisionChat(prompt: String, image: NSImage) -> AsyncThrowingStream<String, Error> {
+    public init(baseURL: URL, model: String, apiKey: String?) {
+        self.baseURL = baseURL
+        self.model = model
+        self.apiKey = apiKey
+    }
+
+    public func streamVisionChat(prompt: String, image: NSImage) -> AsyncThrowingStream<String, Error> {
         AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -35,7 +41,7 @@ struct OpenAICompatibleClient {
         }
     }
 
-    func completeVisionChat(prompt: String, image: NSImage) async throws -> String {
+    public func completeVisionChat(prompt: String, image: NSImage) async throws -> String {
         var text = ""
         for try await chunk in try await requestStream(prompt: prompt, image: image) {
             text += chunk
@@ -98,15 +104,5 @@ struct OpenAICompatibleClient {
                 }
             }
         }
-    }
-
-    @MainActor
-    static func fromSettings() -> OpenAICompatibleClient {
-        let settings = AppSettings.shared
-        return OpenAICompatibleClient(
-            baseURL: settings.aiBaseURL,
-            model: settings.aiVisionModel,
-            apiKey: settings.aiAPIKey.isEmpty ? nil : settings.aiAPIKey
-        )
     }
 }

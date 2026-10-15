@@ -1,4 +1,5 @@
 import AppKit
+import OctoshotCore
 
 @MainActor
 final class FeatureCoordinator {

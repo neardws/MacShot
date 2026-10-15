@@ -28,5 +28,16 @@
 	<string>Copyright © 2026 neardws. All rights reserved.</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Octoshot needs Screen Recording permission to capture screenshots of your display, windows, and selected areas.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.neardws.Octoshot</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>octoshot</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -1,4 +1,5 @@
 import AppKit
+import OctoshotCore
 
 final class AreaSelectionController: NSResponder {
     var onComplete: ((CGRect) -> Void)?

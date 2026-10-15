@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OctoshotCore
 
 struct QuickAccessActions {
     var onCopy: () -> Void

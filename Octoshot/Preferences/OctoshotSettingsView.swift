@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OctoshotCore
 
 struct OctoshotSettingsView: View {
     var body: some View {

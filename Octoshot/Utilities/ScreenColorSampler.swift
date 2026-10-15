@@ -1,4 +1,5 @@
 import AppKit
+import OctoshotCore
 
 struct ScreenColorInfo: Equatable {
     let red: Int

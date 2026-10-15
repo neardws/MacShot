@@ -1,0 +1,216 @@
+import AppKit
+import Foundation
+import OctoshotCore
+
+@main
+struct OctoshotCLI {
+    static func main() async {
+        _ = NSApplication.shared
+        let args = Array(CommandLine.arguments.dropFirst())
+        guard let command = args.first else {
+            printUsage()
+            exit(1)
+        }
+        let rest = Array(args.dropFirst())
+        do {
+            switch command {
+            case "capture":
+                try await runCapture(rest)
+            case "list-windows":
+                try await runListWindows()
+            case "list-displays":
+                try await runListDisplays()
+            case "ocr":
+                try await runOCR(rest)
+            case "redact", "auto-redact":
+                try await runRedact(rest)
+            case "ask-ai":
+                try await runAskAI(rest)
+            case "to-latex":
+                try await runLaTeX(rest)
+            case "extract-table":
+                try await runExtractTable(rest)
+            case "annotate":
+                try await runAnnotate(rest)
+            case "mcp":
+                await MCPServer.run()
+            case "help", "--help", "-h":
+                printUsage()
+            default:
+                fputs("Unknown command: \(command)\n", stderr)
+                printUsage()
+                exit(1)
+            }
+        } catch {
+            fputs("Error: \(error.localizedDescription)\n", stderr)
+            exit(1)
+        }
+    }
+
+    private static func printUsage() {
+        print("""
+        octoshot — Octoshot agent CLI (local-only)
+
+        Commands:
+          capture --mode <fullscreen|display|window|region> [--display-id N] [--window-id N] [--rect x,y,w,h] [--output PATH] [--base64]
+          list-windows
+          list-displays
+          ocr --input PATH
+          auto-redact --input PATH [--output PATH]
+          ask-ai --input PATH --prompt TEXT
+          to-latex --input PATH [--output PATH]
+          extract-table --input PATH [--save-clip]
+          annotate --input PATH --spec PATH.json [--output PATH]
+          mcp   Start Model Context Protocol server on stdio
+        """)
+    }
+
+    private static func runCapture(_ args: [String]) async throws {
+        var mode: AgentCaptureMode = .fullscreen
+        var displayID: UInt32?
+        var windowID: UInt32?
+        var region: CGRect?
+        var output: URL?
+        var includeBase64 = false
+        var i = 0
+        while i < args.count {
+            switch args[i] {
+            case "--mode":
+                i += 1
+                mode = AgentCaptureMode(rawValue: args[i]) ?? .fullscreen
+            case "--display-id":
+                i += 1
+                displayID = UInt32(args[i])
+            case "--window-id":
+                i += 1
+                windowID = UInt32(args[i])
+            case "--rect":
+                i += 1
+                let parts = args[i].split(separator: ",").compactMap { Double($0) }
+                guard parts.count == 4 else { throw CaptureError.captureFailed("rect needs x,y,w,h") }
+                region = CGRect(x: parts[0], y: parts[1], width: parts[2], height: parts[3])
+            case "--output":
+                i += 1
+                output = URL(fileURLWithPath: args[i])
+            case "--base64":
+                includeBase64 = true
+            default:
+                break
+            }
+            i += 1
+        }
+        let result = try await AgentCaptureEngine.capture(options: .init(
+            mode: mode,
+            displayID: displayID,
+            windowID: windowID,
+            region: region,
+            outputPath: output,
+            includeBase64: includeBase64
+        ))
+        printJSON(result)
+    }
+
+    private static func runListWindows() async throws {
+        let windows = try await AgentCaptureEngine.listWindows()
+        printJSON(windows)
+    }
+
+    private static func runListDisplays() async throws {
+        let displays = try await AgentCaptureEngine.listDisplays()
+        printJSON(displays)
+    }
+
+    private static func runOCR(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        let result = try await OCRService.recognizeText(in: image)
+        printJSON(result)
+    }
+
+    private static func runRedact(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        var outputPath: URL?
+        for (idx, arg) in args.enumerated() where arg == "--output" && idx + 1 < args.count {
+            outputPath = URL(fileURLWithPath: args[idx + 1])
+        }
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        let redacted = try await AgentProcessing.autoRedact(image: image)
+        if let outputPath {
+            try ImageFormats.writePNG(image: redacted, to: outputPath)
+            printJSON(["path": outputPath.path])
+        } else {
+            let url = AgentConfiguration.saveDirectory.appendingPathComponent("redacted-\(UUID().uuidString).png")
+            try ImageFormats.writePNG(image: redacted, to: url)
+            printJSON(["path": url.path])
+        }
+    }
+
+    private static func runAskAI(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        guard let prompt = value(for: "--prompt", in: args) else {
+            throw CaptureError.captureFailed("--prompt required")
+        }
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        let text = try await AgentProcessing.askAI(image: image, prompt: prompt)
+        print(text)
+    }
+
+    private static func runLaTeX(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        let latex = try await AgentProcessing.toLaTeX(image: image)
+        if let out = value(for: "--output", in: args) {
+            try latex.write(to: URL(fileURLWithPath: out), atomically: true, encoding: .utf8)
+            printJSON(["path": out, "latex": latex])
+        } else {
+            print(latex)
+        }
+    }
+
+    private static func runExtractTable(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        if args.contains("--save-clip") {
+            let folder = try await AgentProcessing.extractTableAndSaveClip(image: image)
+            printJSON(["clipFolder": folder.path])
+        } else {
+            let md = try await AgentProcessing.extractTable(image: image)
+            print(md)
+        }
+    }
+
+    private static func runAnnotate(_ args: [String]) async throws {
+        let path = try requireInputPath(args)
+        guard let specPath = value(for: "--spec", in: args) else {
+            throw CaptureError.captureFailed("--spec PATH.json required")
+        }
+        let specData = try Data(contentsOf: URL(fileURLWithPath: specPath))
+        let spec = try JSONDecoder().decode(AgentAnnotationSpec.self, from: specData)
+        let image = try AgentCaptureEngine.loadImage(path: path)
+        let annotated = AnnotationRenderer.apply(spec: spec, to: image)
+        let out = value(for: "--output", in: args)
+            ?? AgentConfiguration.saveDirectory.appendingPathComponent("annotated-\(UUID().uuidString).png").path
+        try ImageFormats.writePNG(image: annotated, to: URL(fileURLWithPath: out))
+        printJSON(["path": out])
+    }
+
+    private static func requireInputPath(_ args: [String]) throws -> String {
+        guard let path = value(for: "--input", in: args) else {
+            throw CaptureError.captureFailed("--input PATH required")
+        }
+        return path
+    }
+
+    private static func value(for flag: String, in args: [String]) -> String? {
+        guard let idx = args.firstIndex(of: flag), idx + 1 < args.count else { return nil }
+        return args[idx + 1]
+    }
+
+    private static func printJSON<T: Encodable>(_ value: T) {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        if let data = try? encoder.encode(value), let str = String(data: data, encoding: .utf8) {
+            print(str)
+        }
+    }
+}

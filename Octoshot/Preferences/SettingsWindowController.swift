@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import OctoshotCore
 
 @MainActor
 final class SettingsWindowController: NSWindowController {

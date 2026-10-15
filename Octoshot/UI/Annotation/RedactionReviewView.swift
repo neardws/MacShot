@@ -1,4 +1,5 @@
 import SwiftUI
+import OctoshotCore
 
 struct RedactionReviewView: View {
     @Binding var candidates: [RedactionCandidate]

@@ -1,5 +1,6 @@
 import AppKit
 import ScreenCaptureKit
+import OctoshotCore
 
 final class WindowSelectionController {
     var onComplete: ((SCWindow) -> Void)?

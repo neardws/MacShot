@@ -27,5 +27,11 @@ jobs:
             -destination 'platform=macOS' \
             CODE_SIGNING_ALLOWED=NO \
             build
+          xcodebuild \
+            -scheme octoshot \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
         env:
           NSUnbufferedIO: "YES"

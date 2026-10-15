@@ -1,12 +1,15 @@
 import AppKit
 import Vision
 
-enum RedactionDetector {
-    static func detect(in image: NSImage) async throws -> [RedactionCandidate] {
+public enum RedactionDetector {
+    public static func detect(
+        in image: NSImage,
+        settings: RedactionSettingsSnapshot? = nil
+    ) async throws -> [RedactionCandidate] {
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return []
         }
-        let settings = await MainActor.run { RedactionSettingsSnapshot.fromAppSettings() }
+        let settings = settings ?? AgentConfiguration.redactionSettings()
         var candidates: [RedactionCandidate] = []
 
         let textCandidates = try await detectSensitiveText(in: cgImage, imageSize: image.size, settings: settings)

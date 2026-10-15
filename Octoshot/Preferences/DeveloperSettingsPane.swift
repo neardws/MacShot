@@ -1,4 +1,5 @@
 import SwiftUI
+import OctoshotCore
 
 struct DeveloperSettingsPane: View {
     @ObservedObject private var settings = AppSettings.shared

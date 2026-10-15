@@ -1,4 +1,5 @@
 import Foundation
+import OctoshotCore
 
 enum AreaCaptureFollowUp: Equatable {
     case standard

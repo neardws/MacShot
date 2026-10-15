@@ -1,6 +1,7 @@
 import AppKit
 import ScreenCaptureKit
 import SwiftUI
+import OctoshotCore
 
 @MainActor
 final class CaptureCoordinator {

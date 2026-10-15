@@ -1,6 +1,7 @@
 import AppKit
 import CoreGraphics
 import ScreenCaptureKit
+import OctoshotCore
 
 enum PermissionManager {
     private static let didPromptKey = "didShowScreenRecordingPrompt"

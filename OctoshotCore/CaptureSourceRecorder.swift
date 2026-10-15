@@ -1,17 +1,16 @@
 import AppKit
 
-struct CaptureSourceMetadata: Codable {
-    var capturedAt: Date
-    var frontmostApp: String?
-    var bundleIdentifier: String?
-    var windowTitle: String?
-    var urlString: String?
-    var documentPath: String?
+public struct CaptureSourceMetadata: Codable, Sendable {
+    public var capturedAt: Date
+    public var frontmostApp: String?
+    public var bundleIdentifier: String?
+    public var windowTitle: String?
+    public var urlString: String?
+    public var documentPath: String?
 }
 
-enum CaptureSourceRecorder {
-    @MainActor
-    static func current() -> CaptureSourceMetadata {
+public enum CaptureSourceRecorder {
+    public static func current() -> CaptureSourceMetadata {
         let workspace = NSWorkspace.shared
         let app = workspace.frontmostApplication
         var meta = CaptureSourceMetadata(
@@ -50,7 +49,7 @@ enum CaptureSourceRecorder {
         guard browsers.contains(where: { bundle.contains($0.split(separator: ".").last.map(String.init) ?? "") }) || bundle.contains("safari") || bundle.contains("chrome") else {
             return nil
         }
-        return nil // URL via AppleScript varies; window title often enough for MVP metadata
+        return nil
     }
 
     private static func documentPath(from app: NSRunningApplication?) -> String? {
