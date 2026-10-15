@@ -55,6 +55,15 @@ targets:
         - "@loader_path"
         - "@loader_path/../Frameworks"
 
+  BuildOctoshotCLI:
+    type: aggregate
+    platform: macOS
+    dependencies:
+      - target: octoshot
+    settings:
+      PRODUCT_NAME: BuildOctoshotCLI
+      SKIP_INSTALL: YES
+
   Octoshot:
     type: application
     platform: macOS
@@ -64,24 +73,9 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
-    preBuildScripts:
-      - name: Build octoshot CLI tool
-        script: |
-          set -euo pipefail
-          if [ -x "${BUILT_PRODUCTS_DIR}/octoshot" ]; then
-            exit 0
-          fi
-          xcodebuild \
-            -project "${PROJECT_FILE_PATH}" \
-            -target octoshot \
-            -configuration "${CONFIGURATION}" \
-            -sdk "${SDK_NAME}" \
-            CODE_SIGNING_ALLOWED=NO \
-            BUILD_DIR="${BUILD_DIR}" \
-            OBJROOT="${OBJROOT}" \
-            SYMROOT="${SYMROOT}" \
-            build
-        basedOnDependencyAnalysis: false
+      - target: BuildOctoshotCLI
+        link: false
+        embed: false
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
@@ -115,5 +109,5 @@ targets:
       testTargets: []
       build:
         targets:
-          octoshot: [build]
+          BuildOctoshotCLI: [build]
           Octoshot: all
