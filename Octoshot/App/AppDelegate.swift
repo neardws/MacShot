@@ -31,6 +31,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             name: .octoshotRecentCapturesDidChange,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleRecordingStateChanged),
+            name: .octoshotRecordingStateDidChange,
+            object: nil
+        )
 
         PermissionManager.installActivationRefresh()
         Task {
@@ -66,6 +72,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(captureItem("Capture Area", shortcut: settings.hotkeyArea, action: #selector(captureArea)))
         menu.addItem(captureItem("Capture Window", shortcut: settings.hotkeyWindow, action: #selector(captureWindow)))
         menu.addItem(captureItem("Capture Fullscreen", shortcut: settings.hotkeyFullscreen, action: #selector(captureFullscreen)))
+        menu.addItem(.separator())
+
+        if ScreenCaptureRecorder.shared.isRecording {
+            let stopItem = menuItem("Stop Recording", action: #selector(stopRecording))
+            stopItem.attributedTitle = NSAttributedString(
+                string: "Stop Recording",
+                attributes: [.foregroundColor: NSColor.systemRed]
+            )
+            menu.addItem(stopItem)
+        } else {
+            menu.addItem(menuItem("Record Fullscreen (Video)", action: #selector(recordFullscreenVideo)))
+            menu.addItem(menuItem("Record Fullscreen (GIF)", action: #selector(recordFullscreenGIF)))
+        }
         menu.addItem(.separator())
 
         menu.addItem(menuItem("Capture Formula (LaTeX)…", action: #selector(captureLaTeX)))
@@ -113,6 +132,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateStatusItemImage() {
         guard let button = statusItem?.button else { return }
+        if ScreenCaptureRecorder.shared.isRecording {
+            button.image = NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Recording")
+            button.image?.isTemplate = true
+            button.contentTintColor = .systemRed
+            return
+        }
+        button.contentTintColor = nil
         if let image = NSImage(named: "MenuBarIcon") {
             image.isTemplate = true
             button.image = image
@@ -120,6 +146,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             button.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Octoshot")
             button.image?.isTemplate = true
         }
+    }
+
+    @objc private func handleRecordingStateChanged() {
+        updateStatusItemImage()
+        rebuildMenu()
+    }
+
+    @objc private func recordFullscreenVideo() {
+        CaptureCoordinator.shared.startFullscreenRecording(video: true)
+    }
+
+    @objc private func recordFullscreenGIF() {
+        CaptureCoordinator.shared.startFullscreenRecording(video: false)
+    }
+
+    @objc private func stopRecording() {
+        CaptureCoordinator.shared.stopRecording()
     }
 
     private func applyMenuBarVisibility() {

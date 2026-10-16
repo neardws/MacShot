@@ -64,7 +64,9 @@ actor MCPStdioServer {
             tool("ask_ai", "Vision chat via local OpenAI-compatible API", ["path": "string", "prompt": "string"]),
             tool("to_latex", "Formula to LaTeX", ["path": "string"]),
             tool("extract_table", "Table to Markdown", ["path": "string", "save_clip": "bool"]),
-            tool("annotate", "Apply JSON annotations", ["path": "string", "spec": "object", "output": "path"])
+            tool("annotate", "Apply JSON annotations", ["path": "string", "spec": "object", "output": "path"]),
+            tool("record_start", "Start screen recording in Octoshot app (opens URL)", ["mode": "fullscreen|region", "format": "video|gif", "rect": "x,y,w,h"]),
+            tool("record_stop", "Stop active Octoshot screen recording", [:])
         ]
     }
 
@@ -184,6 +186,16 @@ actor MCPStdioServer {
                 ?? AgentConfiguration.saveDirectory.appendingPathComponent("annotated-\(UUID().uuidString).png")
             try ImageFormats.writePNG(image: annotated, to: out)
             return "{\"path\":\"\(out.path)\"}"
+        case "record_start":
+            let mode = str("mode") ?? "fullscreen"
+            let format = str("format") ?? "video"
+            let url = AgentAppLauncher.recordURL(action: "start", mode: mode, format: format, rect: str("rect"))
+            AgentAppLauncher.openOctoshotURL(url)
+            return "{\"status\":\"start_requested\",\"url\":\"\(url.absoluteString)\"}"
+        case "record_stop":
+            let url = AgentAppLauncher.recordURL(action: "stop")
+            AgentAppLauncher.openOctoshotURL(url)
+            return "{\"status\":\"stop_requested\",\"url\":\"\(url.absoluteString)\"}"
         default:
             throw CaptureError.captureFailed("Unknown tool \(name)")
         }

@@ -57,6 +57,8 @@ struct OctoshotSettingsView: View {
             SettingsShortcutsPane()
         case .capture:
             CaptureSettingsPane()
+        case .recording:
+            SettingsRecordingPane()
         case .annotation:
             AnnotationSettingsPane()
         case .ai:
@@ -195,6 +197,27 @@ private struct CaptureSettingsPane: View {
             } header: {
                 Label("Quick access", systemImage: "photo.on.rectangle.angled")
             }
+
+            Section {
+                Toggle("Speculative smart actions", isOn: speculativeEnabledBinding)
+                Text("After capture, classify on-device and pre-run the top suggested action in the background. Results are never copied until you tap Apply.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if speculativeEnabledBinding.wrappedValue {
+                    HStack {
+                        Text("Confidence threshold")
+                        Slider(value: speculativeThresholdBinding, in: 0.25...0.85, step: 0.05)
+                        Text("\(Int(speculativeThresholdBinding.wrappedValue * 100))%")
+                            .monospacedDigit()
+                            .frame(width: 40, alignment: .trailing)
+                    }
+                    Text("LaTeX and table extraction are skipped when Ollama is unreachable; redaction and OCR still run on-device.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                Label("Smart actions", systemImage: "sparkles")
+            }
         }
     }
 
@@ -207,6 +230,20 @@ private struct CaptureSettingsPane: View {
         if panel.runModal() == .OK, let url = panel.url {
             settings.saveDirectory = url
         }
+    }
+
+    private var speculativeEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { AppSettings.shared.speculativePostProcessingEnabled },
+            set: { AppSettings.shared.speculativePostProcessingEnabled = $0 }
+        )
+    }
+
+    private var speculativeThresholdBinding: Binding<Double> {
+        Binding(
+            get: { AppSettings.shared.speculativeConfidenceThreshold },
+            set: { AppSettings.shared.speculativeConfidenceThreshold = $0 }
+        )
     }
 }
 

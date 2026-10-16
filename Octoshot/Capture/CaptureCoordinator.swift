@@ -15,8 +15,8 @@ final class CaptureCoordinator {
     private var isCapturing = false
 
     private init() {
-        areaSelection.onComplete = { [weak self] rect in
-            Task { await self?.performRegionCapture(rect) }
+        areaSelection.onComplete = { [weak self] rect, mode in
+            Task { await self?.handleAreaSelection(rect, mode: mode) }
         }
         areaSelection.onCancel = { [weak self] in self?.isCapturing = false }
 
@@ -52,6 +52,18 @@ final class CaptureCoordinator {
         Task { await performFullscreenCapture() }
     }
 
+    func startFullscreenRecording(video: Bool) {
+        Task {
+            guard await beginCaptureFlow() else { return }
+            isCapturing = false
+            ScreenCaptureRecorder.shared.startFullscreen(kind: video ? .video : .gif)
+        }
+    }
+
+    func stopRecording() {
+        ScreenCaptureRecorder.shared.stop()
+    }
+
     private func beginCaptureFlow() async -> Bool {
         if isCapturing { return false }
         await PermissionManager.prepareForCaptureIfNeeded()
@@ -59,8 +71,27 @@ final class CaptureCoordinator {
         return true
     }
 
-    private func performRegionCapture(_ rect: CGRect) async {
+    private func handleAreaSelection(_ rect: CGRect, mode: AreaCaptureMode) async {
         defer { isCapturing = false }
+        switch mode {
+        case .screenshot:
+            await performRegionCapture(rect)
+        case .scrolling:
+            ScrollingCaptureController.shared.start(region: rect)
+        case .recordVideo:
+            ScreenCaptureRecorder.shared.startRegion(rect, kind: .video)
+        case .recordGIF:
+            ScreenCaptureRecorder.shared.startRegion(rect, kind: .gif)
+        case .formulaLaTeX:
+            CaptureFollowUpState.shared.areaFollowUp = .latex
+            await performRegionCapture(rect)
+        case .figureTable:
+            CaptureFollowUpState.shared.areaFollowUp = .paperClip
+            await performRegionCapture(rect)
+        }
+    }
+
+    private func performRegionCapture(_ rect: CGRect) async {
         do {
             let image = try await ScreenCaptureService.shared.captureRegion(globalRect: rect)
             ScreenRecordingAccessCache.shared.lastKnownGranted = true
@@ -125,16 +156,41 @@ final class CaptureCoordinator {
         }
     }
 
-    private func presentResult(_ image: NSImage) {
+    func presentCapturedImage(_ image: NSImage) {
+        presentResult(image)
+    }
+
+    func presentCapturedMovie(at url: URL) {
+        CaptureFeedback.playCaptureSoundIfEnabled()
+        let preview = NSImage(size: NSSize(width: 120, height: 68))
+        preview.lockFocus()
+        NSColor.black.setFill()
+        NSRect(x: 0, y: 0, width: 120, height: 68).fill()
+        let symbol = "play.rectangle.fill"
+        if let img = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) {
+            img.draw(in: NSRect(x: 40, y: 14, width: 40, height: 40))
+        }
+        preview.unlockFocus()
+        presentResult(preview, savedFileURL: url)
+        RecentCapturesStore.record(url: url)
+    }
+
+    func presentCapturedGIF(at url: URL, preview: NSImage) {
+        CaptureFeedback.playCaptureSoundIfEnabled()
+        presentResult(preview, savedFileURL: url)
+        RecentCapturesStore.record(url: url)
+    }
+
+    private func presentResult(_ image: NSImage, savedFileURL: URL? = nil) {
         CaptureFeedback.playCaptureSoundIfEnabled()
         let settings = AppSettings.shared
-        var savedURL: URL?
+        var savedURL: URL? = savedFileURL
 
-        if settings.afterCaptureCopyToClipboard {
+        if settings.afterCaptureCopyToClipboard, savedFileURL == nil {
             ImageFormats.copyToPasteboard(image)
         }
 
-        if settings.afterCaptureSaveToDisk {
+        if settings.afterCaptureSaveToDisk, savedFileURL == nil {
             let url = settings.defaultSaveURL()
             do {
                 try ImageFormats.write(
@@ -155,8 +211,18 @@ final class CaptureCoordinator {
         var captureURL = savedURL
         let developer = settings.developerModeEnabled
         quickAccess.show(image: image, actions: QuickAccessActions(
-            onCopy: { ImageFormats.copyToPasteboard(image) },
+            onCopy: {
+                if let file = savedFileURL {
+                    NSWorkspace.shared.activateFileViewerSelecting([file])
+                } else {
+                    ImageFormats.copyToPasteboard(image)
+                }
+            },
             onSave: {
+                if let file = savedFileURL {
+                    NSWorkspace.shared.activateFileViewerSelecting([file])
+                    return
+                }
                 let url = AppSettings.shared.defaultSaveURL()
                 do {
                     try ImageFormats.write(
@@ -182,7 +248,12 @@ final class CaptureCoordinator {
             } : nil,
             onCopyPath: developer ? {
                 do {
-                    captureURL = try DeveloperClipboard.copyFilePath(for: image, existingURL: captureURL)
+                    if let file = savedFileURL {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(file.path, forType: .string)
+                    } else {
+                        captureURL = try DeveloperClipboard.copyFilePath(for: image, existingURL: captureURL)
+                    }
                 } catch {
                     self.finishWithError(error)
                 }
