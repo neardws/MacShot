@@ -1,0 +1,33 @@
+---
+import type { LandingCopy } from '@/i18n/ui';
+import Reveal from './Reveal.astro';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+const placeholders = [1, 2, 3, 4];
+---
+
+<section class="section-pad bg-mb-bg-alt" id="gallery">
+  <div class="wrap mb-10 text-center">
+    <Reveal>
+      <h2 class="h2">{t.galleryTitle}</h2>
+      <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.galleryLead}</p>
+    </Reveal>
+  </div>
+  <div class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory">
+    {
+      placeholders.map((n) => (
+        <div
+          class="min-w-[min(85vw,420px)] shrink-0 snap-center rounded-shot border border-mb-hair bg-mb-tile-on-alt shadow-shot"
+        >
+          <div class="flex aspect-[16/10] items-center justify-center text-mb-fg3">
+            <span class="text-sm">Screenshot {n}</span>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>

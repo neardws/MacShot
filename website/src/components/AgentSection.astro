@@ -1,0 +1,49 @@
+---
+import type { LandingCopy } from '@/i18n/ui';
+import Reveal from './Reveal.astro';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+---
+
+<section class="section-pad dark-section" id="agent">
+  <div class="wrap">
+    <Reveal>
+      <h2 class="h2 text-center text-white">{t.agentTitle}</h2>
+      <p class="mx-auto mt-4 max-w-narrow text-center text-[#a1a1a6]">{t.agentLead}</p>
+    </Reveal>
+    <div class="mt-14 grid gap-8 lg:grid-cols-2">
+      <Reveal>
+        <div class="terminal">
+          {
+            t.agentTerminal.map((line) => (
+              <div class="mb-2 last:mb-0">
+                {line.startsWith('$') ? (
+                  <>
+                    <span class="prompt">$ </span>
+                    <span class="cmd">{line.slice(2)}</span>
+                  </>
+                ) : (
+                  <span class="comment">{line}</span>
+                )}
+              </div>
+            ))
+          }
+        </div>
+      </Reveal>
+      <div class="grid gap-4 sm:grid-cols-1">
+        {
+          t.agentTiles.map((tile, i) => (
+            <Reveal class="tile-dark p-8" delay={i * 60}>
+              <h3 class="text-xl font-semibold">{tile.title}</h3>
+              <p class="mt-2 text-[#a1a1a6]">{tile.body}</p>
+            </Reveal>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

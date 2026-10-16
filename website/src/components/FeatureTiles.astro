@@ -1,0 +1,38 @@
+---
+import type { LandingCopy } from '@/i18n/ui';
+import Reveal from './Reveal.astro';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+---
+
+<section class="section-pad" id="features">
+  <div class="wrap">
+    <Reveal>
+      <h2 class="h2 text-center">{t.tilesTitle}</h2>
+      <p class="mx-auto mt-4 max-w-narrow text-center text-mb-fg2">{t.tilesLead}</p>
+    </Reveal>
+    <div class="mt-14 grid gap-5 md:grid-cols-3">
+      {
+        t.tiles.map((tile, i) => (
+          <Reveal
+            class:list={[
+              'min-h-[300px] rounded-tile bg-mb-tile p-9',
+              tile.wide ? 'md:col-span-2' : '',
+            ]}
+            delay={i * 80}
+          >
+            <div class="mb-6 h-10 w-10 rounded-xl bg-mb-bg-alt flex items-center justify-center text-lg">
+              {['📸', '⚡', '🧠', '🎬', '⚙️'][i] ?? '✦'}
+            </div>
+            <h3 class="text-[24px] font-semibold tracking-tight">{tile.title}</h3>
+            <p class="mt-3 text-mb-fg2">{tile.body}</p>
+          </Reveal>
+        ))
+      }
+    </div>
+  </div>
+</section>

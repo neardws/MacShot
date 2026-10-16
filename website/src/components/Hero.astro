@@ -1,0 +1,45 @@
+---
+import type { LandingCopy } from '@/i18n/ui';
+import { RELEASE_URL, REPO_URL } from '@/i18n/ui';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<section class="section-pad pt-24 md:pt-28">
+  <div class="wrap text-center">
+    <p class="hero-rise mb-4 text-[19px] font-semibold text-mb-fg2" style="animation-delay: 0ms">
+      {t.heroEyebrow}
+    </p>
+    <div class="hero-rise mx-auto mb-8" style="animation-delay: 70ms">
+      <img
+        src={`${base}icon.png`}
+        alt="Octoshot mascot"
+        width="120"
+        height="120"
+        class="icon-halo mx-auto rounded-[28px]"
+      />
+    </div>
+    <h1
+      class="hero-rise mx-auto max-w-content text-[clamp(44px,7.4vw,80px)] font-semibold leading-[1.05] tracking-[var(--ls-hero)]"
+      style="animation-delay: 140ms"
+    >
+      <span class="accent-gradient">{t.heroTitle}</span>
+    </h1>
+    <p
+      class="hero-rise mx-auto mt-6 max-w-narrow text-[clamp(19px,2vw,21px)] font-semibold text-mb-fg3"
+      style="animation-delay: 210ms"
+    >
+      {t.heroLead}
+    </p>
+    <div class="hero-rise mt-10 flex flex-wrap items-center justify-center gap-4" style="animation-delay: 280ms">
+      <a class="btn" href={RELEASE_URL}>{t.heroCta}</a>
+      <a class="link text-[17px] font-semibold" href={REPO_URL}>{t.heroSecondary} →</a>
+    </div>
+    <p class="hero-rise mt-6 text-sm text-mb-fg2" style="animation-delay: 350ms">{t.heroFine}</p>
+  </div>
+</section>

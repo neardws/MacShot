@@ -1,0 +1,27 @@
+---
+import Footer from '@/components/Footer.astro';
+import Nav from '@/components/Nav.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCopy } from '@/i18n/ui';
+
+const locale = 'zh';
+const t = getCopy(locale);
+---
+
+<BaseLayout t={t}>
+  <Nav t={t} locale={locale} />
+  <main class="section-pad" lang="zh">
+    <div class="wrap max-w-narrow">
+      <h1 class="h2">文档</h1>
+      <p class="mt-4 text-mb-fg2">
+        用户指南（中英）将与仓库 <code class="text-sm">Docs/guide/</code> 同步，与应用内帮助窗口使用相同 Markdown。
+      </p>
+      <p class="mt-4 text-mb-fg2">
+        在内容合并至 <code class="text-sm">main</code> 之前，请参阅 GitHub 上的
+        <a class="link" href="https://github.com/neardws/Octoshot/blob/main/README.md">README</a>
+        与 <a class="link" href="https://github.com/neardws/Octoshot/tree/main/Docs">Docs/</a>。
+      </p>
+    </div>
+  </main>
+  <Footer t={t} locale={locale} />
+</BaseLayout>

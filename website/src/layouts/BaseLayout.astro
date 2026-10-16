@@ -1,0 +1,26 @@
+---
+import '@/styles/global.css';
+import type { LandingCopy } from '@/i18n/ui';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={t.metaDescription} />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href={`${base}icon.png`} />
+    <title>{t.metaTitle}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
