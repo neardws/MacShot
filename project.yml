@@ -13,6 +13,10 @@ options:
 configs:
   Debug: debug
   Release: release
+packages:
+  mlx-swift-lm:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    from: 2.29.3
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
@@ -35,6 +39,34 @@ targets:
       DEFINES_MODULE: YES
       MACH_O_TYPE: staticlib
       SKIP_INSTALL: YES
+
+  OctoshotEmbeddedMLX:
+    type: framework
+    platform: macOS
+    sources:
+      - path: OctoshotEmbeddedMLX
+    dependencies:
+      - target: OctoshotCore
+      - package: mlx-swift-lm
+        product: MLXVLM
+      - package: mlx-swift-lm
+        product: MLXLMCommon
+    settings:
+      PRODUCT_NAME: OctoshotEmbeddedMLX
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotEmbeddedMLX
+      GENERATE_INFOPLIST_FILE: YES
+      DEFINES_MODULE: YES
+      SKIP_INSTALL: YES
+
+  OctoshotCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OctoshotCoreTests
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
 
   octoshot:
     type: tool
@@ -64,6 +96,7 @@ targets:
           - "**/*.md"
     dependencies:
       - target: OctoshotCore
+      - target: OctoshotEmbeddedMLX
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
@@ -82,6 +115,22 @@ targets:
           cp "$CLI_SRC" "$CLI_DST"
           chmod +x "$CLI_DST"
         basedOnDependencyAnalysis: false
+      - name: Embed llama-mtmd-cli in app bundle
+        script: |
+          set -euo pipefail
+          HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          mkdir -p "$HELPERS_DIR"
+          SRC_DIR="${PROJECT_DIR}/build/llama-mtmd/bin"
+          if [ ! -x "${SRC_DIR}/llama-mtmd-cli" ]; then
+            echo "warning: llama-mtmd-cli not found at ${SRC_DIR}/llama-mtmd-cli (run Scripts/fetch-llama-mtmd.sh)"
+            exit 0
+          fi
+          cp -f "${SRC_DIR}/llama-mtmd-cli" "${HELPERS_DIR}/llama-mtmd-cli"
+          chmod +x "${HELPERS_DIR}/llama-mtmd-cli"
+          for lib in "${SRC_DIR}"/*.dylib; do
+            [ -f "$lib" ] && cp -f "$lib" "${HELPERS_DIR}/"
+          done
+        basedOnDependencyAnalysis: false
     settings:
       PRODUCT_NAME: Octoshot
       PRODUCT_BUNDLE_IDENTIFIER: com.neardws.Octoshot
@@ -95,6 +144,7 @@ targets:
       LD_RUNPATH_SEARCH_PATHS:
         - $(inherited)
         - "@executable_path/../Frameworks"
+        - "@executable_path/../Frameworks"
 
 schemes:
   Octoshot:
@@ -102,6 +152,7 @@ schemes:
       parallelizeBuild: false
       targets:
         octoshot: build
+        OctoshotEmbeddedMLX: build
         Octoshot: all
     run:
       config: Debug
@@ -113,3 +164,10 @@ schemes:
         octoshot: all
     run:
       config: Debug
+  OctoshotCoreTests:
+    build:
+      targets:
+        OctoshotCoreTests: all
+    test:
+      targets:
+        - OctoshotCoreTests

@@ -15,27 +15,20 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate Xcode project
-        run: xcodegen generate
+      - name: Generate Xcode project (CI MLX stub)
+        run: bash Scripts/ci-xcodegen.sh
+
+      - name: Fetch llama-mtmd-cli
+        run: bash Scripts/fetch-llama-mtmd.sh build/llama-mtmd
 
       - name: Build Octoshot
         run: |
           set -o pipefail
           DERIVED="$PWD/.derivedData"
-          xcodebuild \
-            -derivedDataPath "$DERIVED" \
-            -scheme octoshot \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-          xcodebuild \
-            -derivedDataPath "$DERIVED" \
-            -scheme Octoshot \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
+          XCBUILD=(xcodebuild -derivedDataPath "$DERIVED" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation)
+          "${XCBUILD[@]}" -scheme octoshot -configuration Debug build
+          "${XCBUILD[@]}" -scheme Octoshot -configuration Debug build
+          "${XCBUILD[@]}" -scheme OctoshotCoreTests -configuration Debug test
         env:
           NSUnbufferedIO: "YES"
 
@@ -52,3 +45,8 @@ jobs:
           test -x "$CLI"
           "$CLI" --help
           echo "Verified: $CLI --help"
+          MTMD="$APP_PATH/Contents/Helpers/llama-mtmd-cli"
+          if [ -x "$MTMD" ]; then
+            "$MTMD" --help >/dev/null 2>&1 || true
+            echo "Verified: bundled llama-mtmd-cli"
+          fi

@@ -1,0 +1,164 @@
+name: Octoshot
+options:
+  bundleIdPrefix: com.neardws
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+  developmentLanguage: en
+  knownRegions:
+    - en
+    - Base
+    - zh-Hans
+configs:
+  Debug: debug
+  Release: release
+configFiles:
+  Debug: Config/Signing.xcconfig
+  Release: Config/Signing.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    DEVELOPMENT_TEAM: YNQ2233752
+    CODE_SIGN_STYLE: Automatic
+targets:
+  OctoshotCore:
+    type: framework
+    platform: macOS
+    sources:
+      - path: OctoshotCore
+    settings:
+      PRODUCT_NAME: OctoshotCore
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotCore
+      GENERATE_INFOPLIST_FILE: YES
+      DEFINES_MODULE: YES
+      MACH_O_TYPE: staticlib
+      SKIP_INSTALL: YES
+
+  OctoshotEmbeddedMLX:
+    type: framework
+    platform: macOS
+    sources:
+      - path: OctoshotEmbeddedMLX
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      PRODUCT_NAME: OctoshotEmbeddedMLX
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.OctoshotEmbeddedMLX
+      GENERATE_INFOPLIST_FILE: YES
+      DEFINES_MODULE: YES
+      SKIP_INSTALL: YES
+
+  OctoshotCoreTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: OctoshotCoreTests
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      GENERATE_INFOPLIST_FILE: YES
+
+  octoshot:
+    type: tool
+    platform: macOS
+    sources:
+      - path: octoshot-cli
+    dependencies:
+      - target: OctoshotCore
+    settings:
+      PRODUCT_NAME: octoshot
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.octoshot-cli
+      GENERATE_INFOPLIST_FILE: YES
+      LD_RUNPATH_SEARCH_PATHS:
+        - $(inherited)
+        - "@executable_path"
+        - "@executable_path/../Frameworks"
+        - "@executable_path/.."
+        - "@loader_path"
+        - "@loader_path/../Frameworks"
+
+  Octoshot:
+    type: application
+    platform: macOS
+    sources:
+      - path: Octoshot
+        excludes:
+          - "**/*.md"
+    dependencies:
+      - target: OctoshotCore
+      - target: OctoshotEmbeddedMLX
+    postBuildScripts:
+      - name: Embed octoshot CLI in app bundle
+        script: |
+          set -euo pipefail
+          CLI_SRC="${BUILT_PRODUCTS_DIR}/octoshot"
+          if [ ! -f "$CLI_SRC" ] && [ -f "${PROJECT_DIR}/build/Debug/octoshot" ]; then
+            CLI_SRC="${PROJECT_DIR}/build/Debug/octoshot"
+          fi
+          HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          CLI_DST="${HELPERS_DIR}/octoshot"
+          if [ ! -f "$CLI_SRC" ]; then
+            echo "error: octoshot binary not found at ${BUILT_PRODUCTS_DIR}/octoshot (build the octoshot target first)"
+            exit 1
+          fi
+          mkdir -p "$HELPERS_DIR"
+          cp "$CLI_SRC" "$CLI_DST"
+          chmod +x "$CLI_DST"
+        basedOnDependencyAnalysis: false
+      - name: Embed llama-mtmd-cli in app bundle
+        script: |
+          set -euo pipefail
+          HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
+          mkdir -p "$HELPERS_DIR"
+          SRC_DIR="${PROJECT_DIR}/build/llama-mtmd/bin"
+          if [ ! -x "${SRC_DIR}/llama-mtmd-cli" ]; then
+            echo "warning: llama-mtmd-cli not found at ${SRC_DIR}/llama-mtmd-cli (run Scripts/fetch-llama-mtmd.sh)"
+            exit 0
+          fi
+          cp -f "${SRC_DIR}/llama-mtmd-cli" "${HELPERS_DIR}/llama-mtmd-cli"
+          chmod +x "${HELPERS_DIR}/llama-mtmd-cli"
+          for lib in "${SRC_DIR}"/*.dylib; do
+            [ -f "$lib" ] && cp -f "$lib" "${HELPERS_DIR}/"
+          done
+        basedOnDependencyAnalysis: false
+    settings:
+      PRODUCT_NAME: Octoshot
+      PRODUCT_BUNDLE_IDENTIFIER: com.neardws.Octoshot
+      INFOPLIST_FILE: Octoshot/Info.plist
+      CODE_SIGN_ENTITLEMENTS: Octoshot/Octoshot.entitlements
+      ENABLE_HARDENED_RUNTIME: YES
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      COMBINE_HIDPI_IMAGES: YES
+      CURRENT_PROJECT_VERSION: 1
+      MARKETING_VERSION: 0.1.0
+      LD_RUNPATH_SEARCH_PATHS:
+        - $(inherited)
+        - "@executable_path/../Frameworks"
+
+schemes:
+  Octoshot:
+    build:
+      parallelizeBuild: false
+      targets:
+        octoshot: build
+        OctoshotEmbeddedMLX: build
+        Octoshot: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  octoshot:
+    build:
+      targets:
+        octoshot: all
+    run:
+      config: Debug
+  OctoshotCoreTests:
+    build:
+      targets:
+        OctoshotCoreTests: all
+    test:
+      targets:
+        - OctoshotCoreTests

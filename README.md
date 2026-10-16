@@ -14,7 +14,7 @@
 - **设置**（侧边栏）：通用、快捷键、捕获、**录制**、标注、AI、开发者（含 Agent/CLI）、关于；版本号显示在侧栏底部
 - **首次运行引导**：屏幕录制、快捷键接管、Ollama 可选配置
 - **菜单栏**：捕获项旁显示快捷键、最近截图、打开保存文件夹、Clips 库
-- **本机 AI**：设置中检测 Ollama、列出模型、一键拉取 `qwen2.5vl`；LaTeX / 表格流程在模型不可用时给出友好提示
+- **本机 AI（嵌入式）**：SmolVLM2-500M MLX 4-bit（~292MB）与 pix2tex-mfr Q4（~18MB）按需下载至 `~/Library/Application Support/Octoshot/Models/`；设置 → AI 显示进度与磁盘占用；Ollama 为可选回退（默认关闭且安装嵌入式模型后保持关闭）
 - **系统截图快捷键**：读取 `symbolichotkeys.plist`，支持用 ⌘⇧3/4/5 接管并引导关闭系统快捷键
 
 ## 路线图
@@ -128,7 +128,7 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 - **Settings** sidebar: General, Shortcuts, Capture, **Recording**, Annotation, AI, Developer (Agent/CLI), About — version in the sidebar footer
 - **First-run onboarding**: Screen Recording, shortcut takeover, optional Ollama setup
 - **Menu bar**: shortcuts beside capture actions, recent files, open save folder, Clips library browser
-- **Local AI**: Ollama discovery, model list, pull `qwen2.5vl`; friendly errors when the vision model is missing
+- **Embedded local AI**: SmolVLM2-500M MLX 4-bit (~292MB) + pix2tex-mfr Q4 (~18MB) on-demand downloads to Application Support; Settings → AI progress & disk usage; optional Ollama fallback (off by default when embedded models are installed)
 - **macOS screenshot hotkeys**: reads `symbolichotkeys.plist`, optional ⌘⇧3/4/5 takeover with Keyboard settings guidance
 
 ## Roadmap
@@ -167,6 +167,12 @@ Use **Settings → Developer → Install Command Line Tool** to install `octosho
 ```
 
 MCP tools: `capture_screen`, `capture_window`, `list_windows`, `list_displays`, `ocr`, `auto_redact`, `ask_ai`, `to_latex`, `extract_table`, `annotate`, `record_start`, `record_stop`. URL examples: `octoshot://capture?mode=window`; `octoshot://record?action=start&format=gif`; CLI `octoshot record stop` (opens the app via URL).
+
+### Embedded AI (SmolVLM2 + pix2tex)
+
+- **Vision**: `mlx-community/SmolVLM2-500M-Video-Instruct-mlx-4bit` via pinned [mlx-swift-lm 2.29.3](https://github.com/ml-explore/mlx-swift-lm) (`MLXVLM` + `MLXLMCommon` in `project.yml`).
+- **LaTeX**: `cstr/pix2tex-mfr-gguf` via bundled or auto-downloaded `llama-mtmd-cli` (`Scripts/fetch-llama-mtmd.sh`, Application Support fallback).
+- **CI** does not download ML weights; builds MLX on macOS Apple Silicon when `EMBEDDED_MLX=1` (see `Config/EmbeddedAI.xcconfig`).
 
 ## Requirements
 

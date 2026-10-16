@@ -14,65 +14,92 @@ struct SettingsAIPane: View {
     @State private var isChecking = false
     @State private var isPulling = false
     @State private var pullStatus = ""
+    @State private var downloadStatus: [EmbeddedModelID: String] = [:]
+    @State private var downloadFraction: [EmbeddedModelID: Double] = [:]
+    @State private var downloading: EmbeddedModelID?
 
     var body: some View {
         SettingsFormContainer {
             SettingsPaneHeader(
                 title: "AI",
-                subtitle: "Local Ollama / OpenAI-compatible vision models, LaTeX, and Clips",
+                subtitle: "On-device SmolVLM2 + pix2tex LaTeX specialist; optional Ollama fallback",
                 systemImage: "brain"
             )
 
             Section {
+                Toggle("Use on-device vision model (SmolVLM2)", isOn: $settings.embeddedAIUseOnDeviceVLM)
+                modelRow(.smolVLM2_500M_4bit)
+                modelRow(.pix2texMFR_Q4)
+                HStack {
+                    Text("LaTeX runtime (llama-mtmd-cli)")
+                    Spacer()
+                    if Pix2TexLlamaRunner.llamaMtmdCLI() != nil {
+                        Text("Ready").foregroundStyle(.green).font(.caption)
+                    } else {
+                        Button("Install") {
+                            Task {
+                                do {
+                                    _ = try await LaTeXEngineInstaller.shared.ensureCLI()
+                                } catch {
+                                    downloadStatus[.pix2texMFR_Q4] = error.localizedDescription
+                                }
+                            }
+                        }
+                    }
+                }
+                Text("Weights download to \(EmbeddedAIModelPaths.modelsRoot().path) and are never bundled in the app.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Label("Embedded models", systemImage: "internaldrive")
+            }
+
+            Section {
+                Toggle("Ollama fallback (OpenAI-compatible)", isOn: $settings.embeddedAIOllamaFallbackEnabled)
                 HStack {
                     Circle()
                         .fill(ollamaReachable ? Color.green : Color.orange)
                         .frame(width: 8, height: 8)
                     Text(ollamaStatus)
                     Spacer()
-                    Button(isChecking ? "Checking…" : "Test connection") {
+                    Button(isChecking ? "Checking…" : "Test Ollama") {
                         Task { await refreshOllama() }
                     }
                     .disabled(isChecking)
                 }
-
-                if !ollamaModels.isEmpty {
-                    Picker("Installed models", selection: $model) {
-                        ForEach(ollamaModels) { m in
-                            Text(m.name).tag(m.name)
+                if settings.embeddedAIOllamaFallbackEnabled {
+                    TextField("Base URL", text: $baseURL)
+                    TextField("Vision model", text: $model)
+                    SecureField("API key (optional)", text: $apiKey)
+                    if !ollamaModels.isEmpty {
+                        Picker("Installed models", selection: $model) {
+                            ForEach(ollamaModels) { m in
+                                Text(m.name).tag(m.name)
+                            }
                         }
                     }
-                }
-
-                Button(isPulling ? "Pulling…" : "Pull qwen2.5vl") {
-                    Task { await pullRecommended() }
-                }
-                .disabled(isPulling)
-
-                if !pullStatus.isEmpty {
-                    Text(pullStatus)
+                    Button(isPulling ? "Pulling…" : "Pull qwen2.5vl") {
+                        Task { await pullRecommended() }
+                    }
+                    .disabled(isPulling)
+                    if !pullStatus.isEmpty {
+                        Text(pullStatus).font(.caption).foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("Enable only if you want cloud-free Ollama when embedded models are missing or MLX is unavailable.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Label("Ollama (optional)", systemImage: "server.rack")
+            }
 
-                Text("Install Ollama from ollama.com, then run `ollama pull qwen2.5vl` if the button fails.")
+            Section {
+                TextField("LaTeX prompt (VLM fallback)", text: $latexPrompt, axis: .vertical)
+                    .lineLimit(3...6)
+                Text("Formula mode uses pix2tex-mfr first, then SmolVLM2, then Ollama if enabled.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            } header: {
-                Label("Ollama", systemImage: "server.rack")
-            }
-
-            Section {
-                TextField("Base URL", text: $baseURL)
-                TextField("Vision model", text: $model)
-                SecureField("API key (optional)", text: $apiKey)
-            } header: {
-                Label("Endpoint", systemImage: "link")
-            }
-
-            Section {
-                TextField("LaTeX prompt", text: $latexPrompt, axis: .vertical)
-                    .lineLimit(4...8)
             } header: {
                 Label("LaTeX", systemImage: "function")
             }
@@ -84,16 +111,60 @@ struct SettingsAIPane: View {
                         .truncationMode(.middle)
                     Button("Choose…") { chooseClipsFolder() }
                 }
-                Text("Paper figure/table captures are saved here as Clips.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             } header: {
                 Label("Clips library", systemImage: "photo.stack")
             }
-
         }
         .onAppear(perform: loadFields)
         .onDisappear(perform: persist)
+        .onReceive(NotificationCenter.default.publisher(for: .octoshotModelDownloadProgress)) { note in
+            guard let progress = note.object as? ModelDownloadProgress else { return }
+            downloadFraction[progress.model] = progress.fraction
+            downloadStatus[progress.model] = progress.status
+            if progress.fraction >= 1 {
+                downloading = nil
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func modelRow(_ id: EmbeddedModelID) -> some View {
+        let installed = EmbeddedAIModelPaths.isInstalled(id)
+        let bytes = EmbeddedAIModelPaths.diskUsageBytes(for: id)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Image(systemName: installed ? "checkmark.circle.fill" : "arrow.down.circle")
+                    .foregroundStyle(installed ? .green : .secondary)
+                Text(id.displayName)
+                Spacer()
+                Text(installed ? byteString(bytes) : "~\(id.approximateSizeMB) MB")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            if let status = downloadStatus[id], downloading == id || !status.isEmpty {
+                ProgressView(value: downloadFraction[id] ?? 0)
+                Text(status).font(.caption2).foregroundStyle(.secondary)
+            }
+            HStack {
+                Button(downloading == id ? "Downloading…" : (installed ? "Re-download" : "Download")) {
+                    Task { await downloadModel(id) }
+                }
+                .disabled(downloading != nil)
+                if installed {
+                    Button("Delete") {
+                        try? ModelDownloadService.shared.delete(id)
+                    }
+                }
+            }
+            Text(id.licenseNote).font(.caption2).foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func byteString(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 
     private var ollamaReachable: Bool {
@@ -117,6 +188,19 @@ struct SettingsAIPane: View {
     }
 
     @MainActor
+    private func downloadModel(_ id: EmbeddedModelID) async {
+        downloading = id
+        downloadStatus[id] = "Starting…"
+        do {
+            try await ModelDownloadService.shared.download(id)
+            downloadStatus[id] = "Ready"
+        } catch {
+            downloadStatus[id] = error.localizedDescription
+            downloading = nil
+        }
+    }
+
+    @MainActor
     private func refreshOllama() async {
         isChecking = true
         defer { isChecking = false }
@@ -126,12 +210,9 @@ struct SettingsAIPane: View {
             ollamaStatus = models.isEmpty
                 ? "Connected to Ollama — no models yet."
                 : "Connected — \(models.count) model(s)."
-            if !models.contains(where: { $0.name == model }) {
-                if let first = models.first?.name { model = first }
-            }
         } else {
             ollamaModels = []
-            ollamaStatus = "Ollama not reachable at \(OllamaService.hostURL(from: settings.aiBaseURL).absoluteString)."
+            ollamaStatus = "Ollama not reachable."
         }
     }
 
