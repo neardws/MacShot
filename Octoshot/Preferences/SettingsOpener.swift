@@ -22,7 +22,10 @@ enum SettingsOpener {
     }
 
     /// Opens settings using a dedicated `NSWindowController` (reliable for LSUIElement apps).
-    static func open() {
+    static func open(section: SettingsSection? = nil) {
+        if let section {
+            NotificationCenter.default.post(name: .octoshotOpenSettingsSection, object: section)
+        }
         installAccessoryRestoreOnClose()
         SettingsWindowController.shared.show()
     }

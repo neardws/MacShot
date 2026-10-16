@@ -144,6 +144,7 @@ final class CaptureCoordinator {
                     jpegQuality: settings.jpegQuality
                 )
                 savedURL = url
+                RecentCapturesStore.record(url: url)
             } catch {
                 finishWithError(error)
             }
@@ -165,6 +166,7 @@ final class CaptureCoordinator {
                         jpegQuality: AppSettings.shared.jpegQuality
                     )
                     captureURL = url
+                    RecentCapturesStore.record(url: url)
                 } catch {
                     self.finishWithError(error)
                 }

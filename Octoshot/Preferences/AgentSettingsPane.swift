@@ -6,9 +6,9 @@ struct AgentSettingsPane: View {
     @State private var isInstalled = CommandLineToolInstaller.isInstalledCorrectly()
 
     var body: some View {
-        Form {
+        Group {
             Section {
-                Text("Install the `octoshot` CLI for Terminal, Claude Code, and Cursor MCP. The installer symlinks to the copy embedded in this app so OctoshotCore stays in sync with the GUI.")
+                Text("Install the `octoshot` CLI for Terminal, Claude Code, and Cursor MCP. The installer symlinks to the copy embedded in this app.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -35,12 +35,11 @@ struct AgentSettingsPane: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            } header: {
+                Label("Agent / CLI", systemImage: "terminal")
             }
 
-            Section("MCP configuration") {
-                Text("After installing, point Cursor or Claude Code at the installed binary:")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            Section {
                 Text(CommandLineToolInstaller.mcpConfigSnippet())
                     .font(.system(.caption, design: .monospaced))
                     .textSelection(.enabled)
@@ -52,10 +51,10 @@ struct AgentSettingsPane: View {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(CommandLineToolInstaller.mcpConfigSnippet(), forType: .string)
                 }
+            } header: {
+                Label("MCP configuration", systemImage: "curlybraces")
             }
         }
-        .formStyle(.grouped)
-        .padding()
         .onAppear { isInstalled = CommandLineToolInstaller.isInstalledCorrectly() }
     }
 

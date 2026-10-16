@@ -79,7 +79,7 @@ struct LaTeXResultView: View {
             latex = try await client.completeVisionChat(prompt: prompt, image: image)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
         } catch {
-            self.error = error.localizedDescription
+            self.error = OllamaService.friendlyAIError(error, model: AppSettings.shared.aiVisionModel)
         }
     }
 }
