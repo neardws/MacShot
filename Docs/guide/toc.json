@@ -1,0 +1,20 @@
+{
+  "en": [
+    { "id": "index", "title": "Overview" },
+    { "id": "getting-started", "title": "Getting started" },
+    { "id": "capture", "title": "Capture modes" },
+    { "id": "recording", "title": "Recording & GIF" },
+    { "id": "ai", "title": "On-device AI" },
+    { "id": "agent", "title": "Agent & CLI" },
+    { "id": "shortcuts", "title": "Shortcuts" }
+  ],
+  "zh": [
+    { "id": "index", "title": "概览" },
+    { "id": "getting-started", "title": "快速开始" },
+    { "id": "capture", "title": "捕获模式" },
+    { "id": "recording", "title": "录制与 GIF" },
+    { "id": "ai", "title": "本机 AI" },
+    { "id": "agent", "title": "Agent 与 CLI" },
+    { "id": "shortcuts", "title": "快捷键" }
+  ]
+}
