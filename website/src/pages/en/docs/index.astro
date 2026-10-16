@@ -1,28 +1,16 @@
 ---
-import Footer from '@/components/Footer.astro';
-import Nav from '@/components/Nav.astro';
-import BaseLayout from '@/layouts/BaseLayout.astro';
+import DocsLayout from '@/layouts/DocsLayout.astro';
+import { getChapters, getChapterMarkdown } from '@/lib/guide';
 import { getCopy } from '@/i18n/ui';
+import { marked } from 'marked';
 
 const locale = 'en';
 const t = getCopy(locale);
+const chapters = getChapters(locale);
+const html = marked.parse(getChapterMarkdown(locale, 'index'));
 ---
 
-<BaseLayout t={t} locale={locale} subpath="docs">
-  <Nav t={t} locale={locale} />
-  <main id="main" class="section-pad">
-    <div class="wrap max-w-narrow">
-      <h1 class="h2">Documentation</h1>
-      <p class="mt-4 text-mb-fg2">
-        User guides (EN + 中文) will sync from <code class="text-sm">Docs/guide/</code> in the
-        Octoshot repository—the same Markdown bundled in the in-app Help window.
-      </p>
-      <p class="mt-4 text-mb-fg2">
-        Until that content lands on <code class="text-sm">main</code>, see
-        <a class="link" href="https://github.com/neardws/Octoshot/blob/main/README.md">README</a>
-        and <a class="link" href="https://github.com/neardws/Octoshot/tree/main/Docs">Docs/</a> on GitHub.
-      </p>
-    </div>
-  </main>
-  <Footer t={t} locale={locale} />
-</BaseLayout>
+<DocsLayout t={t} locale={locale} chapters={chapters} chapterId="index" title="Overview">
+  <h1 class="h2 !text-[clamp(28px,4vw,40px)]">Documentation</h1>
+  <div class="mt-6" set:html={html} />
+</DocsLayout>
