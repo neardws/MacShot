@@ -1,45 +1,48 @@
 ---
-import type { LandingCopy } from '@/i18n/ui';
-import { RELEASE_URL, REPO_URL } from '@/i18n/ui';
+import BrandMark from '@/components/BrandMark.astro';
+import DownloadButton from '@/components/DownloadButton.astro';
+import HeroDesk from '@/components/HeroDesk.astro';
+import HeroWaves from '@/components/HeroWaves.astro';
+import type { LandingCopy, Locale } from '@/i18n/ui';
+import { REPO_URL } from '@/i18n/ui';
 
 interface Props {
   t: LandingCopy;
+  locale: Locale;
 }
 
-const { t } = Astro.props;
-const base = import.meta.env.BASE_URL;
+const { t, locale } = Astro.props;
 ---
 
-<section class="section-pad pt-24 md:pt-28">
+<section class="section-pad relative pt-24 md:pt-28">
+  <HeroWaves />
   <div class="wrap text-center">
-    <p class="hero-rise mb-4 text-[19px] font-semibold text-mb-fg2" style="animation-delay: 0ms">
+    <p class="hero-rise text-[19px] font-semibold text-mb-fg2" style="--i: 0">
       {t.heroEyebrow}
     </p>
-    <div class="hero-rise mx-auto mb-8" style="animation-delay: 70ms">
-      <img
-        src={`${base}icon.png`}
-        alt="Octoshot mascot"
-        width="120"
-        height="120"
-        class="icon-halo mx-auto rounded-[28px]"
-      />
+    <div class="hero-rise mx-auto mt-6 mb-4" style="--i: 1">
+      <BrandMark size={112} priority />
     </div>
+    <p class="hero-rise text-[19px] font-semibold text-mb-fg" style="--i: 2">Octoshot</p>
     <h1
-      class="hero-rise mx-auto max-w-content text-[clamp(44px,7.4vw,80px)] font-semibold leading-[1.05] tracking-[var(--ls-hero)]"
-      style="animation-delay: 140ms"
+      class="hero-rise mx-auto mt-4 max-w-content text-[clamp(44px,7.4vw,80px)] font-semibold leading-[1.05] tracking-[var(--ls-hero)] text-mb-fg"
+      style="--i: 3"
     >
-      <span class="accent-gradient">{t.heroTitle}</span>
+      {t.heroTitle}
     </h1>
     <p
       class="hero-rise mx-auto mt-6 max-w-narrow text-[clamp(19px,2vw,21px)] font-semibold text-mb-fg3"
-      style="animation-delay: 210ms"
+      style="--i: 4"
     >
       {t.heroLead}
     </p>
-    <div class="hero-rise mt-10 flex flex-wrap items-center justify-center gap-4" style="animation-delay: 280ms">
-      <a class="btn" href={RELEASE_URL}>{t.heroCta}</a>
-      <a class="link text-[17px] font-semibold" href={REPO_URL}>{t.heroSecondary} →</a>
+    <div class="hero-rise mt-10 flex flex-wrap items-center justify-center gap-4" style="--i: 5">
+      <DownloadButton label={t.heroCta} />
+      <a class="link text-[17px] font-semibold" href={REPO_URL}>{t.heroSecondary} ›</a>
     </div>
-    <p class="hero-rise mt-6 text-sm text-mb-fg2" style="animation-delay: 350ms">{t.heroFine}</p>
+    <p class="hero-rise mt-6 text-sm text-mb-fg2" style="--i: 6">{t.heroFine}</p>
+    <div class="hero-rise" style="--i: 7">
+      <HeroDesk locale={locale} />
+    </div>
   </div>
 </section>

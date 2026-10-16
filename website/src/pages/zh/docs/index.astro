@@ -8,9 +8,9 @@ const locale = 'zh';
 const t = getCopy(locale);
 ---
 
-<BaseLayout t={t}>
+<BaseLayout t={t} locale={locale} subpath="docs">
   <Nav t={t} locale={locale} />
-  <main class="section-pad" lang="zh">
+  <main id="main" class="section-pad" lang="zh">
     <div class="wrap max-w-narrow">
       <h1 class="h2">文档</h1>
       <p class="mt-4 text-mb-fg2">

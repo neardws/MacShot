@@ -27,9 +27,11 @@
   --ls-body: -0.022em;
   --ls-hero: -0.015em;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
-  --shot-shadow: 0 4px 24px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
-  --coral: #ff6b4a;
-  --coral-soft: #ff8f6b;
+  --shot-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04),
+    0 18px 48px -12px rgba(0, 0, 0, 0.22);
+  --brand-red: #d70015;
+  --brand-red-soft: #ff3b30;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -37,20 +39,22 @@
     --bg: #000000;
     --bg-alt: #161617;
     --tile: #1c1c1e;
-    --tile-on-alt: #2c2c2e;
+    --tile-on-alt: #1d1d1f;
     --fg: #f5f5f7;
     --fg2: #a1a1a6;
     --fg3: #86868b;
     --hair: rgba(255, 255, 255, 0.1);
-    --line: rgba(255, 255, 255, 0.16);
+    --line: rgba(255, 255, 255, 0.18);
     --link: #2997ff;
     --focus: #2997ff;
-    --nav: rgba(0, 0, 0, 0.72);
+    --nav: rgba(22, 22, 23, 0.78);
     --nav-fg: rgba(255, 255, 255, 0.92);
     --paddle: rgba(60, 60, 67, 0.64);
     --key: #2c2c2e;
     --key-edge: rgba(255, 255, 255, 0.12);
-    --shot-shadow: 0 4px 32px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shot-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35),
+      0 18px 48px -12px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -69,14 +73,51 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  :lang(zh) body,
+  :lang(zh-CN) body {
+    line-height: 1.5;
+    word-break: keep-all;
+    line-break: strict;
+  }
+
   :lang(zh) h1,
   :lang(zh) h2,
-  :lang(zh) .h2 {
+  :lang(zh) .h2,
+  :lang(zh-CN) h1,
+  :lang(zh-CN) h2,
+  :lang(zh-CN) .h2 {
     letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    background: var(--btn);
+    color: #fff;
+    border-radius: 8px;
+  }
+
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
   }
 }
 
 @layer components {
+  .nav-bar {
+    background: var(--nav);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
   .wrap {
     max-width: 1040px;
     margin-inline: auto;
@@ -99,6 +140,7 @@
     font-weight: 600;
     line-height: 1.07;
     letter-spacing: var(--ls-hero);
+    text-wrap: balance;
   }
 
   .btn {
@@ -113,6 +155,7 @@
     background: var(--btn);
     border-radius: 980px;
     transition: background 200ms var(--ease);
+    text-decoration: none;
   }
 
   .btn:hover {
@@ -127,16 +170,6 @@
   .btn-sm {
     padding: 0.45em 1em;
     font-size: 12px;
-  }
-
-  .btn-outline {
-    color: var(--link);
-    background: transparent;
-    border: 1px solid var(--hair);
-  }
-
-  .btn-outline:hover {
-    background: var(--tile);
   }
 
   .link {
@@ -165,6 +198,7 @@
     opacity: 0;
     transform: translateY(16px);
     animation: rise 600ms var(--ease) forwards;
+    animation-delay: calc(var(--i, 0) * 70ms);
   }
 
   @keyframes rise {
@@ -174,17 +208,8 @@
     }
   }
 
-  .accent-gradient {
-    background: linear-gradient(135deg, var(--coral) 0%, var(--coral-soft) 55%, var(--link) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  .icon-halo {
-    box-shadow:
-      0 0 0 1px var(--hair),
-      0 12px 40px rgba(255, 107, 74, 0.25);
+  .shot-frame {
+    box-shadow: var(--shot-shadow);
   }
 
   .dark-section {
@@ -218,6 +243,26 @@
   .terminal .comment {
     color: #86868b;
   }
+
+  .faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .faq summary::after {
+    content: '+';
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--fg2);
+    transition: transform 300ms var(--ease);
+  }
+
+  .faq details[open] summary::after {
+    transform: rotate(45deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -231,5 +276,9 @@
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
+  }
+
+  .faq summary::after {
+    transition: none;
   }
 }

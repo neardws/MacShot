@@ -1,6 +1,7 @@
 ---
+import BrandMark from '@/components/BrandMark.astro';
+import DownloadButton from '@/components/DownloadButton.astro';
 import type { LandingCopy } from '@/i18n/ui';
-import { RELEASE_URL } from '@/i18n/ui';
 import Reveal from './Reveal.astro';
 
 interface Props {
@@ -8,16 +9,15 @@ interface Props {
 }
 
 const { t } = Astro.props;
-const base = import.meta.env.BASE_URL;
 ---
 
 <section class="section-pad bg-mb-bg-alt text-center">
   <div class="wrap">
     <Reveal>
-      <img src={`${base}icon.png`} alt="" width="72" height="72" class="mx-auto mb-6 rounded-2xl icon-halo" />
+      <BrandMark size={72} class="mx-auto mb-6" />
       <h2 class="h2">{t.finalTitle}</h2>
       <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.finalLead}</p>
-      <a class="btn mt-10" href={RELEASE_URL}>{t.finalCta}</a>
+      <DownloadButton label={t.finalCta} class="mt-10" />
     </Reveal>
   </div>
 </section>

@@ -1,6 +1,8 @@
 ---
+import BrandMark from '@/components/BrandMark.astro';
+import DownloadButton from '@/components/DownloadButton.astro';
+import Globe from '@/components/icons/Globe.astro';
 import type { LandingCopy, Locale } from '@/i18n/ui';
-import { RELEASE_URL } from '@/i18n/ui';
 import { localePath, otherLocale } from '@/utils/paths';
 
 interface Props {
@@ -10,15 +12,12 @@ interface Props {
 
 const { t, locale } = Astro.props;
 const other = otherLocale(locale);
-const base = import.meta.env.BASE_URL;
 ---
 
-<header
-  class="sticky top-0 z-50 border-b border-mb-hair bg-mb-nav/90 backdrop-blur-xl"
->
-  <nav class="wrap flex h-[52px] items-center justify-between gap-4">
+<header class="nav-bar sticky top-0 z-50 border-b border-mb-hair">
+  <nav class="wrap flex h-[52px] items-center justify-between gap-4" aria-label="Primary">
     <a href={localePath(locale)} class="flex items-center gap-2.5 text-mb-fg no-underline">
-      <img src={`${base}icon.png`} alt="" width="28" height="28" class="rounded-lg" />
+      <BrandMark size={28} />
       <span class="text-[19px] font-semibold tracking-tight">Octoshot</span>
     </a>
     <div class="hidden items-center gap-6 md:flex">
@@ -28,19 +27,20 @@ const base = import.meta.env.BASE_URL;
       <a class="text-xs text-mb-nav-fg no-underline hover:text-mb-fg" href={localePath(locale, 'docs')}>{t.navDocs}</a>
     </div>
     <div class="flex items-center gap-3">
-      <details class="relative text-xs">
-        <summary class="cursor-pointer list-none text-mb-nav-fg marker:content-none">
-          {t.langSwitch}
+      <details class="lang-menu relative text-xs">
+        <summary class="flex cursor-pointer list-none items-center gap-1 text-mb-nav-fg marker:content-none">
+          <Globe />
+          <span class="hidden sm:inline">{t.langSwitch}</span>
         </summary>
         <div
-          class="absolute right-0 top-full mt-2 min-w-[7rem] rounded-xl border border-mb-hair bg-mb-bg p-2 shadow-lg"
+          class="absolute right-0 top-full z-50 mt-2 min-w-[7rem] rounded-xl border border-mb-hair bg-mb-bg p-2 shadow-lg"
         >
           <a class="block rounded-lg px-3 py-2 text-mb-fg no-underline hover:bg-mb-tile" href={localePath(other)}>
             {other === 'zh' ? '中文' : 'English'}
           </a>
         </div>
       </details>
-      <a class="btn btn-sm hidden sm:inline-flex" href={RELEASE_URL}>{t.navDownload}</a>
+      <DownloadButton label={t.navDownload} small class="hidden sm:inline-flex" />
     </div>
   </nav>
 </header>

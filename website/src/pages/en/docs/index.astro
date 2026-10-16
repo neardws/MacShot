@@ -8,9 +8,9 @@ const locale = 'en';
 const t = getCopy(locale);
 ---
 
-<BaseLayout t={t}>
+<BaseLayout t={t} locale={locale} subpath="docs">
   <Nav t={t} locale={locale} />
-  <main class="section-pad">
+  <main id="main" class="section-pad">
     <div class="wrap max-w-narrow">
       <h1 class="h2">Documentation</h1>
       <p class="mt-4 text-mb-fg2">

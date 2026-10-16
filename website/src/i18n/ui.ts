@@ -39,6 +39,7 @@ export type LandingCopy = {
   footerGitHub: string;
   footerIssues: string;
   langSwitch: string;
+  skipToContent: string;
 };
 
 const en: LandingCopy = {
@@ -150,6 +151,7 @@ const en: LandingCopy = {
   footerGitHub: 'GitHub',
   footerIssues: 'Issues',
   langSwitch: '中文',
+  skipToContent: 'Skip to content',
 };
 
 const zh: LandingCopy = {
@@ -240,6 +242,7 @@ const zh: LandingCopy = {
   footerGitHub: 'GitHub',
   footerIssues: 'Issues',
   langSwitch: 'English',
+  skipToContent: '跳到正文',
 };
 
 export function getCopy(locale: Locale): LandingCopy {

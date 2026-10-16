@@ -24,8 +24,8 @@ export default {
           paddle: 'var(--paddle)',
           key: 'var(--key)',
           'key-edge': 'var(--key-edge)',
-          coral: '#ff6b4a',
-          'coral-soft': '#ff8f6b',
+          'brand-red': 'var(--brand-red)',
+          'brand-red-soft': 'var(--brand-red-soft)',
         },
       },
       fontFamily: {

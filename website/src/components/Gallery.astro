@@ -1,13 +1,15 @@
 ---
-import type { LandingCopy } from '@/i18n/ui';
+import type { LandingCopy, Locale } from '@/i18n/ui';
+import { assets } from '@/config/assets';
 import Reveal from './Reveal.astro';
 
 interface Props {
   t: LandingCopy;
+  locale: Locale;
 }
 
-const { t } = Astro.props;
-const placeholders = [1, 2, 3, 4];
+const { t, locale } = Astro.props;
+const shots = ['capture', 'annotate', 'settings', 'agent'];
 ---
 
 <section class="section-pad bg-mb-bg-alt" id="gallery">
@@ -17,14 +19,28 @@ const placeholders = [1, 2, 3, 4];
       <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.galleryLead}</p>
     </Reveal>
   </div>
-  <div class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory">
+  <div
+    class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory"
+  >
     {
-      placeholders.map((n) => (
+      shots.map((name, i) => (
         <div
-          class="min-w-[min(85vw,420px)] shrink-0 snap-center rounded-shot border border-mb-hair bg-mb-tile-on-alt shadow-shot"
+          class="min-w-[min(85vw,420px)] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
         >
-          <div class="flex aspect-[16/10] items-center justify-center text-mb-fg3">
-            <span class="text-sm">Screenshot {n}</span>
+          <div class="relative aspect-[16/10] bg-mb-tile">
+            <img
+              src={assets.screenshot(locale, name)}
+              alt=""
+              width="420"
+              height="263"
+              class="gallery-shot absolute inset-0 h-full w-full object-cover opacity-0"
+              loading="lazy"
+              decoding="async"
+              onerror="this.remove();this.parentElement?.querySelector('.gallery-fallback')?.classList.remove('hidden')"
+            />
+            <div class="gallery-fallback flex h-full items-center justify-center text-sm text-mb-fg3">
+              {name}
+            </div>
           </div>
         </div>
       ))

@@ -18,6 +18,11 @@ const { t } = Astro.props;
     <div class="mt-14 grid gap-8 lg:grid-cols-2">
       <Reveal>
         <div class="terminal">
+          <div class="mb-3 flex gap-1.5" aria-hidden="true">
+            <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
+          </div>
           {
             t.agentTerminal.map((line) => (
               <div class="mb-2 last:mb-0">

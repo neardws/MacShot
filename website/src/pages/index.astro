@@ -1,4 +1,36 @@
 ---
-// GitHub Pages entry: send visitors to English landing.
-return Astro.redirect(`${import.meta.env.BASE_URL}en/`);
+import { absoluteUrl } from '@/utils/seo';
+
+const enUrl = absoluteUrl('/en/');
+const zhUrl = absoluteUrl('/zh/');
 ---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Octoshot</title>
+    <meta http-equiv="refresh" content={`0;url=${enUrl}`} />
+    <link rel="canonical" href={enUrl} />
+  </head>
+  <body>
+    <p>Redirecting…</p>
+    <script define:vars={{ enUrl, zhUrl }}>
+      const params = new URLSearchParams(location.search);
+      const q = params.get('lang');
+      const stored = localStorage.getItem('octoshot-lang');
+      const pick = (code) => (code && String(code).toLowerCase().startsWith('zh') ? zhUrl : enUrl);
+      if (q) {
+        localStorage.setItem('octoshot-lang', q.startsWith('zh') ? 'zh' : 'en');
+        location.replace(pick(q));
+      } else if (stored === 'zh' || stored === 'en') {
+        location.replace(stored === 'zh' ? zhUrl : enUrl);
+      } else {
+        const langs = navigator.languages || [navigator.language || 'en'];
+        const zh = langs.some((l) => String(l).toLowerCase().startsWith('zh'));
+        location.replace(zh ? zhUrl : enUrl);
+      }
+    </script>
+  </body>
+</html>
