@@ -60,8 +60,8 @@ enum HelpGuideCatalog {
     }
 
     private static func loadTOC() -> TOC? {
-        guard let url = Bundle.main.url(forResource: "toc", withExtension: "json", subdirectory: "HelpGuide")
-            ?? Bundle.main.url(forResource: "toc", withExtension: "json", subdirectory: "guide")
+        guard let url = Bundle.main.url(forResource: "toc", withExtension: "json", subdirectory: "guide")
+            ?? Bundle.main.url(forResource: "toc", withExtension: "json", subdirectory: "HelpGuide")
         else { return nil }
         guard let data = try? Data(contentsOf: url) else { return nil }
         return try? JSONDecoder().decode(TOC.self, from: data)
@@ -71,11 +71,11 @@ enum HelpGuideCatalog {
         Bundle.main.url(
             forResource: file,
             withExtension: nil,
-            subdirectory: "HelpGuide/\(language.folderName)"
+            subdirectory: "guide/\(language.folderName)"
         ) ?? Bundle.main.url(
             forResource: file,
             withExtension: nil,
-            subdirectory: "guide/\(language.folderName)"
+            subdirectory: "HelpGuide/\(language.folderName)"
         )
     }
 
