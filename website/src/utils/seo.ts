@@ -1,6 +1,6 @@
 import type { Locale } from '@/i18n/ui';
 
-const SITE = 'https://neardws.github.io';
+const SITE = 'https://www.neardws.com';
 const BASE = '/Octoshot';
 
 export function absoluteUrl(path: string): string {

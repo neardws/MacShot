@@ -47,7 +47,7 @@ fi
 "$SP/bin/generate_appcast" \
   --ed-key-file "$KEY" \
   --download-url-prefix "https://github.com/neardws/Octoshot/releases/download/v${VERSION}/" \
-  --link "https://neardws.github.io/Octoshot/" \
+  --link "https://www.neardws.com/Octoshot/" \
   --embed-release-notes \
   -o "$STAGE/appcast.xml" \
   "$STAGE"
