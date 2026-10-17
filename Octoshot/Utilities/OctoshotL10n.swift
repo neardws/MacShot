@@ -118,6 +118,14 @@ enum OctoshotL10n {
         String(localized: "Close all", comment: "Dismiss every quick-access thumbnail at once")
     }
 
+    static var quickAccessCollapseStack: String {
+        String(localized: "Collapse stack", comment: "Collapse expanded quick-access thumbnail stack")
+    }
+
+    static var quickAccessDismissCapture: String {
+        String(localized: "Remove from panel", comment: "Remove one capture from quick-access stack without deleting the file")
+    }
+
     // MARK: - Quick access panel
 
     static var quickAccessCopy: String {

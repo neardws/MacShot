@@ -34,6 +34,8 @@
 "Right sidebar" = "右侧栏";
 "Stack multiple captures" = "多张截图叠放";
 "Close all" = "全部关闭";
+"Collapse stack" = "收起叠放";
+"Remove from panel" = "从浮窗移除";
 "Copy to Clipboard" = "复制到剪贴板";
 "Save to Disk" = "保存到磁盘";
 "Annotate" = "标注";
