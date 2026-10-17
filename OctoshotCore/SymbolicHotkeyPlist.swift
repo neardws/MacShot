@@ -203,7 +203,7 @@ public enum SymbolicHotkeyPlistEditor {
         guard let entries = root?[backupEntriesKey] as? [String: Any] else {
             return SymbolicHotkeyIDBackup()
         }
-        var states: [String: State] = [:]
+        var states: [String: SymbolicHotkeyIDBackup.State] = [:]
         for (id, value) in entries {
             guard let dict = value as? [String: Any] else { continue }
             if dict[backupMissingKey] as? Bool == true {
