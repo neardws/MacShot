@@ -38,6 +38,8 @@ struct OctoshotCLI {
                 try await runAnnotate(rest)
             case "record":
                 try runRecord(rest)
+            case "yijiang-diary-prototype":
+                try await YijiangDiaryPrototypeCommand.run(rest)
             case "mcp":
                 await MCPServer.run()
             case "help", "--help", "-h":
@@ -69,6 +71,7 @@ struct OctoshotCLI {
           annotate --input PATH --spec PATH.json [--output PATH]
           record start [--mode fullscreen|region] [--format video|gif] [--rect x,y,w,h]
           record stop
+          yijiang-diary-prototype --developer --input DIR [--output PATH] [--captioner stub|smolvlm] [--window-minutes N]
           mcp   Start Model Context Protocol server on stdio
         """)
     }
