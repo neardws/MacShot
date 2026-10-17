@@ -1,8 +1,9 @@
 ---
-import BrandMark from '@/components/BrandMark.astro';
 import DownloadButton from '@/components/DownloadButton.astro';
 import HeroDesk from '@/components/HeroDesk.astro';
 import HeroWaves from '@/components/HeroWaves.astro';
+import MascotArt from '@/components/MascotArt.astro';
+import MascotCard from '@/components/MascotCard.astro';
 import type { LandingCopy, Locale } from '@/i18n/ui';
 import { REPO_URL } from '@/i18n/ui';
 
@@ -12,36 +13,43 @@ interface Props {
 }
 
 const { t, locale } = Astro.props;
+const productLabel = locale === 'zh' ? '一酱 · Octoshot' : 'Octoshot · 一酱';
 ---
 
 <section class="section-pad relative pt-24 md:pt-28">
   <HeroWaves />
-  <div class="wrap text-center">
-    <p class="hero-rise text-[19px] font-semibold text-mb-fg2" style="--i: 0">
+  <div class="wrap">
+    <p class="hero-rise text-center text-[19px] font-semibold text-mb-fg2" style="--i: 0">
       {t.heroEyebrow}
     </p>
-    <div class="hero-rise mx-auto mt-6 mb-4" style="--i: 1">
-      <BrandMark size={112} priority />
-    </div>
-    <p class="hero-rise text-[19px] font-semibold text-mb-fg" style="--i: 2">Octoshot</p>
-    <h1
-      class="hero-rise mx-auto mt-4 max-w-content text-[clamp(44px,7.4vw,80px)] font-semibold leading-[1.05] tracking-[var(--ls-hero)] text-mb-fg"
-      style="--i: 3"
+
+    <div
+      class="hero-rise mt-10 grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] md:gap-12 lg:gap-16"
+      style="--i: 1"
     >
-      {t.heroTitle}
-    </h1>
-    <p
-      class="hero-rise mx-auto mt-6 max-w-narrow text-[clamp(19px,2vw,21px)] font-semibold text-mb-fg3"
-      style="--i: 4"
-    >
-      {t.heroLead}
-    </p>
-    <div class="hero-rise mt-10 flex flex-wrap items-center justify-center gap-4" style="--i: 5">
-      <DownloadButton label={t.heroCta} />
-      <a class="link text-[17px] font-semibold" href={REPO_URL}>{t.heroSecondary} ›</a>
+      <div class="flex flex-col items-center text-center md:items-start md:text-left">
+        <MascotArt variant="intro" width={168} height={168} class="mx-auto md:mx-0" />
+        <p class="mt-4 text-sm font-semibold text-mb-brand-red">{productLabel}</p>
+        <h1
+          class="mt-3 max-w-content text-[clamp(36px,6vw,64px)] font-semibold leading-[1.08] tracking-[var(--ls-hero)] text-mb-fg text-balance"
+        >
+          {t.heroTitle}
+        </h1>
+        <p class="mt-5 max-w-narrow text-[clamp(18px,2vw,21px)] font-semibold text-mb-fg3">
+          {t.heroLead}
+        </p>
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-4 md:justify-start">
+          <DownloadButton label={t.heroCta} />
+          <a class="link text-[17px] font-semibold" href={REPO_URL}>{t.heroSecondary} ›</a>
+        </div>
+        <p class="mt-5 text-sm text-mb-fg2">{t.heroFine}</p>
+      </div>
+      <div class="hero-rise w-full max-w-[340px] justify-self-center md:justify-self-end" style="--i: 2">
+        <MascotCard card={t.mascotCard} />
+      </div>
     </div>
-    <p class="hero-rise mt-6 text-sm text-mb-fg2" style="--i: 6">{t.heroFine}</p>
-    <div class="hero-rise" style="--i: 7">
+
+    <div class="hero-rise" style="--i: 3">
       <HeroDesk t={t} locale={locale} />
     </div>
   </div>
