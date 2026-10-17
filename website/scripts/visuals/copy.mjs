@@ -22,10 +22,10 @@ export const copy = {
     quickAccess: {
       copyShort: 'Copy',
       saveShort: 'Save',
-      annotateShort: 'Annotate',
+      annotateShort: 'Edit',
       pinShort: 'Pin',
       ocrShort: 'OCR',
-      dismissShort: 'Dismiss',
+      dismissShort: 'Close',
     },
     ocrTitle: 'Recognize Text',
     ocrRecognizeAgain: 'Recognize Again',
