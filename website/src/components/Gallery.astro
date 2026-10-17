@@ -39,11 +39,11 @@ const labels: Record<ScreenshotStem, string> = {
     class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory"
   >
     {
-      shots.map((name) => (
+      shots.map((name, index) => (
         <div
-          class="min-w-[min(85vw,420px)] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
+          class="min-w-[min(85vw,420px)] max-w-[420px] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
         >
-          <div class="relative aspect-[16/10] bg-mb-tile">
+          <div class="relative aspect-[16/10] w-full bg-mb-tile">
             <img
               src={screenshotWebSrc(locale, name)}
               srcset={screenshotSrcSet(locale, name)}
@@ -51,9 +51,10 @@ const labels: Record<ScreenshotStem, string> = {
               alt={labels[name]}
               width="420"
               height="263"
-              class="h-full w-full object-cover"
-              loading="lazy"
+              class="absolute inset-0 h-full w-full object-cover"
+              loading="eager"
               decoding="async"
+              fetchpriority={index === 0 ? 'high' : 'auto'}
             />
           </div>
           <div class="border-t border-mb-hair px-4 py-3 text-center">

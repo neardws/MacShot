@@ -105,7 +105,7 @@ const en: LandingCopy = {
     labelName: 'Name',
     name: '一酱 (Yijiang)',
     labelSpecies: 'Species',
-    species: 'Original cartoon red octopus (not Squidward—Neil checked)',
+    species: 'Original cartoon red octopus',
     labelPersonality: 'Personality',
     personality: 'Low-energy, a little grumpy; reliable when it counts',
     labelCatchphrase: 'Catchphrase',
@@ -208,7 +208,7 @@ const en: LandingCopy = {
     },
     {
       q: 'Who is 一酱?',
-      a: 'Octoshot’s original mascot—a deadpan red cartoon octopus inspired by our app icon. Personality: complains with words, delivers with all eight arms (“grumbles aloud, ships quietly”). Not Squidward or any other copyrighted character; just your menu-bar screenshot butler.',
+      a: 'Octoshot’s original mascot—a deadpan red cartoon octopus inspired by our app icon. Personality: complains with words, delivers with all eight arms (“grumbles aloud, ships quietly”). Your menu-bar screenshot butler.',
     },
     {
       q: 'Where is the documentation?',
@@ -250,7 +250,7 @@ const zh: LandingCopy = {
     labelName: '名字',
     name: '一酱',
     labelSpecies: '物种',
-    species: '原创红色卡通章鱼（不是章鱼哥，Neil 审过）',
+    species: '原创红色卡通章鱼',
     labelPersonality: '性格',
     personality: '低能量、略嫌弃；嘴上吐槽，手上靠谱',
     labelCatchphrase: '口头禅',
@@ -337,7 +337,7 @@ const zh: LandingCopy = {
     { q: '会上传截图到云端吗？', a: '不会。捕获与可选本机模型均在本地运行，除非你自行配置外部接口。' },
     {
       q: '一酱是谁？',
-      a: 'Octoshot 的原创吉祥物——一只低能量、略嫌弃的红色卡通章鱼，造型来自应用图标。人设是「嘴上嫌弃、手上靠谱」：吐槽归吐槽，八只手同时干区域/窗口/全屏捕获、标注、滚动截屏、录屏/GIF、OCR/LaTeX、钉住等活。不是章鱼哥或任何第三方版权角色，只是你的菜单栏截图管家。',
+      a: 'Octoshot 的原创吉祥物——一只低能量、略嫌弃的红色卡通章鱼，造型来自应用图标。人设是「嘴上嫌弃、手上靠谱」：吐槽归吐槽，八只手同时干区域/窗口/全屏捕获、标注、滚动截屏、录屏/GIF、OCR/LaTeX、钉住等活。你的菜单栏截图管家。',
     },
     { q: '文档在哪里？', a: '将与应用内帮助 Markdown（中英）同步；本站文档区将随仓库更新。' },
   ],
