@@ -26,6 +26,15 @@
 /* Updates */
 "Check for Updates…" = "检查更新…";
 
+/* Quick access */
+"Copy to Clipboard" = "复制到剪贴板";
+"Save to Disk" = "保存到磁盘";
+"Annotate" = "标注";
+"Ask AI" = "询问 AI";
+"Copy Markdown" = "复制 Markdown";
+"Copy File Path" = "复制文件路径";
+"Dismiss" = "关闭";
+
 /* Shortcuts & system hotkeys */
 "Global capture hotkeys and macOS screenshot bindings" = "全局截图热键与 macOS 系统截图快捷键";
 "Capture fullscreen" = "全屏截图";
