@@ -7,3 +7,18 @@
 "Copy" = "复制";
 "No text found in this image." = "未在图像中识别到文字。";
 "Text recognition failed." = "文字识别失败。";
+
+/* Screenshot history */
+"Screenshot History" = "截图历史";
+"Screenshot History…" = "截图历史…";
+"Select a screenshot" = "选择一张截图";
+"No screenshots in the save folder" = "保存文件夹中暂无截图";
+"Refresh" = "刷新";
+"Open Save Folder" = "打开保存文件夹";
+"Delete" = "删除";
+"Show in Finder" = "在 Finder 中显示";
+"Delete screenshot?" = "删除这张截图？";
+"%@ will be moved to the Trash." = "%@ 将移到废纸篓。";
+"Could not delete the file." = "无法删除该文件。";
+"Pin to Screen" = "贴图";
+"Cancel" = "取消";

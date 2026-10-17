@@ -13,14 +13,14 @@ final class ScreenshotHistoryWindowController {
         let hosting = NSHostingController(rootView: view)
         if window == nil {
             let window = NSWindow(contentViewController: hosting)
-            window.title = OctoshotL10n.History.windowTitle
+            window.title = OctoshotL10n.historyWindowTitle
             window.setContentSize(NSSize(width: 880, height: 560))
             window.minSize = NSSize(width: 640, height: 400)
             window.center()
             self.window = window
         } else {
             window?.contentViewController = hosting
-            window?.title = OctoshotL10n.History.windowTitle
+            window?.title = OctoshotL10n.historyWindowTitle
         }
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -41,7 +41,7 @@ struct ScreenshotHistoryView: View {
             Group {
                 if entries.isEmpty {
                     ContentUnavailableView(
-                        OctoshotL10n.History.emptyLibrary,
+                        OctoshotL10n.historyEmptyLibrary,
                         systemImage: "photo.on.rectangle.angled"
                     )
                 } else {
@@ -55,11 +55,11 @@ struct ScreenshotHistoryView: View {
                     }
                 }
             }
-            .navigationTitle(OctoshotL10n.History.windowTitle)
+            .navigationTitle(OctoshotL10n.historyWindowTitle)
             .toolbar {
                 ToolbarItemGroup {
-                    Button(OctoshotL10n.History.refresh) { reload() }
-                    Button(OctoshotL10n.History.openFolder) {
+                    Button(OctoshotL10n.historyRefresh) { reload() }
+                    Button(OctoshotL10n.historyOpenFolder) {
                         NSWorkspace.shared.open(AppSettings.shared.saveDirectory)
                     }
                 }
@@ -106,7 +106,7 @@ struct ScreenshotHistoryView: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                     Spacer()
-                    actionButtons(for: url)
+                    actionButtons(for: url, image: image)
                 }
                 .padding()
 
@@ -118,27 +118,33 @@ struct ScreenshotHistoryView: View {
             }
         } else {
             ContentUnavailableView(
-                OctoshotL10n.History.emptySelection,
+                OctoshotL10n.historyEmptySelection,
                 systemImage: "photo"
             )
         }
     }
 
     @ViewBuilder
-    private func actionButtons(for url: URL) -> some View {
+    private func actionButtons(for url: URL, image: NSImage) -> some View {
         HStack {
-            Button(OctoshotL10n.History.copy) { ScreenshotHistoryStore.copyToClipboard(url: url) }
-            Button(OctoshotL10n.History.revealInFinder) { ScreenshotHistoryStore.revealInFinder(url: url) }
-            Button(OctoshotL10n.History.delete, role: .destructive) { confirmDelete(url: url) }
+            Button(OctoshotL10n.ocrCopy) { ScreenshotHistoryStore.copyToClipboard(url: url) }
+            Button(OctoshotL10n.historyPinAction) { PinnedScreenshotManager.shared.pin(image: image) }
+            Button(OctoshotL10n.ocrAction) { FeatureCoordinator.shared.showOCR(with: image) }
+            Button(OctoshotL10n.historyRevealInFinder) { ScreenshotHistoryStore.revealInFinder(url: url) }
+            Button(OctoshotL10n.historyDelete, role: .destructive) { confirmDelete(url: url) }
         }
     }
 
     @ViewBuilder
     private func historyActions(for url: URL) -> some View {
-        Button(OctoshotL10n.History.copy) { ScreenshotHistoryStore.copyToClipboard(url: url) }
-        Button(OctoshotL10n.History.revealInFinder) { ScreenshotHistoryStore.revealInFinder(url: url) }
+        Button(OctoshotL10n.ocrCopy) { ScreenshotHistoryStore.copyToClipboard(url: url) }
+        if let image = NSImage(contentsOf: url) {
+            Button(OctoshotL10n.historyPinAction) { PinnedScreenshotManager.shared.pin(image: image) }
+            Button(OctoshotL10n.ocrAction) { FeatureCoordinator.shared.showOCR(with: image) }
+        }
+        Button(OctoshotL10n.historyRevealInFinder) { ScreenshotHistoryStore.revealInFinder(url: url) }
         Divider()
-        Button(OctoshotL10n.History.delete, role: .destructive) { confirmDelete(url: url) }
+        Button(OctoshotL10n.historyDelete, role: .destructive) { confirmDelete(url: url) }
     }
 
     private func reload() {
@@ -168,10 +174,10 @@ struct ScreenshotHistoryView: View {
     private func confirmDelete(url: URL) {
         let alert = NSAlert()
         alert.alertStyle = .warning
-        alert.messageText = OctoshotL10n.History.deleteConfirmTitle
-        alert.informativeText = OctoshotL10n.History.deleteConfirmMessage(url.lastPathComponent)
-        alert.addButton(withTitle: OctoshotL10n.pick("Delete", "删除"))
-        alert.addButton(withTitle: OctoshotL10n.pick("Cancel", "取消"))
+        alert.messageText = OctoshotL10n.historyDeleteConfirmTitle
+        alert.informativeText = OctoshotL10n.historyDeleteConfirmMessage(url.lastPathComponent)
+        alert.addButton(withTitle: OctoshotL10n.historyDelete)
+        alert.addButton(withTitle: OctoshotL10n.historyCancel)
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         do {
             try ScreenshotHistoryStore.delete(url: url)
@@ -182,7 +188,7 @@ struct ScreenshotHistoryView: View {
             reload()
         } catch {
             let err = NSAlert()
-            err.messageText = OctoshotL10n.History.deleteFailed
+            err.messageText = OctoshotL10n.historyDeleteFailed
             err.informativeText = error.localizedDescription
             err.runModal()
         }

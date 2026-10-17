@@ -107,7 +107,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(recentParent)
         }
 
-        let historyItem = menuItem(OctoshotL10n.History.menuItem, action: #selector(openScreenshotHistory))
+        let historyItem = menuItem(OctoshotL10n.historyMenuItem, action: #selector(openScreenshotHistory))
         historyItem.keyEquivalent = "y"
         historyItem.keyEquivalentModifierMask = [.command, .shift]
         menu.addItem(historyItem)
