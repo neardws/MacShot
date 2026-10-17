@@ -115,11 +115,17 @@ final class SymbolicHotkeyPlistTests: XCTestCase {
 
     func testRecordingConflictDetectsSystemShortcut() {
         let octo = OctoshotHotkeySet(area: .systemAreaCapture, window: .windowDefault, fullscreen: .fullscreenDefault)
+        let copyFullScreen = HotkeyBinding(
+            keyCode: HotkeyKeyCode.ansi3,
+            modifiers: HotkeyCarbonModifiers.command
+                | HotkeyCarbonModifiers.shift
+                | HotkeyCarbonModifiers.control
+        )
         let system = [
-            ResolvedSymbolicHotkey(id: 30, enabled: true, binding: .systemScreenshotOptions, usesStockDefaults: false),
+            ResolvedSymbolicHotkey(id: 29, enabled: true, binding: copyFullScreen, usesStockDefaults: false),
         ]
         let conflict = SymbolicHotkeyPlist.recordingConflict(
-            candidate: .systemScreenshotOptions,
+            candidate: copyFullScreen,
             replacing: "area",
             octoshot: octo,
             systemEntries: system
