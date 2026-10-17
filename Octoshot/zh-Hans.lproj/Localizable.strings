@@ -27,6 +27,13 @@
 "Check for Updates…" = "检查更新…";
 
 /* Quick access */
+"Quick access position" = "浮窗位置";
+"Bottom left" = "左下角";
+"Bottom right" = "右下角";
+"Left sidebar" = "左侧栏";
+"Right sidebar" = "右侧栏";
+"Stack multiple captures" = "多张截图叠放";
+"Close all" = "全部关闭";
 "Copy to Clipboard" = "复制到剪贴板";
 "Save to Disk" = "保存到磁盘";
 "Annotate" = "标注";

@@ -11,27 +11,10 @@ extension ScreenshotFormat {
     }
 }
 
-enum QuickAccessCorner: String, CaseIterable, Identifiable, Codable {
-    case topLeft
-    case topRight
-    case bottomLeft
-    case bottomRight
-
-    var id: String { rawValue }
-
-    var displayName: String {
-        switch self {
-        case .topLeft: return "Top Left"
-        case .topRight: return "Top Right"
-        case .bottomLeft: return "Bottom Left"
-        case .bottomRight: return "Bottom Right"
-        }
-    }
-}
-
 extension Notification.Name {
     static let octoshotHotkeysDidChange = Notification.Name("OctoshotHotkeysDidChange")
     static let octoshotMenuBarVisibilityDidChange = Notification.Name("OctoshotMenuBarVisibilityDidChange")
+    static let octoshotQuickAccessPlacementDidChange = Notification.Name("OctoshotQuickAccessPlacementDidChange")
 }
 
 @MainActor
@@ -45,6 +28,7 @@ final class AppSettings: ObservableObject {
         static let saveDirectory = "saveDirectory"
         static let format = "screenshotFormat"
         static let corner = "quickAccessCorner"
+        static let stackCaptures = "quickAccessStackCaptures"
         static let hotkeyArea = "hotkeyArea"
         static let hotkeyWindow = "hotkeyWindow"
         static let hotkeyFullscreen = "hotkeyFullscreen"
@@ -70,8 +54,15 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(format.rawValue, forKey: Keys.format) }
     }
 
-    @Published var quickAccessCorner: QuickAccessCorner {
-        didSet { UserDefaults.standard.set(quickAccessCorner.rawValue, forKey: Keys.corner) }
+    @Published var quickAccessPlacement: QuickAccessPlacement {
+        didSet {
+            UserDefaults.standard.set(quickAccessPlacement.rawValue, forKey: Keys.corner)
+            NotificationCenter.default.post(name: .octoshotQuickAccessPlacementDidChange, object: nil)
+        }
+    }
+
+    @Published var quickAccessStackCaptures: Bool {
+        didSet { UserDefaults.standard.set(quickAccessStackCaptures, forKey: Keys.stackCaptures) }
     }
 
     @Published var jpegQuality: Double {
@@ -160,7 +151,9 @@ final class AppSettings: ObservableObject {
         }
 
         format = ScreenshotFormat(rawValue: UserDefaults.standard.string(forKey: Keys.format) ?? "") ?? .png
-        quickAccessCorner = QuickAccessCorner(rawValue: UserDefaults.standard.string(forKey: Keys.corner) ?? "") ?? .bottomRight
+        let cornerRaw = UserDefaults.standard.string(forKey: Keys.corner) ?? ""
+        quickAccessPlacement = QuickAccessPlacement.migrated(fromLegacyRawValue: cornerRaw)
+        quickAccessStackCaptures = UserDefaults.standard.object(forKey: Keys.stackCaptures) as? Bool ?? true
 
         let quality = UserDefaults.standard.double(forKey: Keys.jpegQuality)
         jpegQuality = quality > 0 ? quality : 0.85

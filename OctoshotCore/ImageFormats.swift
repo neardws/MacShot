@@ -49,6 +49,10 @@ public enum ImageFormats {
     public static func copyToPasteboard(_ image: NSImage) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.writeObjects([image])
+        guard let data = pngData(from: image) else {
+            pasteboard.writeObjects([image])
+            return
+        }
+        pasteboard.setData(data, forType: .png)
     }
 }

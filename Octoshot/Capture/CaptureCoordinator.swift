@@ -95,24 +95,25 @@ final class CaptureCoordinator {
         do {
             let image = try await ScreenCaptureService.shared.captureRegion(globalRect: rect)
             ScreenRecordingAccessCache.shared.lastKnownGranted = true
-            await handleRegionCaptureResult(image)
+            let anchor = CGPoint(x: rect.midX, y: rect.midY)
+            await handleRegionCaptureResult(image, captureAnchor: anchor)
         } catch {
             await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
         }
     }
 
-    private func handleRegionCaptureResult(_ image: NSImage) async {
+    private func handleRegionCaptureResult(_ image: NSImage, captureAnchor: CGPoint) async {
         let followUp = CaptureFollowUpState.shared.areaFollowUp
         CaptureFollowUpState.shared.areaFollowUp = .standard
         switch followUp {
         case .standard:
-            presentResult(image)
+            presentResult(image, captureAnchor: captureAnchor)
         case .latex:
             CaptureFeedback.playCaptureSoundIfEnabled()
             FeatureCoordinator.shared.showLaTeX(with: image)
         case .paperClip:
-            presentResult(image)
+            presentResult(image, captureAnchor: captureAnchor)
             Task {
                 do {
                     let folder = try await PaperClipService.processFigure(image: image)
@@ -132,7 +133,9 @@ final class CaptureCoordinator {
         do {
             let image = try await ScreenCaptureService.shared.captureWindow(window)
             ScreenRecordingAccessCache.shared.lastKnownGranted = true
-            presentResult(image)
+            let cocoa = DisplayGeometry.cocoaRect(fromTopLeftFrame: window.frame)
+            let anchor = CGPoint(x: cocoa.midX, y: cocoa.midY)
+            presentResult(image, captureAnchor: anchor)
         } catch {
             await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
@@ -149,7 +152,8 @@ final class CaptureCoordinator {
             let display = content.displays.first { $0.displayID == screen?.displayID } ?? content.displays.first
             let image = try await ScreenCaptureService.shared.captureFullscreen(display: display)
             ScreenRecordingAccessCache.shared.lastKnownGranted = true
-            presentResult(image)
+            let anchor = CGPoint(x: mouse.x, y: mouse.y)
+            presentResult(image, captureAnchor: anchor)
         } catch {
             await PermissionManager.handleCaptureFailure(error)
             finishWithError(error)
@@ -157,7 +161,7 @@ final class CaptureCoordinator {
     }
 
     func presentCapturedImage(_ image: NSImage) {
-        presentResult(image)
+        presentResult(image, captureAnchor: NSEvent.mouseLocation)
     }
 
     func presentCapturedMovie(at url: URL) {
@@ -171,17 +175,17 @@ final class CaptureCoordinator {
             img.draw(in: NSRect(x: 40, y: 14, width: 40, height: 40))
         }
         preview.unlockFocus()
-        presentResult(preview, savedFileURL: url)
+        presentResult(preview, savedFileURL: url, captureAnchor: NSEvent.mouseLocation)
         RecentCapturesStore.record(url: url)
     }
 
     func presentCapturedGIF(at url: URL, preview: NSImage) {
         CaptureFeedback.playCaptureSoundIfEnabled()
-        presentResult(preview, savedFileURL: url)
+        presentResult(preview, savedFileURL: url, captureAnchor: NSEvent.mouseLocation)
         RecentCapturesStore.record(url: url)
     }
 
-    private func presentResult(_ image: NSImage, savedFileURL: URL? = nil) {
+    private func presentResult(_ image: NSImage, savedFileURL: URL? = nil, captureAnchor: CGPoint? = nil) {
         CaptureFeedback.playCaptureSoundIfEnabled()
         let settings = AppSettings.shared
         var savedURL: URL? = savedFileURL
@@ -210,7 +214,9 @@ final class CaptureCoordinator {
 
         var captureURL = savedURL
         let developer = settings.developerModeEnabled
-        quickAccess.show(image: image, actions: QuickAccessActions(
+        quickAccess.show(
+            image: image,
+            actions: QuickAccessActions(
             onCopy: {
                 if let file = savedFileURL {
                     NSWorkspace.shared.activateFileViewerSelecting([file])
@@ -261,7 +267,9 @@ final class CaptureCoordinator {
                 }
             } : nil,
             onClose: {}
-        ))
+            ),
+            captureAnchor: captureAnchor
+        )
     }
 
     private func showAI(for image: NSImage) {

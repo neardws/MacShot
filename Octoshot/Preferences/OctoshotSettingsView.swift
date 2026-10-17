@@ -186,11 +186,12 @@ private struct CaptureSettingsPane: View {
             }
 
             Section {
-                Picker("Quick access corner", selection: $settings.quickAccessCorner) {
-                    ForEach(QuickAccessCorner.allCases) { corner in
-                        Text(corner.displayName).tag(corner)
+                Picker(OctoshotL10n.quickAccessPlacementTitle, selection: $settings.quickAccessPlacement) {
+                    ForEach(QuickAccessPlacement.allCases) { placement in
+                        Text(OctoshotL10n.quickAccessPlacementName(placement)).tag(placement)
                     }
                 }
+                Toggle(OctoshotL10n.quickAccessStackCaptures, isOn: $settings.quickAccessStackCaptures)
                 HStack {
                     Text("Auto-close delay")
                     Slider(value: $settings.quickAccessAutoCloseSeconds, in: 0...120, step: 5)
