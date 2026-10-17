@@ -48,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 OnboardingPresenter.presentIfNeeded()
             } else {
                 await PermissionManager.presentInitialGuidanceIfNeeded()
+                ScreenshotHotkeyConflictPresenter.presentIfNeeded(origin: .launch)
             }
         }
     }

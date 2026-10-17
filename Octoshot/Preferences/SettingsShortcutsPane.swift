@@ -7,29 +7,37 @@ struct SettingsShortcutsPane: View {
     @State private var recordingTarget: HotkeyTarget?
     @State private var systemEntries: [SystemScreenshotHotkeys.Entry] = []
     @State private var plistMessage: String?
+    @State private var recorderNote: String?
 
     enum HotkeyTarget: String {
         case area, window, fullscreen
+
+        var settingsKey: String { rawValue }
     }
 
     var body: some View {
         SettingsFormContainer {
             SettingsPaneHeader(
-                title: "Shortcuts",
-                subtitle: "Global capture hotkeys and macOS screenshot bindings",
+                title: OctoshotL10n.shortcutsPaneTitle,
+                subtitle: OctoshotL10n.shortcutsPaneSubtitle,
                 systemImage: "command"
             )
 
             Section {
-                hotkeyRow("Capture fullscreen", binding: $settings.hotkeyFullscreen, target: .fullscreen)
-                hotkeyRow("Capture area", binding: $settings.hotkeyArea, target: .area)
-                hotkeyRow("Capture window", binding: $settings.hotkeyWindow, target: .window)
-                Text("Click Record, then press a shortcut that includes ⌘, ⌥, ⌃, or ⇧.")
+                hotkeyRow(OctoshotL10n.hotkeyCaptureFullscreen, binding: $settings.hotkeyFullscreen, target: .fullscreen)
+                hotkeyRow(OctoshotL10n.hotkeyCaptureArea, binding: $settings.hotkeyArea, target: .area)
+                hotkeyRow(OctoshotL10n.hotkeyCaptureWindow, binding: $settings.hotkeyWindow, target: .window)
+                Text(OctoshotL10n.hotkeyRecordHint)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Button("Reset to Defaults") { settings.resetHotkeysToDefaults() }
+                if let recorderNote {
+                    Text(recorderNote)
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+                Button(OctoshotL10n.hotkeyResetDefaults) { settings.resetHotkeysToDefaults() }
             } header: {
-                Label("Octoshot hotkeys", systemImage: "keyboard")
+                Label(OctoshotL10n.hotkeyOctoshotSection, systemImage: "keyboard")
             }
 
             Section {
@@ -37,52 +45,52 @@ struct SettingsShortcutsPane: View {
                     HStack(alignment: .firstTextBaseline) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(entry.title)
-                            if let binding = entry.binding {
-                                Text(HotkeyFormatter.displayString(for: binding))
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
+                            Text(HotkeyFormatter.displayString(for: entry.binding))
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                            if entry.usesStockDefaults {
+                                Text(OctoshotL10n.systemHotkeyStockDefault)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
                             }
                         }
                         Spacer()
-                        Text(entry.enabled ? "Enabled" : "Disabled")
+                        Text(entry.enabled ? OctoshotL10n.systemHotkeyEnabled : OctoshotL10n.systemHotkeyDisabled)
                             .foregroundStyle(entry.enabled ? .primary : .secondary)
                     }
                 }
-                Button("Refresh system bindings") { reloadSystem() }
+                Button(OctoshotL10n.systemHotkeyRefresh) { reloadSystem() }
             } header: {
-                Label("macOS screenshot shortcuts", systemImage: "apple.logo")
+                Label(OctoshotL10n.systemHotkeySection, systemImage: "apple.logo")
             }
 
             Section {
                 let conflicts = SystemScreenshotHotkeys.conflicts(with: settings)
                 if !conflicts.isEmpty {
-                    Label(
-                        "System shortcuts still enabled for the same keys — captures may open both apps.",
-                        systemImage: "exclamationmark.triangle.fill"
-                    )
-                    .foregroundStyle(.orange)
-                    .font(.caption)
+                    Label(OctoshotL10n.systemHotkeyConflictBanner, systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
                 }
 
-                Button("Use Octoshot for ⌘⇧3 / ⌘⇧4 / ⌘⇧5") {
+                Button(OctoshotL10n.systemHotkeyUseOctoshotKeys) {
                     SystemScreenshotHotkeys.applyOctoshotTakeover()
                     SystemScreenshotHotkeys.openKeyboardSettings()
                 }
 
-                Text("This sets Octoshot to the standard screenshot keys. Disable the matching items under System Settings → Keyboard → Keyboard Shortcuts → Screenshots.")
+                Text(OctoshotL10n.systemHotkeyManualDisableHint)
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
-                Button("Open Keyboard Shortcuts…") {
+                Button(OctoshotL10n.systemHotkeyOpenKeyboardSettings) {
                     SystemScreenshotHotkeys.openKeyboardSettings()
                 }
 
-                Button("Disable system screenshot hotkeys (advanced)…") {
+                Button(OctoshotL10n.systemHotkeyDisableAdvanced) {
                     confirmDisableSystemHotkeys()
                 }
 
                 if SystemScreenshotHotkeys.hasBackup {
-                    Button("Restore system screenshot hotkeys") {
+                    Button(OctoshotL10n.systemHotkeyRestore) {
                         restoreSystemHotkeys()
                     }
                 }
@@ -93,7 +101,7 @@ struct SettingsShortcutsPane: View {
                         .foregroundStyle(.secondary)
                 }
             } header: {
-                Label("Take over system shortcuts", systemImage: "arrow.triangle.swap")
+                Label(OctoshotL10n.systemHotkeyTakeoverSection, systemImage: "arrow.triangle.swap")
             }
         }
         .onAppear { reloadSystem() }
@@ -109,50 +117,71 @@ struct SettingsShortcutsPane: View {
             Spacer()
             Text(HotkeyFormatter.displayString(for: binding.wrappedValue))
                 .font(.system(.body, design: .monospaced))
-            Button(recordingTarget == target ? "Press keys…" : "Record") {
+            Button(recordingTarget == target ? OctoshotL10n.hotkeyRecording : OctoshotL10n.hotkeyRecord) {
+                recorderNote = nil
                 recordingTarget = target
-                HotkeyRecorder.shared.start { event in
-                    let newBinding = HotkeyBinding(
-                        keyCode: UInt32(event.keyCode),
-                        modifiers: HotkeyFormatter.modifiersFromEvent(event)
-                    )
-                    switch target {
-                    case .area: settings.hotkeyArea = newBinding
-                    case .window: settings.hotkeyWindow = newBinding
-                    case .fullscreen: settings.hotkeyFullscreen = newBinding
+                HotkeyRecorder.shared.start(
+                    onRecord: { event in
+                        applyRecorded(event, target: target)
+                    },
+                    onCancel: {
+                        recordingTarget = nil
+                        recorderNote = OctoshotL10n.hotkeyRecordCancelled
                     }
-                    recordingTarget = nil
-                    HotkeyRecorder.shared.stop()
-                }
+                )
             }
         }
     }
 
-    private func confirmDisableSystemHotkeys() {
-        let alert = NSAlert()
-        alert.messageText = "Disable macOS screenshot shortcuts?"
-        alert.informativeText = """
-        Octoshot will back up your symbolic hotkeys plist and turn off screenshot shortcuts (IDs 28, 29, 30, 31, 184).
-
-        You may need to log out and back in for macOS to reload shortcuts. Use Restore if anything looks wrong.
-        """
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Disable")
-        alert.addButton(withTitle: "Cancel")
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        do {
-            try SystemScreenshotHotkeys.disableSystemScreenshotHotkeys()
-            plistMessage = "System screenshot shortcuts disabled. A backup was saved in Application Support/Octoshot."
-            reloadSystem()
-        } catch {
-            plistMessage = error.localizedDescription
+    private func applyRecorded(_ event: NSEvent, target: HotkeyTarget) {
+        let newBinding = HotkeyBinding(
+            keyCode: UInt32(event.keyCode),
+            modifiers: HotkeyFormatter.modifiersFromEvent(event)
+        )
+        let octo = SystemScreenshotHotkeys.octoshotHotkeySet(from: settings)
+        let system = SystemScreenshotHotkeys.resolvedSystemEntries()
+        if let code = SymbolicHotkeyPlist.recordingConflict(
+            candidate: newBinding,
+            replacing: target.settingsKey,
+            octoshot: octo,
+            systemEntries: system
+        ) {
+            recorderNote = recordingConflictMessage(code)
+            recordingTarget = nil
+            HotkeyRecorder.shared.stop()
+            return
         }
+        switch target {
+        case .area: settings.hotkeyArea = newBinding
+        case .window: settings.hotkeyWindow = newBinding
+        case .fullscreen: settings.hotkeyFullscreen = newBinding
+        }
+        recordingTarget = nil
+        recorderNote = nil
+        HotkeyRecorder.shared.stop()
+        reloadSystem()
+    }
+
+    private func recordingConflictMessage(_ code: String) -> String {
+        switch code {
+        case "modifier_required": return OctoshotL10n.hotkeyConflictNeedsModifier
+        case "octoshot_duplicate": return OctoshotL10n.hotkeyConflictOctoshot
+        case "system_duplicate": return OctoshotL10n.hotkeyConflictSystem
+        default: return OctoshotL10n.hotkeyConflictGeneric
+        }
+    }
+
+    private func confirmDisableSystemHotkeys() {
+        if ScreenshotHotkeyConflictPresenter.confirmAndDisableSystemHotkeys() {
+            plistMessage = OctoshotL10n.systemHotkeyDisableSuccess
+        }
+        reloadSystem()
     }
 
     private func restoreSystemHotkeys() {
         do {
             try SystemScreenshotHotkeys.restoreSystemScreenshotHotkeys()
-            plistMessage = "Restored system screenshot shortcuts from backup."
+            plistMessage = OctoshotL10n.systemHotkeyRestoreSuccess
             reloadSystem()
         } catch {
             plistMessage = error.localizedDescription

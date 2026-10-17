@@ -100,21 +100,32 @@ struct OnboardingView: View {
 
     private var shortcutsStep: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Shortcuts")
+            Text(OctoshotL10n.onboardingShortcutsTitle)
                 .font(.title2.bold())
-            Text("Use Octoshot with the familiar ⌘⇧3 / ⌘⇧4 / ⌘⇧5 keys, then disable the built-in macOS screenshot shortcuts.")
+            Text(OctoshotL10n.onboardingShortcutsBody)
                 .foregroundStyle(.secondary)
-            Button("Use Octoshot for ⌘⇧3/4/5") {
+            if SystemScreenshotHotkeys.hasConflicts() {
+                Label(OctoshotL10n.systemHotkeyConflictBanner, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .font(.callout)
+            }
+            Button(OctoshotL10n.systemHotkeyUseOctoshotKeys) {
                 SystemScreenshotHotkeys.applyOctoshotTakeover()
                 SystemScreenshotHotkeys.openKeyboardSettings()
             }
-            Button("Open Settings → Shortcuts") {
+            Button(OctoshotL10n.systemHotkeyDisableAdvanced) {
+                ScreenshotHotkeyConflictPresenter.confirmAndDisableSystemHotkeys()
+            }
+            Button(OctoshotL10n.onboardingOpenShortcutsSettings) {
                 NotificationCenter.default.post(name: .octoshotOpenSettingsSection, object: SettingsSection.shortcuts)
                 SettingsOpener.open()
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .onAppear {
+            ScreenshotHotkeyConflictPresenter.presentIfNeeded(origin: .onboarding)
+        }
     }
 
     private var aiStep: some View {
