@@ -91,4 +91,38 @@ enum OctoshotL10n {
     static var checkForUpdates: String {
         String(localized: "Check for Updates…", comment: "Sparkle manual update check")
     }
+
+    // MARK: - Quick access panel
+
+    static var quickAccessCopy: String {
+        String(localized: "Copy to Clipboard", comment: "Quick access: copy screenshot")
+    }
+
+    static var quickAccessSave: String {
+        String(localized: "Save to Disk", comment: "Quick access: save screenshot")
+    }
+
+    static var quickAccessAnnotate: String {
+        String(localized: "Annotate", comment: "Quick access: open annotation editor")
+    }
+
+    static var quickAccessPin: String {
+        String(localized: "Pin to Screen", comment: "Quick access: pin screenshot on desktop")
+    }
+
+    static var quickAccessAskAI: String {
+        String(localized: "Ask AI", comment: "Quick access: open local AI assistant")
+    }
+
+    static var quickAccessCopyMarkdown: String {
+        String(localized: "Copy Markdown", comment: "Quick access: copy Markdown image snippet")
+    }
+
+    static var quickAccessCopyPath: String {
+        String(localized: "Copy File Path", comment: "Quick access: copy saved file path")
+    }
+
+    static var quickAccessClose: String {
+        String(localized: "Dismiss", comment: "Quick access: close panel")
+    }
 }

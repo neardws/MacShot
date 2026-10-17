@@ -28,12 +28,10 @@ struct SettingsFormContainer<Content: View>: View {
     @ViewBuilder var content: () -> Content
 
     var body: some View {
-        ScrollView {
-            Form {
-                content()
-            }
-            .formStyle(.grouped)
-            .padding()
+        Form {
+            content()
         }
+        .formStyle(.grouped)
+        .padding()
     }
 }

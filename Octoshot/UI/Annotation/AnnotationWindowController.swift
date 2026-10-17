@@ -4,6 +4,13 @@ import OctoshotCore
 
 @MainActor
 final class AnnotationWindowController {
+    private enum LayoutMetrics {
+        static let toolbarHeight: CGFloat = 52
+        static let horizontalChrome: CGFloat = 24
+        static let verticalChrome: CGFloat = 28
+        static let minimumContentSize = NSSize(width: 480, height: 360)
+    }
+
     private let window: NSWindow
     private var canvasView: AnnotationCanvasView?
     private let toolbarModel = AnnotationToolbarModel()
@@ -21,6 +28,7 @@ final class AnnotationWindowController {
             defer: false
         )
         window.title = "Octoshot — Annotate"
+        window.minSize = LayoutMetrics.minimumContentSize
         window.center()
         setupContent()
     }
@@ -35,12 +43,60 @@ final class AnnotationWindowController {
         canvasView?.strokeColor = toolbarModel.strokeNSColor
         canvasView?.lineWidth = toolbarModel.lineWidth
         canvasView?.rebuildComposite()
+        applyWindowLayout(for: image)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
 
         if AppSettings.shared.autoRedactOnAnnotate {
             Task { await runAutoRedactPreview() }
         }
+    }
+
+    private func applyWindowLayout(for image: NSImage) {
+        let screen = screenForPresentation() ?? NSScreen.main ?? NSScreen.screens[0]
+        let visible = screen.visibleFrame
+        let pixels = Self.pixelDimensions(of: image)
+        let scale = screen.backingScaleFactor
+
+        let layout = AnnotationEditorWindowLayout.layout(
+            for: AnnotationEditorWindowLayout.Input(
+                imagePixelWidth: pixels.width,
+                imagePixelHeight: pixels.height,
+                backingScaleFactor: scale,
+                visibleFrameWidth: visible.width,
+                visibleFrameHeight: visible.height,
+                toolbarHeight: LayoutMetrics.toolbarHeight,
+                verticalChrome: LayoutMetrics.verticalChrome,
+                horizontalChrome: LayoutMetrics.horizontalChrome
+            )
+        )
+
+        let contentSize = NSSize(
+            width: max(layout.windowContentSize.width, LayoutMetrics.minimumContentSize.width),
+            height: max(layout.windowContentSize.height, LayoutMetrics.minimumContentSize.height)
+        )
+        let contentFrame = AnnotationEditorWindowLayout.centeredContentFrame(
+            contentSize: CGSize(width: contentSize.width, height: contentSize.height),
+            visibleFrame: visible
+        )
+        window.setFrame(contentFrame, display: true)
+    }
+
+    private func screenForPresentation() -> NSScreen? {
+        let mouse = NSEvent.mouseLocation
+        if let match = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) {
+            return match
+        }
+        let center = NSPoint(x: window.frame.midX, y: window.frame.midY)
+        return NSScreen.screens.first { $0.frame.contains(center) }
+    }
+
+    private static func pixelDimensions(of image: NSImage) -> (width: CGFloat, height: CGFloat) {
+        if let rep = image.representations.compactMap({ $0 as? NSBitmapImageRep }).first {
+            return (CGFloat(rep.pixelsWide), CGFloat(rep.pixelsHigh))
+        }
+        let size = image.size
+        return (max(size.width, 1), max(size.height, 1))
     }
 
     private func setupContent() {
@@ -84,7 +140,7 @@ final class AnnotationWindowController {
             toolbar.topAnchor.constraint(equalTo: container.topAnchor, constant: 8),
             toolbar.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),
             toolbar.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -12),
-            toolbar.heightAnchor.constraint(equalToConstant: 52),
+            toolbar.heightAnchor.constraint(equalToConstant: LayoutMetrics.toolbarHeight),
 
             canvas.topAnchor.constraint(equalTo: toolbar.bottomAnchor, constant: 8),
             canvas.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 12),

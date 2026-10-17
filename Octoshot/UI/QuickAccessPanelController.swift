@@ -225,26 +225,58 @@ private struct QuickAccessCard: View {
                     .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
 
                 if isHovering {
-                    HStack(spacing: 8) {
-                        QuickAccessButton(symbol: "doc.on.doc", help: "Copy", action: wrapAlternate(entry.actions.onCopy))
-                        QuickAccessButton(symbol: "square.and.arrow.down", help: "Save", action: wrapAlternate(entry.actions.onSave))
-                        QuickAccessButton(symbol: "pencil.tip.crop.circle", help: "Annotate", action: wrapAlternate(entry.actions.onAnnotate))
-                        QuickAccessButton(symbol: "pin.fill", help: "贴图 / Pin", action: wrapAlternate(entry.actions.onPin))
+                    HStack(spacing: 6) {
+                        QuickAccessButton(
+                            symbol: "doc.on.clipboard",
+                            label: OctoshotL10n.quickAccessCopy,
+                            action: wrapAlternate(entry.actions.onCopy)
+                        )
+                        QuickAccessButton(
+                            symbol: "square.and.arrow.down.fill",
+                            label: OctoshotL10n.quickAccessSave,
+                            action: wrapAlternate(entry.actions.onSave)
+                        )
+                        QuickAccessButton(
+                            symbol: "pencil.and.outline",
+                            label: OctoshotL10n.quickAccessAnnotate,
+                            action: wrapAlternate(entry.actions.onAnnotate)
+                        )
+                        QuickAccessButton(
+                            symbol: "pin.circle.fill",
+                            label: OctoshotL10n.quickAccessPin,
+                            action: wrapAlternate(entry.actions.onPin)
+                        )
                         QuickAccessButton(
                             symbol: "text.viewfinder",
-                            help: OctoshotL10n.ocrAction,
+                            label: OctoshotL10n.ocrAction,
                             action: wrapAlternate(entry.actions.onOCR)
                         )
                         if let onAskAI = entry.actions.onAskAI {
-                            QuickAccessButton(symbol: "brain", help: "Ask AI", action: wrapAlternate(onAskAI))
+                            QuickAccessButton(
+                                symbol: "sparkles",
+                                label: OctoshotL10n.quickAccessAskAI,
+                                action: wrapAlternate(onAskAI)
+                            )
                         }
                         if let onCopyMarkdown = entry.actions.onCopyMarkdown {
-                            QuickAccessButton(symbol: "doc.richtext", help: "Copy Markdown", action: wrapAlternate(onCopyMarkdown))
+                            QuickAccessButton(
+                                symbol: "curlybraces.square",
+                                label: OctoshotL10n.quickAccessCopyMarkdown,
+                                action: wrapAlternate(onCopyMarkdown)
+                            )
                         }
                         if let onCopyPath = entry.actions.onCopyPath {
-                            QuickAccessButton(symbol: "link", help: "Copy file path", action: wrapAlternate(onCopyPath))
+                            QuickAccessButton(
+                                symbol: "link.circle",
+                                label: OctoshotL10n.quickAccessCopyPath,
+                                action: wrapAlternate(onCopyPath)
+                            )
                         }
-                        QuickAccessButton(symbol: "xmark", help: "Close", action: onClose)
+                        QuickAccessButton(
+                            symbol: "xmark.circle.fill",
+                            label: OctoshotL10n.quickAccessClose,
+                            action: onClose
+                        )
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 8)
@@ -333,17 +365,27 @@ private struct SpeculativePrimaryButton: View {
 
 private struct QuickAccessButton: View {
     let symbol: String
-    let help: String
+    let label: String
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 13, weight: .semibold))
-                .frame(width: 26, height: 26)
+            VStack(spacing: 2) {
+                Image(systemName: symbol)
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 22, height: 18)
+                Text(label)
+                    .font(.system(size: 9, weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+            }
+            .frame(minWidth: 40)
+            .padding(.horizontal, 2)
+            .padding(.vertical, 2)
         }
         .buttonStyle(.plain)
-        .help(help)
+        .help(label)
+        .accessibilityLabel(label)
     }
 }
 

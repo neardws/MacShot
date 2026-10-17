@@ -25,3 +25,12 @@
 
 /* Updates */
 "Check for Updates…" = "检查更新…";
+
+/* Quick access */
+"Copy to Clipboard" = "复制到剪贴板";
+"Save to Disk" = "保存到磁盘";
+"Annotate" = "标注";
+"Ask AI" = "询问 AI";
+"Copy Markdown" = "复制 Markdown";
+"Copy File Path" = "复制文件路径";
+"Dismiss" = "关闭";
