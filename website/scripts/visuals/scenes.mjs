@@ -1,4 +1,15 @@
 import { copy } from './copy.mjs';
+import { captureContentHtml } from './capture-content.mjs';
+import {
+  wallpaperHtml,
+  desktopWindowsHtml,
+  menubarHtml,
+  dockHtml,
+  captureOverlayHtml,
+  quickAccessStackHtml,
+} from './desktop.mjs';
+
+const SEL = { left: 640, top: 340, width: 1120, height: 700 };
 
 function esc(s) {
   return String(s)
@@ -7,43 +18,25 @@ function esc(s) {
     .replace(/>/g, '&gt;');
 }
 
-function menubar(locale, iconUrl, c) {
+function desktopScene(inner, locale, iconDataUrl, c) {
   return `
-  <div class="menubar">
-    <span class="apple"></span>
-    <div class="items">
-      <span>${esc(c.productName)}</span>
-      <span>File</span>
-      <span>Edit</span>
-      <span>View</span>
-    </div>
-    <div class="status">
-      <img class="app-icon" src="${iconUrl}" alt="" />
-      <span>${locale === 'zh' ? '一酱' : 'Octoshot'}</span>
-    </div>
+  <div class="scene">
+    ${wallpaperHtml()}
+    ${desktopWindowsHtml()}
+    ${inner}
+    ${menubarHtml(locale, iconDataUrl, c)}
+    ${dockHtml(iconDataUrl)}
   </div>`;
 }
 
-function dock(iconUrl) {
-  return `
-  <div class="dock">
-    <div class="icon"></div>
-    <div class="icon"></div>
-    <img class="icon hero-app" src="${iconUrl}" alt="" />
-    <div class="icon"></div>
-    <div class="icon"></div>
-  </div>`;
-}
-
-function modeBarHtml(active) {
-  const modes = ['S', 'R', 'V', 'G', 'L', 'T'];
-  return modes
-    .map((m) => (m === active ? `<span class="active">[${m}]</span>` : `<span>${m}</span>`))
-    .join('  ');
-}
-
-function thumbMock() {
-  return '<div class="thumb-mock"></div>';
+function fontLinks(locale) {
+  const cjk =
+    locale === 'zh'
+      ? `<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />`
+      : '';
+  return cjk;
 }
 
 export const SCENE_IDS = [
@@ -55,97 +48,58 @@ export const SCENE_IDS = [
   'ocr',
 ];
 
-export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
+export function buildSceneHtml(sceneId, locale, { css, iconDataUrl }) {
   const c = copy[locale] ?? copy.en;
   const qa = c.quickAccess;
+  const langClass = locale === 'zh' ? 'lang-zh' : 'lang-en';
 
   let body = '';
 
   switch (sceneId) {
     case 'hero':
-      body = `
-      <div class="scene">
-        <div class="wallpaper"></div>
-        ${menubar(locale, iconUrl, c)}
+      body = desktopScene(
+        `
+        ${captureOverlayHtml({ ...SEL, modeActive: 'S', sizeLabel: c.selectionSize })}
         <div class="hero-tag">
           <div class="brand-row">
-            <img src="${iconUrl}" alt="" />
-            <span style="font-size:42px;font-weight:700">${esc(c.productName)}</span>
+            <img class="hero-brand-icon" src="${iconDataUrl}" width="72" height="72" alt="" />
+            <span class="hero-brand-name">${esc(c.productName)}</span>
           </div>
           <h2>${esc(c.heroTagline)}</h2>
           <p>${locale === 'zh' ? '区域截图 · 快速访问 · 本机 AI' : 'Region capture · Quick Access · on-device AI'}</p>
         </div>
-        <div class="hero-float">
-          <div class="capture-overlay" style="opacity:0.35"></div>
-          <div class="selection" style="left:280px;top:180px;width:1440px;height:780px">
-            <div class="selection-inner"></div>
-          </div>
-          <div class="modebar" style="left:280px;top:980px;font-size:22px">${modeBarHtml('S')}</div>
-          <div class="dim-label" style="left:1720px;top:140px">${esc(c.selectionSize)}</div>
-          <div class="perspective-wrap" style="right:120px;bottom:80px;transform:scale(0.85)">
-            <div class="qa-stack">
-              <div class="qa-card back1">${thumbMock()}</div>
-              <div class="qa-card back2">${thumbMock()}</div>
-              <div class="qa-card front">
-                ${thumbMock()}
-                <div class="qa-actions">
-                  ${qaBtn('📋', qa.copy)}
-                  ${qaBtn('💾', qa.save)}
-                  ${qaBtn('✏️', qa.annotate)}
-                  ${qaBtn('📌', qa.pin)}
-                  ${qaBtn('🔤', qa.ocr)}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        ${dock(iconUrl)}
-      </div>`;
+        <div class="qa-hero-corner">${quickAccessStackHtml(qa, 'qa-hero')}</div>
+        `,
+        locale,
+        iconDataUrl,
+        c,
+      );
       break;
 
     case 'capture-modebar':
-      body = `
-      <div class="scene">
-        <div class="wallpaper-soft"></div>
-        ${menubar(locale, iconUrl, c)}
-        <div class="capture-overlay"></div>
-        <div class="selection">
-          <div class="selection-inner"></div>
-        </div>
-        <div class="modebar">${modeBarHtml(c.modeBarActive)}</div>
-        <div class="dim-label">${esc(c.selectionSize)}</div>
-      </div>`;
+      body = desktopScene(
+        captureOverlayHtml({ ...SEL, modeActive: c.modeBarActive, sizeLabel: c.selectionSize }),
+        locale,
+        iconDataUrl,
+        c,
+      );
       break;
 
     case 'quick-access-stack':
-      body = `
-      <div class="scene">
-        <div class="wallpaper-soft"></div>
-        ${menubar(locale, iconUrl, c)}
-        <div class="perspective-wrap" style="right:50%;transform:translateX(50%) scale(1.35);bottom:280px">
-          <div class="qa-stack" style="width:520px;height:640px">
-            <div class="qa-card back1" style="left:0">${thumbMock()}</div>
-            <div class="qa-card back2" style="left:30px">${thumbMock()}</div>
-            <div class="qa-card front" style="left:60px">
-              ${thumbMock()}
-              <div class="qa-actions">
-                ${qaBtn('📋', qa.copy)}
-                ${qaBtn('💾', qa.save)}
-                ${qaBtn('✏️', qa.annotate)}
-                ${qaBtn('📌', qa.pin)}
-                ${qaBtn('🔤', qa.ocr)}
-                ${qaBtn('✕', qa.dismiss)}
-              </div>
-            </div>
-          </div>
-        </div>
-        ${dock(iconUrl)}
-      </div>`;
+      body = desktopScene(
+        `<div class="qa-scene-center">${quickAccessStackHtml(qa, 'qa-main')}</div>`,
+        locale,
+        iconDataUrl,
+        c,
+      );
       break;
 
     case 'annotate':
       body = `
-      <div class="scene wallpaper-soft">
+      <div class="scene scene-app ${langClass}">
+        ${wallpaperHtml()}
+        ${desktopWindowsHtml()}
+        <div class="desktop-dim"></div>
         <div class="window annotate-window">
           <div class="window-chrome">
             <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
@@ -155,28 +109,32 @@ export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
             ${c.tools
               .map((t, i) => `<div class="tool${i === 0 ? ' on' : ''}" title="${esc(t)}">${toolGlyph(t)}</div>`)
               .join('')}
-            <span style="margin-left:12px;width:28px;height:28px;border-radius:50%;background:#ff3b30;display:inline-block"></span>
-            <span style="font-size:13px;color:#6e6e73;margin-left:8px">3 pt</span>
-            <span style="flex:1"></span>
-            ${c.toolbarActions.map((a) => `<span class="action" style="padding:6px 10px;font-size:13px">${esc(a)}</span>`).join('')}
+            <span class="color-swatch"></span>
+            <span class="stroke-label">3 pt</span>
+            <span class="toolbar-flex"></span>
+            ${c.toolbarActions.map((a) => `<span class="toolbar-action">${esc(a)}</span>`).join('')}
           </div>
           <div class="annotate-canvas">
-            <div class="shot"><div class="arrow"></div></div>
+            <div class="shot">${captureContentHtml()}<div class="arrow-anno"></div></div>
           </div>
         </div>
+        ${menubarHtml(locale, iconDataUrl, c)}
+        ${dockHtml(iconDataUrl)}
       </div>`;
       break;
 
     case 'settings-shortcuts':
       body = `
-      <div class="scene wallpaper-soft">
+      <div class="scene scene-app ${langClass}">
+        ${wallpaperHtml()}
+        ${desktopWindowsHtml()}
+        <div class="desktop-dim"></div>
         <div class="window settings-window">
           <div class="settings-sidebar">
             ${c.sidebar
-              .map((title, i) => {
-                const active = title === 'Shortcuts' ? ' active' : '';
-                const sub = title === 'Shortcuts' ? c.settingsShortcutsSub : '…';
-                return `<div class="item${active}"><div><div>${esc(title)}</div><div class="sub">${esc(sub)}</div></div></div>`;
+              .map((item) => {
+                const active = item.active ? ' active' : '';
+                return `<div class="item${active}"><div class="item-title">${esc(item.title)}</div><div class="sub">${esc(item.sub)}</div></div>`;
               })
               .join('')}
           </div>
@@ -192,17 +150,22 @@ export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
             </div>
             <div class="form-section">
               <h2>${esc(c.takeoverSection)}</h2>
-              <div class="warn">⚠ ${esc(c.conflictBanner)}</div>
+              <div class="warn"><span class="warn-icon">⚠</span><span>${esc(c.conflictBanner)}</span></div>
               <button class="btn-pill" type="button">${esc(c.useOctoshotKeys)}</button>
             </div>
           </div>
         </div>
+        ${menubarHtml(locale, iconDataUrl, c)}
+        ${dockHtml(iconDataUrl)}
       </div>`;
       break;
 
     case 'ocr':
       body = `
-      <div class="scene wallpaper-soft">
+      <div class="scene scene-app ${langClass}">
+        ${wallpaperHtml()}
+        ${desktopWindowsHtml()}
+        <div class="desktop-dim"></div>
         <div class="window ocr-window">
           <div class="window-chrome">
             <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
@@ -210,11 +173,7 @@ export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
           </div>
           <div class="ocr-body">
             <div class="ocr-left">
-              <div class="ocr-preview">
-                <div class="code-line" style="top:80px">func capture(mode: AreaCaptureMode)</div>
-                <div class="code-line" style="top:130px">async {</div>
-                <div class="code-line" style="top:180px;color:#7dd3fc">  let image = try await …</div>
-              </div>
+              <div class="ocr-preview">${captureContentHtml({ compact: true })}</div>
               <button class="btn-pill" type="button">${esc(c.ocrRecognizeAgain)}</button>
             </div>
             <div class="ocr-right">
@@ -226,6 +185,8 @@ export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
             </div>
           </div>
         </div>
+        ${menubarHtml(locale, iconDataUrl, c)}
+        ${dockHtml(iconDataUrl)}
       </div>`;
       break;
 
@@ -234,23 +195,20 @@ export function buildSceneHtml(sceneId, locale, { css, iconUrl }) {
   }
 
   return `<!doctype html>
-<html lang="${locale}">
+<html lang="${locale}" class="${langClass}">
 <head>
 <meta charset="utf-8" />
+${fontLinks(locale)}
 <style>${css}</style>
 </head>
 <body>${body}</body>
 </html>`;
 }
 
-function qaBtn(sym, label) {
-  return `<div class="qa-btn"><span class="sym">${sym}</span><span>${esc(label)}</span></div>`;
-}
-
 function hotkeyRow(label, keys, c, recording = false) {
   return `<div class="row">
-    <span>${esc(label)}</span>
-    <span>
+    <span class="row-label">${esc(label)}</span>
+    <span class="row-keys-wrap">
       <span class="keys">${keys}</span>
       <button class="btn-pill${recording ? ' recording' : ''}" type="button">${recording ? esc(c.recording) : esc(c.record)}</button>
     </span>

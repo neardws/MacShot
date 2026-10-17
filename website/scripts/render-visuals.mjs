@@ -25,8 +25,21 @@ if (!fs.existsSync(iconPath)) {
   process.exit(1);
 }
 
+const iconDataUrl = `data:image/png;base64,${fs.readFileSync(iconPath).toString('base64')}`;
 const css = fs.readFileSync(cssPath, 'utf8');
-const iconUrl = `file://${iconPath}`;
+
+async function assertImagesLoaded(page, sceneId, locale) {
+  const broken = await page.evaluate(() => {
+    return [...document.images]
+      .filter((img) => !img.complete || img.naturalWidth === 0)
+      .map((img) => ({ src: img.src.slice(0, 96), alt: img.alt }));
+  });
+  if (broken.length > 0) {
+    throw new Error(
+      `[${locale}/${sceneId}] Broken images (${broken.length}): ${JSON.stringify(broken)}`,
+    );
+  }
+}
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
@@ -36,9 +49,11 @@ for (const locale of LOCALES) {
   fs.mkdirSync(outDir, { recursive: true });
 
   for (const sceneId of SCENE_IDS) {
-    const html = buildSceneHtml(sceneId, locale, { css, iconUrl });
-    await page.setContent(html, { waitUntil: 'load' });
-    await page.waitForTimeout(80);
+    const html = buildSceneHtml(sceneId, locale, { css, iconDataUrl });
+    await page.setContent(html, { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready);
+    await assertImagesLoaded(page, sceneId, locale);
+    await page.waitForTimeout(120);
 
     const pngBuffer = await page.screenshot({ type: 'png' });
     const png2x = path.join(outDir, `${sceneId}@2x.png`);
