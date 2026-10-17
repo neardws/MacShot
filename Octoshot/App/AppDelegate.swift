@@ -107,6 +107,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(recentParent)
         }
 
+        let historyItem = menuItem(OctoshotL10n.History.menuItem, action: #selector(openScreenshotHistory))
+        historyItem.keyEquivalent = "y"
+        historyItem.keyEquivalentModifierMask = [.command, .shift]
+        menu.addItem(historyItem)
+
         menu.addItem(menuItem("Open Screenshots Folder", action: #selector(openScreenshotsFolder)))
         menu.addItem(menuItem("Clips Library…", action: #selector(openClipsBrowser)))
         menu.addItem(.separator())
@@ -233,6 +238,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openClipsBrowser() {
         ClipsBrowserWindowController.shared.show()
+    }
+
+    @objc private func openScreenshotHistory() {
+        ScreenshotHistoryWindowController.shared.show()
     }
 
     private func reregisterHotkeys() {
