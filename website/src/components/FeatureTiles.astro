@@ -1,7 +1,6 @@
 ---
 import type { LandingCopy } from '@/i18n/ui';
 import MascotArt from '@/components/MascotArt.astro';
-import type { MascotVariant } from '@/components/MascotArt.astro';
 import Reveal from './Reveal.astro';
 
 interface Props {
@@ -9,15 +8,13 @@ interface Props {
 }
 
 const { t } = Astro.props;
-
-const tileMascots: MascotVariant[] = ['frame', 'busy', 'busy', 'frame', 'done'];
 ---
 
 <section class="section-pad" id="features">
   <div class="wrap">
     <Reveal>
       <div class="flex flex-col items-center gap-4 text-center">
-        <MascotArt variant="busy" width={88} height={88} />
+        <MascotArt size={88} />
         <h2 class="h2">{t.tilesTitle}</h2>
         <p class="mx-auto max-w-narrow text-mb-fg2">{t.tilesLead}</p>
       </div>
@@ -32,12 +29,7 @@ const tileMascots: MascotVariant[] = ['frame', 'busy', 'busy', 'frame', 'done'];
             ]}
             delay={i * 80}
           >
-            <MascotArt
-              variant={tileMascots[i] ?? 'frame'}
-              width={56}
-              height={56}
-              class="mb-4 opacity-95"
-            />
+            <MascotArt size={56} class="mb-4" />
             <p class="text-[15px] font-semibold leading-snug text-mb-brand-red">{tile.quip}</p>
             <h3 class="mt-3 text-[24px] font-semibold tracking-tight">{tile.title}</h3>
             <p class="mt-3 text-mb-fg2">{tile.body}</p>

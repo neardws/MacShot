@@ -1,7 +1,6 @@
 ---
 import BrandMark from '@/components/BrandMark.astro';
 import DownloadButton from '@/components/DownloadButton.astro';
-import MascotArt from '@/components/MascotArt.astro';
 import type { LandingCopy } from '@/i18n/ui';
 import Reveal from './Reveal.astro';
 
@@ -15,10 +14,7 @@ const { t } = Astro.props;
 <section class="section-pad bg-mb-bg-alt text-center">
   <div class="wrap">
     <Reveal>
-      <div class="mx-auto mb-6 flex items-center justify-center gap-4">
-        <MascotArt variant="done" width={64} height={64} />
-        <BrandMark size={72} />
-      </div>
+      <BrandMark size={72} class="mx-auto mb-6" />
       <h2 class="h2">{t.finalTitle}</h2>
       <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.finalLead}</p>
       <DownloadButton label={t.finalCta} class="mt-10" />
