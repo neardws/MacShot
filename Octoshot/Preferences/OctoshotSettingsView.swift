@@ -304,6 +304,10 @@ private struct AboutSettingsPane: View {
             Text("Version \(AppVersion.display)")
                 .foregroundStyle(.secondary)
             Link("View on GitHub", destination: AppSettings.repositoryURL)
+            Button("Open User Guide") {
+                HelpOpener.open()
+            }
+            .buttonStyle(.bordered)
             Text("Released under the MIT License.")
                 .font(.caption)
                 .foregroundStyle(.secondary)

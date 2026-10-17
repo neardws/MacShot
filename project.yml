@@ -94,6 +94,9 @@ targets:
       - path: Octoshot
         excludes:
           - "**/*.md"
+    resources:
+      - path: Docs/guide
+        buildPhase: resources
     dependencies:
       - target: OctoshotCore
       - target: OctoshotEmbeddedMLX
