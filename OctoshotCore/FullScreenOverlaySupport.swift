@@ -10,12 +10,13 @@ public enum FullScreenOverlaySupport {
     }
 
     public static func configureCaptureOverlayPanel(_ panel: NSPanel) {
-        panel.level = overlayLevel
-        panel.collectionBehavior = overlayCollectionBehavior
         panel.isFloatingPanel = true
         panel.becomesKeyOnlyIfNeeded = false
         panel.hidesOnDeactivate = false
         panel.isReleasedWhenClosed = false
+        panel.collectionBehavior = overlayCollectionBehavior
+        // Must be set after `isFloatingPanel` or AppKit resets the level to `.floating`.
+        panel.level = overlayLevel
     }
 
     public static func configureFloatingOverlayPanel(_ panel: NSPanel) {
