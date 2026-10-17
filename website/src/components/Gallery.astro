@@ -1,5 +1,6 @@
 ---
 import type { LandingCopy, Locale } from '@/i18n/ui';
+import MascotArt from '@/components/MascotArt.astro';
 import {
   availableGalleryScreenshots,
   screenshotSrcSet,
@@ -29,6 +30,7 @@ const labels: Record<ScreenshotStem, string> = {
 <section class="section-pad bg-mb-bg-alt" id="gallery">
   <div class="wrap mb-10 text-center">
     <Reveal>
+      <MascotArt variant="frame" width={72} height={72} class="mx-auto mb-4" />
       <h2 class="h2">{t.galleryTitle}</h2>
       <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.galleryLead}</p>
     </Reveal>
@@ -54,9 +56,12 @@ const labels: Record<ScreenshotStem, string> = {
               decoding="async"
             />
           </div>
-          <p class="border-t border-mb-hair px-4 py-3 text-center text-sm font-medium text-mb-fg2">
-            {labels[name]}
-          </p>
+          <div class="border-t border-mb-hair px-4 py-3 text-center">
+            <p class="text-sm font-medium text-mb-fg">{labels[name]}</p>
+            <p class="mt-1.5 text-xs font-semibold leading-snug text-mb-brand-red">
+              {t.galleryQuips[name]}
+            </p>
+          </div>
         </div>
       ))
     }
