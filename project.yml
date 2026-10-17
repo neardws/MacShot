@@ -100,6 +100,7 @@ targets:
     dependencies:
       - target: OctoshotCore
       - target: OctoshotEmbeddedMLX
+      - target: octoshot
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |
