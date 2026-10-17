@@ -1,0 +1,9 @@
+/* OCR */
+"OCR" = "识别文字";
+"Recognize Text" = "识别文字";
+"Recognizing…" = "正在识别…";
+"Recognize Again" = "重新识别";
+"Select All" = "全选";
+"Copy" = "复制";
+"No text found in this image." = "未在图像中识别到文字。";
+"Text recognition failed." = "文字识别失败。";
