@@ -1,4 +1,5 @@
 import AppKit
+import ImageIO
 import SwiftUI
 import OctoshotCore
 

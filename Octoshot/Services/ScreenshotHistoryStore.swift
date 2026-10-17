@@ -16,6 +16,7 @@ enum ScreenshotHistoryStore {
     ]
 
     /// Scans the configured capture save directory (same path as screenshots on disk).
+    @MainActor
     static func loadEntries(limit: Int = 500) -> [ScreenshotHistoryEntry] {
         let directory = AppSettings.shared.saveDirectory
         let fm = FileManager.default
