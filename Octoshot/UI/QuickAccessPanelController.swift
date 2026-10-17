@@ -151,9 +151,7 @@ final class QuickAccessPanelController: NSObject {
                 backing: .buffered,
                 defer: false
             )
-            panel.isFloatingPanel = true
-            panel.level = .floating
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            FullScreenOverlaySupport.configureFloatingOverlayPanel(panel)
             panel.backgroundColor = .clear
             panel.isOpaque = false
             panel.hasShadow = false

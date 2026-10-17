@@ -37,11 +37,11 @@ final class ScrollingCaptureController {
         let panel = NSPanel(contentViewController: hosting)
         panel.title = "Scrolling Capture"
         panel.styleMask = [.titled, .closable, .nonactivatingPanel]
-        panel.isFloatingPanel = true
-        panel.level = .floating
+        FullScreenOverlaySupport.configureFloatingOverlayPanel(panel)
         panel.setContentSize(NSSize(width: 360, height: 200))
         panel.center()
-        panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
+        panel.makeKey()
         self.panel = panel
     }
 

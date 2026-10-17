@@ -23,11 +23,7 @@ final class WindowSelectionController {
             window.controller = self
             overlayWindows.append(window)
         }
-        for overlay in overlayWindows {
-            overlay.makeKeyAndOrderFront(nil)
-        }
-        overlayWindows.first?.makeKey()
-        NSApp.activate(ignoringOtherApps: true)
+        FullScreenOverlaySupport.presentCaptureOverlays(overlayWindows)
 
         updateHighlightAtMouse()
 
@@ -51,9 +47,7 @@ final class WindowSelectionController {
 
     func noteMouse(_ point: NSPoint) {
         lastMouseGlobal = point
-        if let window = overlayWindows.first(where: { $0.frame.contains(point) }) {
-            window.makeKey()
-        }
+        FullScreenOverlaySupport.focusOverlay(at: point, in: overlayWindows)
         updateHighlightAtMouse()
     }
 
@@ -95,8 +89,11 @@ final class WindowSelectionController {
     }
 }
 
-final class WindowOverlayWindow: NSWindow {
+final class WindowOverlayWindow: NSPanel {
     weak var controller: WindowSelectionController?
+
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
@@ -106,17 +103,16 @@ final class WindowOverlayWindow: NSWindow {
     init(screen: NSScreen) {
         super.init(
             contentRect: screen.frame,
-            styleMask: .borderless,
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         setFrame(screen.frame, display: false)
         isOpaque = false
         backgroundColor = .clear
-        level = .screenSaver
         ignoresMouseEvents = false
         acceptsMouseMovedEvents = true
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        FullScreenOverlaySupport.configureCaptureOverlayPanel(self)
         contentView = WindowOverlayView()
         (contentView as? WindowOverlayView)?.overlayWindow = self
     }

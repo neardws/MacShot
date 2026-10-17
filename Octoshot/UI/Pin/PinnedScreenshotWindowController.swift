@@ -54,13 +54,11 @@ final class PinnedScreenshotWindowController: NSObject, NSWindowDelegate {
 
         let panel = PinnedScreenshotPanel(
             contentRect: NSRect(origin: .zero, size: contentSize),
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .fullSizeContentView, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
-        panel.isFloatingPanel = true
-        panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        FullScreenOverlaySupport.configureFloatingOverlayPanel(panel)
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.hasShadow = true
