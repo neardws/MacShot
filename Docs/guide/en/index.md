@@ -1,6 +1,6 @@
 # Octoshot user guide
 
-Octoshot (章鱼君) is a macOS menu-bar app for screenshots, scroll capture, screen recording, GIF export, annotation, and optional on-device AI.
+Octoshot (一酱) is a macOS menu-bar app for screenshots, scroll capture, screen recording, GIF export, annotation, and optional on-device AI.
 
 ## What you can do
 
