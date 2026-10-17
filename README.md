@@ -1,8 +1,8 @@
-# Octoshot · 章鱼君
+# Octoshot · 一酱
 
 **八只手，一次截完**
 
-[Octoshot](https://github.com/neardws/Octoshot) 是一款开源（MIT）的 macOS 原生截图工具：基于 Swift、SwiftUI + AppKit 与 ScreenCaptureKit，强调**本机处理**与**隐私优先**，面向科研写作者与开发者。菜单栏常驻、无 Dock 图标；简体中文系统下显示名为 **章鱼君**。应用图标为原创卡通章鱼 mascot（半眯眼、略带嫌弃的表情，举着取景框——与任何既有版权角色无关）。
+[Octoshot](https://github.com/neardws/Octoshot) 是一款开源（MIT）的 macOS 原生截图工具：基于 Swift、SwiftUI + AppKit 与 ScreenCaptureKit，强调**本机处理**与**隐私优先**，面向科研写作者与开发者。菜单栏常驻、无 Dock 图标；简体中文系统下显示名为 **一酱**。应用图标为原创卡通章鱼 mascot（半眯眼、略带嫌弃的表情，举着取景框——与任何既有版权角色无关）。
 
 ## 现已可用
 
@@ -85,7 +85,7 @@ xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot-cli -configuration Debug
 xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 
-首次使用请在 **系统设置 → 隐私与安全性 → 屏幕录制** 中允许 Octoshot（简体系统列表中可能显示为 **章鱼君**）。
+首次使用请在 **系统设置 → 隐私与安全性 → 屏幕录制** 中允许 Octoshot（简体系统列表中可能显示为 **一酱**）。
 
 ## 签名与屏幕录制权限
 
@@ -116,11 +116,11 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 
 ---
 
-# Octoshot · 章鱼君
+# Octoshot · 一酱
 
 **Eight arms, one shot.**
 
-[Octoshot](https://github.com/neardws/Octoshot) is an open-source (**MIT**) native macOS screenshot app built with Swift, SwiftUI + AppKit, and ScreenCaptureKit. It is **on-device** and **privacy-first**, aimed at **researchers and developers**. The app lives in the menu bar (no Dock icon). On Simplified Chinese systems the display name is **章鱼君**. The mascot is an **original** cartoon octopus with a deadpan, half-lidded, slightly grumpy look, holding a crop viewfinder—not based on any copyrighted character.
+[Octoshot](https://github.com/neardws/Octoshot) is an open-source (**MIT**) native macOS screenshot app built with Swift, SwiftUI + AppKit, and ScreenCaptureKit. It is **on-device** and **privacy-first**, aimed at **researchers and developers**. The app lives in the menu bar (no Dock icon). On Simplified Chinese systems the display name is **一酱**. The mascot is an **original** cartoon octopus with a deadpan, half-lidded, slightly grumpy look, holding a crop viewfinder—not based on any copyrighted character.
 
 ## Available now
 
@@ -205,7 +205,7 @@ xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot-cli -configuration Debug
 xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 
-Grant **Screen Recording** under **System Settings → Privacy & Security** on first run (may appear as **章鱼君** in Chinese locales).
+Grant **Screen Recording** under **System Settings → Privacy & Security** on first run (may appear as **一酱** in Chinese locales).
 
 ## Signing & Screen Recording (TCC)
 
