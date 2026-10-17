@@ -1,0 +1,21 @@
+{
+  "name": "Octoshot",
+  "short_name": "Octoshot",
+  "description": "Open-source macOS screenshot and screen recording.",
+  "start_url": "/Octoshot/",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#d70015",
+  "icons": [
+    {
+      "src": "brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

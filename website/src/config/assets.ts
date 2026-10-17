@@ -1,14 +1,21 @@
-/** CDN base — no raster assets committed in git. */
-export const CDN_BASE =
-  (import.meta.env.PUBLIC_OCTOSHOT_CDN as string | undefined)?.replace(/\/$/, '') ||
-  'https://files.neardws.com';
+import type { Locale } from '@/i18n/ui';
+import { absoluteUrl } from '@/utils/seo';
 
+const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+
+function publicAsset(path: string): string {
+  const normalized = path.replace(/^\//, '');
+  return `${base}${normalized}`;
+}
+
+/** Local static assets under `website/public/` (committed). */
 export const assets = {
-  logo512: `${CDN_BASE}/octoshot/logo-512.webp`,
-  logo512Dark: `${CDN_BASE}/octoshot/logo-512-dark.webp`,
-  ogImage: `${CDN_BASE}/octoshot/og-1200x630.webp`,
-  screenshot: (locale: 'en' | 'zh', name: string) =>
-    `${CDN_BASE}/octoshot/screenshots/${locale}/${name}.webp`,
+  logo512: publicAsset('brand/icon-512.png'),
+  logoSvg: publicAsset('brand/logo.svg'),
+  faviconSvg: publicAsset('icon.svg'),
+  appleTouchIcon: publicAsset('apple-touch-icon.png'),
+  ogImage: (locale: Locale) => absoluteUrl(`/og/og-${locale}.png`),
+  manifest: publicAsset('site.webmanifest'),
 };
 
 export const GITHUB = {

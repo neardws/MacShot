@@ -11,49 +11,26 @@ const { size, priority = false, class: className = '' } = Astro.props;
 ---
 
 <picture class:list={['brand-mark inline-block', className]}>
-  <source srcset={assets.logo512Dark} media="(prefers-color-scheme: dark)" type="image/webp" />
   <img
     src={assets.logo512}
     alt=""
     width={size}
     height={size}
-    class="brand-mark__img absolute opacity-0"
+    class="brand-mark__img rounded-[22%]"
     loading={priority ? 'eager' : 'lazy'}
     fetchpriority={priority ? 'high' : 'auto'}
     decoding="async"
-    onload="this.classList.remove('opacity-0');this.parentElement?.querySelector('.brand-mark__svg')?.classList.add('hidden')"
-    onerror="this.remove()"
+    onerror={`this.onerror=null;this.src='${assets.logoSvg}'`}
   />
-  <svg
-    class="brand-mark__svg brand-ring rounded-[22%]"
-    width={size}
-    height={size}
-    viewBox="0 0 112 112"
-    aria-hidden="true"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <rect width="112" height="112" rx="24" fill="var(--tile)" />
-    <circle cx="56" cy="58" r="28" fill="var(--brand-red)" opacity="0.92" />
-    <ellipse cx="48" cy="52" rx="4" ry="5" fill="#1d1d1f" />
-    <ellipse cx="64" cy="52" rx="4" ry="5" fill="#1d1d1f" />
-    <path d="M44 64 Q56 70 68 64" stroke="#1d1d1f" stroke-width="2" fill="none" />
-    <g stroke="var(--brand-red)" stroke-width="3" stroke-linecap="round">
-      <path d="M30 40 L22 28 M82 40 L90 28 M28 56 L14 56 M84 56 L98 56 M32 72 L24 86 M80 72 L88 86" />
-    </g>
-  </svg>
 </picture>
 
 <style>
   .brand-mark {
-    position: relative;
     line-height: 0;
   }
-  .brand-ring {
+  .brand-mark__img {
     box-shadow:
       0 0 0 1px var(--hair),
       0 0 0 3px color-mix(in srgb, var(--brand-red) 35%, transparent);
-  }
-  .brand-mark__svg.hidden {
-    display: none;
   }
 </style>
