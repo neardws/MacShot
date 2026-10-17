@@ -87,4 +87,8 @@ enum OctoshotL10n {
     static var historyCancel: String {
         String(localized: "Cancel", comment: "Cancel destructive action")
     }
+
+    static var checkForUpdates: String {
+        String(localized: "Check for Updates…", comment: "Sparkle manual update check")
+    }
 }

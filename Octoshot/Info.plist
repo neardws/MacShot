@@ -24,6 +24,17 @@
 	<string>$(MACOSX_DEPLOYMENT_TARGET)</string>
 	<key>LSUIElement</key>
 	<true/>
+	<!-- Sparkle 2 (EdDSA); see Docs/sparkle.md -->
+	<key>SUFeedURL</key>
+	<string>https://neardws.github.io/Octoshot/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>nxuikQm6Nwlp6+R73f9oJV+ym6J+vg4/Z10qYf3vSjs=</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
+	<key>SUAutomaticallyUpdate</key>
+	<false/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 2026 neardws. All rights reserved.</string>
 	<key>NSScreenCaptureUsageDescription</key>
