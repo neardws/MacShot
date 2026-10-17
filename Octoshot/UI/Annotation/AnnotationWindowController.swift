@@ -65,6 +65,7 @@ final class AnnotationWindowController {
         toolbarModel.refreshUndoRedoState(from: canvas)
         toolbarModel.onCopy = { [weak self] in self?.copyImage() }
         toolbarModel.onSave = { [weak self] in self?.saveImage() }
+        toolbarModel.onPin = { [weak self] in self?.pinImage() }
         toolbarModel.onAutoRedact = { [weak self] in Task { await self?.runAutoRedactPreview() } }
         toolbarModel.onAskAI = { [weak self] in self?.toggleAIPanel() }
         toolbarModel.onCopyMarkdown = { [weak self] in self?.copyMarkdown() }
@@ -162,6 +163,11 @@ final class AnnotationWindowController {
         ImageFormats.copyToPasteboard(image)
     }
 
+    private func pinImage() {
+        guard let image = canvasView?.currentImage() else { return }
+        PinnedScreenshotManager.shared.pin(image: image)
+    }
+
     private func saveImage() {
         guard let image = canvasView?.currentImage() else { return }
         let url = AppSettings.shared.defaultSaveURL(prefix: "Annotated")
@@ -215,6 +221,7 @@ final class AnnotationToolbarModel: ObservableObject {
     var onRedo: (() -> Void)?
     var onCopy: (() -> Void)?
     var onSave: (() -> Void)?
+    var onPin: (() -> Void)?
     var onAutoRedact: (() -> Void)?
     var onAskAI: (() -> Void)?
     var onCopyMarkdown: (() -> Void)?
@@ -306,6 +313,8 @@ struct AnnotationToolbarView: View {
             Button("Redo") { model.onRedo?() }
                 .disabled(!model.canRedo)
                 .keyboardShortcut("z", modifiers: [.command, .shift])
+            Button("贴图") { model.onPin?() }
+                .help("贴图 / Pin to screen")
             Button("Copy") { model.onCopy?() }
             Button("Save") { model.onSave?() }
         }

@@ -6,6 +6,7 @@ struct QuickAccessActions {
     var onCopy: () -> Void
     var onSave: () -> Void
     var onAnnotate: () -> Void
+    var onPin: () -> Void
     var onAskAI: (() -> Void)?
     var onCopyMarkdown: (() -> Void)?
     var onCopyPath: (() -> Void)?
@@ -227,6 +228,7 @@ private struct QuickAccessCard: View {
                         QuickAccessButton(symbol: "doc.on.doc", help: "Copy", action: wrapAlternate(entry.actions.onCopy))
                         QuickAccessButton(symbol: "square.and.arrow.down", help: "Save", action: wrapAlternate(entry.actions.onSave))
                         QuickAccessButton(symbol: "pencil.tip.crop.circle", help: "Annotate", action: wrapAlternate(entry.actions.onAnnotate))
+                        QuickAccessButton(symbol: "pin.fill", help: "贴图 / Pin", action: wrapAlternate(entry.actions.onPin))
                         if let onAskAI = entry.actions.onAskAI {
                             QuickAccessButton(symbol: "brain", help: "Ask AI", action: wrapAlternate(onAskAI))
                         }
