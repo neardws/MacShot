@@ -26,8 +26,6 @@ export type LandingCopy = {
   galleryShotSettings: string;
   galleryShotOcr: string;
   heroScreenshotAlt: string;
-  heroScreenshotPending: string;
-  heroScreenshotPendingHint: string;
   tilesTitle: string;
   tilesLead: string;
   tiles: { title: string; body: string; wide?: boolean }[];
@@ -69,16 +67,13 @@ const en: LandingCopy = {
   heroSecondary: 'View on GitHub',
   heroFine: 'Requires macOS 14+. Screen Recording permission for capture.',
   galleryTitle: 'See it in action',
-  galleryLead: 'Real app screenshots from your Mac—add PNGs listed in website/public/screenshots/README.md.',
+  galleryLead: 'Marketing visuals generated from the real Octoshot UI (regenerate with npm run render:visuals).',
   galleryShotCapture: 'Unified capture mode bar',
   galleryShotQuickAccess: 'Quick Access stack',
   galleryShotAnnotate: 'Annotation editor',
   galleryShotSettings: 'Shortcuts settings',
   galleryShotOcr: 'OCR from capture',
   heroScreenshotAlt: 'Octoshot capture on macOS',
-  heroScreenshotPending: 'Product screenshot coming soon',
-  heroScreenshotPendingHint:
-    'Add public/screenshots/hero.png (see README) to show a real capture here.',
   tilesTitle: 'Everything in one mode bar',
   tilesLead: 'Pick a region, then switch intent without leaving the overlay.',
   tiles: [
@@ -190,15 +185,13 @@ const zh: LandingCopy = {
   heroSecondary: '在 GitHub 查看',
   heroFine: '需要 macOS 14+。捕获需授予屏幕录制权限。',
   galleryTitle: '界面预览',
-  galleryLead: '以下为真实应用截图（见 website/public/screenshots/README.md 中的文件名清单）。',
+  galleryLead: '根据真实 Octoshot 界面生成的营销视觉（可用 npm run render:visuals 重新导出）。',
   galleryShotCapture: '统一捕获模式条',
   galleryShotQuickAccess: '快速访问浮层',
   galleryShotAnnotate: '标注编辑器',
   galleryShotSettings: '快捷键设置',
   galleryShotOcr: 'OCR 识别',
   heroScreenshotAlt: '一酱在 macOS 上的捕获界面',
-  heroScreenshotPending: '产品截图即将添加',
-  heroScreenshotPendingHint: '将 hero.png 放入 public/screenshots/（见 README）即可在此展示真实界面。',
   tilesTitle: '统一模式条，一气呵成',
   tilesLead: '框选区域后，在浮层上切换意图，无需重来。',
   tiles: [

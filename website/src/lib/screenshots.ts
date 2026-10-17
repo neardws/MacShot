@@ -1,39 +1,50 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { Locale } from '@/i18n/ui';
 
-/** Expected files under `public/screenshots/` (see README there). */
-export const SCREENSHOT_FILES = [
-  'hero.png',
-  'capture-modebar.png',
-  'quick-access-stack.png',
-  'annotate.png',
-  'settings-shortcuts.png',
-  'ocr.png',
+/** Marketing visual stems (generated — see public/screenshots/README.md). */
+export const SCREENSHOT_STEMS = [
+  'hero',
+  'capture-modebar',
+  'quick-access-stack',
+  'annotate',
+  'settings-shortcuts',
+  'ocr',
 ] as const;
 
-export type ScreenshotFile = (typeof SCREENSHOT_FILES)[number];
+export type ScreenshotStem = (typeof SCREENSHOT_STEMS)[number];
 
-/** Gallery order (excludes hero — used in HeroDesk). */
-export const GALLERY_SCREENSHOTS: ScreenshotFile[] = [
-  'capture-modebar.png',
-  'quick-access-stack.png',
-  'annotate.png',
-  'settings-shortcuts.png',
-  'ocr.png',
+export const GALLERY_SCREENSHOTS: ScreenshotStem[] = [
+  'capture-modebar',
+  'quick-access-stack',
+  'annotate',
+  'settings-shortcuts',
+  'ocr',
 ];
 
 const publicDir = path.join(fileURLToPath(new URL('../..', import.meta.url)), 'public');
 
-export function screenshotExists(name: ScreenshotFile): boolean {
-  return fs.existsSync(path.join(publicDir, 'screenshots', name));
+function stemPath(locale: Locale, stem: ScreenshotStem, file: string): string {
+  return path.join(publicDir, 'screenshots', locale, file);
 }
 
-export function availableGalleryScreenshots(): ScreenshotFile[] {
-  return GALLERY_SCREENSHOTS.filter((name) => screenshotExists(name));
+export function screenshotExists(locale: Locale, stem: ScreenshotStem): boolean {
+  return fs.existsSync(stemPath(locale, stem, `${stem}-web.webp`));
 }
 
-export function screenshotUrl(name: ScreenshotFile): string {
-  const base = import.meta.env.BASE_URL.replace(/\/?$/, '/');
-  return `${base}screenshots/${name}`;
+export function availableGalleryScreenshots(locale: Locale): ScreenshotStem[] {
+  return GALLERY_SCREENSHOTS.filter((name) => screenshotExists(locale, name));
+}
+
+const baseUrl = import.meta.env.BASE_URL.replace(/\/?$/, '/');
+
+export function screenshotWebSrc(locale: Locale, stem: ScreenshotStem): string {
+  return `${baseUrl}screenshots/${locale}/${stem}-web.webp`;
+}
+
+export function screenshotSrcSet(locale: Locale, stem: ScreenshotStem): string {
+  const web = screenshotWebSrc(locale, stem);
+  const full = `${baseUrl}screenshots/${locale}/${stem}.webp`;
+  return `${web} 1x, ${full} 2x`;
 }

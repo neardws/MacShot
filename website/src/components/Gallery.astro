@@ -1,6 +1,11 @@
 ---
 import type { LandingCopy, Locale } from '@/i18n/ui';
-import { availableGalleryScreenshots, screenshotUrl, type ScreenshotFile } from '@/lib/screenshots';
+import {
+  availableGalleryScreenshots,
+  screenshotSrcSet,
+  screenshotWebSrc,
+  type ScreenshotStem,
+} from '@/lib/screenshots';
 import Reveal from './Reveal.astro';
 
 interface Props {
@@ -8,52 +13,52 @@ interface Props {
   locale: Locale;
 }
 
-const { t } = Astro.props;
-const shots = availableGalleryScreenshots();
+const { t, locale } = Astro.props;
+const shots = availableGalleryScreenshots(locale);
 
-const labels: Record<ScreenshotFile, string> = {
-  'hero.png': 'Hero',
-  'capture-modebar.png': t.galleryShotCapture,
-  'quick-access-stack.png': t.galleryShotQuickAccess,
-  'annotate.png': t.galleryShotAnnotate,
-  'settings-shortcuts.png': t.galleryShotSettings,
-  'ocr.png': t.galleryShotOcr,
+const labels: Record<ScreenshotStem, string> = {
+  hero: 'Hero',
+  'capture-modebar': t.galleryShotCapture,
+  'quick-access-stack': t.galleryShotQuickAccess,
+  annotate: t.galleryShotAnnotate,
+  'settings-shortcuts': t.galleryShotSettings,
+  ocr: t.galleryShotOcr,
 };
 ---
 
-{
-  shots.length > 0 && (
-    <section class="section-pad bg-mb-bg-alt" id="gallery">
-      <div class="wrap mb-10 text-center">
-        <Reveal>
-          <h2 class="h2">{t.galleryTitle}</h2>
-          <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.galleryLead}</p>
-        </Reveal>
-      </div>
-      <div
-        class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory"
-      >
-        {shots.map((name) => (
-          <div
-            class="min-w-[min(85vw,420px)] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
-          >
-            <div class="relative aspect-[16/10] bg-mb-tile">
-              <img
-                src={screenshotUrl(name)}
-                alt={labels[name]}
-                width="420"
-                height="263"
-                class="h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-            </div>
-            <p class="border-t border-mb-hair px-4 py-3 text-center text-sm font-medium text-mb-fg2">
-              {labels[name]}
-            </p>
+<section class="section-pad bg-mb-bg-alt" id="gallery">
+  <div class="wrap mb-10 text-center">
+    <Reveal>
+      <h2 class="h2">{t.galleryTitle}</h2>
+      <p class="mx-auto mt-4 max-w-narrow text-mb-fg2">{t.galleryLead}</p>
+    </Reveal>
+  </div>
+  <div
+    class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory"
+  >
+    {
+      shots.map((name) => (
+        <div
+          class="min-w-[min(85vw,420px)] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
+        >
+          <div class="relative aspect-[16/10] bg-mb-tile">
+            <img
+              src={screenshotWebSrc(locale, name)}
+              srcset={screenshotSrcSet(locale, name)}
+              sizes="420px"
+              alt={labels[name]}
+              width="420"
+              height="263"
+              class="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
-        ))}
-      </div>
-    </section>
-  )
-}
+          <p class="border-t border-mb-hair px-4 py-3 text-center text-sm font-medium text-mb-fg2">
+            {labels[name]}
+          </p>
+        </div>
+      ))
+    }
+  </div>
+</section>

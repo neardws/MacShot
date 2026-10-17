@@ -1,41 +1,32 @@
 ---
 import type { LandingCopy, Locale } from '@/i18n/ui';
-import { screenshotExists, screenshotUrl } from '@/lib/screenshots';
+import { screenshotSrcSet, screenshotWebSrc } from '@/lib/screenshots';
 
 interface Props {
   t: LandingCopy;
   locale: Locale;
 }
 
-const { t } = Astro.props;
-const hasHero = screenshotExists('hero.png');
-const shot = screenshotUrl('hero.png');
+const { t, locale } = Astro.props;
+const src = screenshotWebSrc(locale, 'hero');
+const srcset = screenshotSrcSet(locale, 'hero');
 ---
 
 <div class="hero-desk mx-auto mt-16 max-w-[min(100%,920px)]">
   <div class="shot-frame overflow-hidden rounded-shot bg-mb-tile shadow-shot">
-    {
-      hasHero ? (
-        <div class="relative aspect-[16/10] bg-mb-bg-alt">
-          <img
-            src={shot}
-            alt={t.heroScreenshotAlt}
-            width="920"
-            height="575"
-            class="h-full w-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
-      ) : (
-        <div
-          class="flex aspect-[16/10] flex-col items-center justify-center gap-2 bg-mb-bg-alt px-6 text-center"
-          data-screenshot-fallback="hero"
-        >
-          <p class="text-sm font-medium text-mb-fg2">{t.heroScreenshotPending}</p>
-          <p class="max-w-md text-xs text-mb-fg3">{t.heroScreenshotPendingHint}</p>
-        </div>
-      )
-    }
+    <div class="relative aspect-[16/10] bg-mb-bg-alt">
+      <img
+        src={src}
+        srcset={srcset}
+        sizes="(min-width: 920px) 920px, 100vw"
+        alt={t.heroScreenshotAlt}
+        width="920"
+        height="575"
+        class="h-full w-full object-cover"
+        loading="eager"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </div>
   </div>
 </div>
