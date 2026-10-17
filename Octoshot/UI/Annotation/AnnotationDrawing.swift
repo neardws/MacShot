@@ -117,14 +117,14 @@ enum AnnotationDrawing {
         path.stroke()
     }
 
-    static func pixelate(from start: CGPoint, to end: CGPoint, in rect: NSRect, sourceImage: NSImage?) {
+    static func pixelate(from start: CGPoint, to end: CGPoint, in canvas: NSRect, sourceImage: NSImage?) {
         guard let sourceImage,
               let cg = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
         let region = rect(from: start, to: end)
         guard region.width > 2, region.height > 2 else { return }
 
-        let scaleX = CGFloat(cg.width) / rect.width
-        let scaleY = CGFloat(cg.height) / rect.height
+        let scaleX = CGFloat(cg.width) / canvas.width
+        let scaleY = CGFloat(cg.height) / canvas.height
         let crop = CGRect(
             x: region.origin.x * scaleX,
             y: CGFloat(cg.height) - (region.origin.y + region.height) * scaleY,
@@ -144,14 +144,14 @@ enum AnnotationDrawing {
         patch.draw(in: region)
     }
 
-    static func blur(from start: CGPoint, to end: CGPoint, in rect: NSRect, sourceImage: NSImage?) {
+    static func blur(from start: CGPoint, to end: CGPoint, in canvas: NSRect, sourceImage: NSImage?) {
         guard let sourceImage,
               let cg = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
         let region = rect(from: start, to: end)
         guard region.width > 2, region.height > 2 else { return }
 
-        let scaleX = CGFloat(cg.width) / rect.width
-        let scaleY = CGFloat(cg.height) / rect.height
+        let scaleX = CGFloat(cg.width) / canvas.width
+        let scaleY = CGFloat(cg.height) / canvas.height
         let crop = CGRect(
             x: region.origin.x * scaleX,
             y: CGFloat(cg.height) - (region.origin.y + region.height) * scaleY,

@@ -409,7 +409,7 @@ final class AnnotationCanvasView: NSView {
     }
 
     private func applyCrop(from start: CGPoint, to end: CGPoint) {
-        guard let baseImage else { return }
+        guard let sourceImage = baseImage else { return }
         let region = NSRect(
             x: min(start.x, end.x),
             y: min(start.y, end.y),
@@ -425,9 +425,9 @@ final class AnnotationCanvasView: NSView {
             height: mapViewPointToImage(CGPoint(x: region.maxX, y: region.maxY)).y - mapViewPointToImage(region.origin).y
         ).integral
 
-        guard let cg = baseImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
-        let scaleX = CGFloat(cg.width) / baseImage.size.width
-        let scaleY = CGFloat(cg.height) / baseImage.size.height
+        guard let cg = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
+        let scaleX = CGFloat(cg.width) / sourceImage.size.width
+        let scaleY = CGFloat(cg.height) / sourceImage.size.height
         let pixelCrop = CGRect(
             x: imageRegion.origin.x * scaleX,
             y: CGFloat(cg.height) - (imageRegion.origin.y + imageRegion.height) * scaleY,
@@ -444,7 +444,7 @@ final class AnnotationCanvasView: NSView {
             width: imageRegion.width,
             height: imageRegion.height
         ))
-        baseImage = croppedImage
+        self.baseImage = croppedImage
         strokes = []
         redactionRegions = []
         previewRedactions = []
