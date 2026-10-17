@@ -49,7 +49,16 @@ public struct AgentOCRResult: Codable, Sendable {
 public struct AgentAnnotationSpec: Codable, Sendable {
     public struct Item: Codable, Sendable {
         public enum Kind: String, Codable, Sendable {
-            case arrow, rectangle, text, pixelate
+            case arrow
+            case line
+            case rectangle
+            case ellipse
+            case pen
+            case highlighter
+            case text
+            case counter
+            case pixelate
+            case blur
         }
         public var type: Kind
         public var from: [Double]?
@@ -58,6 +67,9 @@ public struct AgentAnnotationSpec: Codable, Sendable {
         public var text: String?
         public var color: String?
         public var lineWidth: Double?
+        /// Flat `[x, y, x, y, …]` polyline for pen/highlighter.
+        public var points: [Double]?
+        public var counter: Int?
     }
     public var annotations: [Item]
 }

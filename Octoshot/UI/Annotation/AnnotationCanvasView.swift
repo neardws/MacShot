@@ -25,6 +25,9 @@ final class AnnotationCanvasView: NSView {
                 measureStart = nil
                 measureEnd = nil
             }
+            if !activeTool.usesFreehand {
+                freehandPoints = []
+            }
             needsDisplay = true
         }
     }
@@ -33,11 +36,18 @@ final class AnnotationCanvasView: NSView {
 
     private var dragStart: CGPoint?
     private var inProgress: AnnotationStroke?
+    private var freehandPoints: [CGPoint] = []
     private var measureStart: CGPoint?
     private var measureEnd: CGPoint?
     private var renderedImage: NSImage?
+    private var redoStrokes: [AnnotationStroke] = []
+    private var cropUndoStack: [(image: NSImage, strokes: [AnnotationStroke], redactions: [CGRect])] = []
+    private var cropRedoStack: [(image: NSImage, strokes: [AnnotationStroke], redactions: [CGRect])] = []
+    private var nextCounterValue = 1
 
     var onStrokesChanged: (() -> Void)?
+    var canRedo: Bool { !redoStrokes.isEmpty || !cropRedoStack.isEmpty }
+    var canUndo: Bool { !strokes.isEmpty || !cropUndoStack.isEmpty }
 
     override var isFlipped: Bool { true }
 
@@ -47,8 +57,20 @@ final class AnnotationCanvasView: NSView {
         } else if let baseImage {
             baseImage.draw(in: bounds)
         }
-        if let inProgress {
-            drawStroke(inProgress, in: bounds)
+        if let inProgress, activeTool != .crop {
+            drawStrokePreview(inProgress)
+        }
+        if activeTool.usesFreehand, !freehandPoints.isEmpty {
+            let preview = AnnotationStroke(
+                tool: activeTool,
+                start: .zero,
+                end: .zero,
+                text: "",
+                color: strokeColor,
+                lineWidth: lineWidth,
+                points: freehandPoints
+            )
+            drawStrokePreview(preview)
         }
         for candidate in previewRedactions where candidate.isEnabled {
             let path = NSBezierPath(rect: mapImageRectToView(candidate.rect))
@@ -57,6 +79,9 @@ final class AnnotationCanvasView: NSView {
             NSColor.systemRed.setStroke()
             path.lineWidth = 1.5
             path.stroke()
+        }
+        if activeTool == .crop, let start = dragStart, let end = inProgress?.end {
+            drawCropOverlay(from: start, to: end)
         }
         if let start = measureStart, let end = measureEnd {
             drawMeasureOverlay(from: start, to: end)
@@ -84,10 +109,57 @@ final class AnnotationCanvasView: NSView {
         return CGPoint(x: point.x * sx, y: point.y * sy)
     }
 
+    private func mapImagePointToView(_ point: CGPoint) -> CGPoint {
+        guard let baseImage else { return point }
+        let sx = bounds.width / max(baseImage.size.width, 1)
+        let sy = bounds.height / max(baseImage.size.height, 1)
+        return CGPoint(x: point.x * sx, y: point.y * sy)
+    }
+
     private func imagePixelScale() -> CGFloat {
         guard let baseImage,
               let cg = baseImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return 1 }
         return CGFloat(cg.width) / max(baseImage.size.width, 1)
+    }
+
+    private func drawStrokePreview(_ stroke: AnnotationStroke) {
+        if stroke.tool.usesFreehand {
+            var viewStroke = stroke
+            viewStroke.points = stroke.points
+            AnnotationDrawing.draw(stroke: viewStroke, in: bounds, sourceImage: baseImage)
+            return
+        }
+        var viewStroke = stroke
+        viewStroke.start = mapImagePointToView(stroke.start)
+        viewStroke.end = mapImagePointToView(stroke.end)
+        AnnotationDrawing.draw(stroke: viewStroke, in: bounds, sourceImage: nil)
+    }
+
+    private func drawCropOverlay(from start: CGPoint, to end: CGPoint) {
+        let full = bounds
+        let crop = NSRect(
+            x: min(start.x, end.x),
+            y: min(start.y, end.y),
+            width: abs(end.x - start.x),
+            height: abs(end.y - start.y)
+        )
+        NSColor.black.withAlphaComponent(0.45).setFill()
+        if crop.minY > full.minY {
+            NSRect(x: full.minX, y: full.minY, width: full.width, height: crop.minY - full.minY).fill()
+        }
+        if crop.maxY < full.maxY {
+            NSRect(x: full.minX, y: crop.maxY, width: full.width, height: full.maxY - crop.maxY).fill()
+        }
+        if crop.minX > full.minX {
+            NSRect(x: full.minX, y: crop.minY, width: crop.minX - full.minX, height: crop.height).fill()
+        }
+        if crop.maxX < full.maxX {
+            NSRect(x: crop.maxX, y: crop.minY, width: full.maxX - crop.maxX, height: crop.height).fill()
+        }
+        NSColor.white.setStroke()
+        let border = NSBezierPath(rect: crop)
+        border.lineWidth = 1.5
+        border.stroke()
     }
 
     private func drawMeasureOverlay(from start: CGPoint, to end: CGPoint) {
@@ -137,6 +209,15 @@ final class AnnotationCanvasView: NSView {
             needsDisplay = true
             return
         }
+        if activeTool == .counter {
+            commitCounter(at: point)
+            return
+        }
+        if activeTool.usesFreehand {
+            freehandPoints = [point]
+            needsDisplay = true
+            return
+        }
         dragStart = point
     }
 
@@ -147,15 +228,24 @@ final class AnnotationCanvasView: NSView {
             needsDisplay = true
             return
         }
+        if activeTool.usesFreehand {
+            freehandPoints.append(current)
+            needsDisplay = true
+            return
+        }
         guard let start = dragStart else { return }
         inProgress = AnnotationStroke(
             tool: activeTool,
-            start: start,
-            end: current,
+            start: mapViewPointToImage(start),
+            end: mapViewPointToImage(current),
             text: "",
             color: strokeColor,
             lineWidth: lineWidth
         )
+        if activeTool == .crop {
+            inProgress?.start = start
+            inProgress?.end = current
+        }
         needsDisplay = true
     }
 
@@ -166,9 +256,32 @@ final class AnnotationCanvasView: NSView {
             needsDisplay = true
             return
         }
+        if activeTool.usesFreehand {
+            guard freehandPoints.count > 1 else {
+                freehandPoints = []
+                needsDisplay = true
+                return
+            }
+            let imagePoints = freehandPoints.map { mapViewPointToImage($0) }
+            freehandPoints = []
+            appendStroke(AnnotationStroke(
+                tool: activeTool,
+                start: imagePoints[0],
+                end: imagePoints.last ?? imagePoints[0],
+                text: "",
+                color: strokeColor,
+                lineWidth: lineWidth,
+                points: imagePoints
+            ))
+            return
+        }
         guard let start = dragStart else { return }
         dragStart = nil
         inProgress = nil
+        if activeTool == .crop {
+            applyCrop(from: start, to: end)
+            return
+        }
         commitStroke(from: start, to: end)
     }
 
@@ -179,17 +292,65 @@ final class AnnotationCanvasView: NSView {
             needsDisplay = true
             return
         }
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if flags.contains(.command) {
+            if event.charactersIgnoringModifiers?.lowercased() == "z" {
+                if flags.contains(.shift) {
+                    redo()
+                } else {
+                    undo()
+                }
+                return
+            }
+        }
         super.keyDown(with: event)
     }
 
     override var acceptsFirstResponder: Bool { true }
 
     func undo() {
-        guard !strokes.isEmpty else { return }
-        strokes.removeLast()
+        if !strokes.isEmpty {
+            let removed = strokes.removeLast()
+            redoStrokes.append(removed)
+            cropRedoStack = []
+            rebuildComposite()
+            needsDisplay = true
+            onStrokesChanged?()
+            return
+        }
+        guard let snapshot = cropUndoStack.popLast() else { return }
+        cropRedoStack.append(currentCropSnapshot())
+        baseImage = snapshot.image
+        strokes = snapshot.strokes
+        redactionRegions = snapshot.redactions
         rebuildComposite()
         needsDisplay = true
         onStrokesChanged?()
+    }
+
+    func redo() {
+        if let stroke = redoStrokes.popLast() {
+            strokes.append(stroke)
+            rebuildComposite()
+            needsDisplay = true
+            onStrokesChanged?()
+            return
+        }
+        guard let snapshot = cropRedoStack.popLast() else { return }
+        cropUndoStack.append(currentCropSnapshot())
+        baseImage = snapshot.image
+        strokes = snapshot.strokes
+        redactionRegions = snapshot.redactions
+        rebuildComposite()
+        needsDisplay = true
+        onStrokesChanged?()
+    }
+
+    func resetHistory() {
+        redoStrokes = []
+        cropUndoStack = []
+        cropRedoStack = []
+        nextCounterValue = 1
     }
 
     func currentImage() -> NSImage? {
@@ -197,35 +358,103 @@ final class AnnotationCanvasView: NSView {
         return renderedImage ?? baseImage
     }
 
+    private func appendStroke(_ stroke: AnnotationStroke) {
+        redoStrokes = []
+        cropRedoStack = []
+        strokes.append(stroke)
+        rebuildComposite()
+        needsDisplay = true
+        onStrokesChanged?()
+    }
+
+    private func commitCounter(at point: CGPoint) {
+        let imagePoint = mapViewPointToImage(point)
+        appendStroke(AnnotationStroke(
+            tool: .counter,
+            start: imagePoint,
+            end: imagePoint,
+            text: "",
+            color: strokeColor,
+            lineWidth: lineWidth,
+            counterValue: nextCounterValue
+        ))
+        nextCounterValue += 1
+    }
+
     private func commitStroke(from start: CGPoint, to end: CGPoint) {
+        let imageStart = mapViewPointToImage(start)
+        let imageEnd = mapViewPointToImage(end)
         if activeTool == .text {
             promptForText(at: end) { [weak self] text in
                 guard let self, !text.isEmpty else { return }
-                self.strokes.append(AnnotationStroke(
+                self.appendStroke(AnnotationStroke(
                     tool: .text,
-                    start: end,
-                    end: end,
+                    start: self.mapViewPointToImage(end),
+                    end: self.mapViewPointToImage(end),
                     text: text,
                     color: self.strokeColor,
                     lineWidth: self.lineWidth
                 ))
-                self.rebuildComposite()
-                self.needsDisplay = true
-                self.onStrokesChanged?()
             }
             return
         }
-        strokes.append(AnnotationStroke(
+        appendStroke(AnnotationStroke(
             tool: activeTool,
-            start: start,
-            end: end,
+            start: imageStart,
+            end: imageEnd,
             text: "",
             color: strokeColor,
             lineWidth: lineWidth
         ))
+    }
+
+    private func applyCrop(from start: CGPoint, to end: CGPoint) {
+        guard let baseImage else { return }
+        let region = NSRect(
+            x: min(start.x, end.x),
+            y: min(start.y, end.y),
+            width: abs(end.x - start.x),
+            height: abs(end.y - start.y)
+        )
+        guard region.width > 4, region.height > 4 else { return }
+
+        let imageRegion = NSRect(
+            x: mapViewPointToImage(region.origin).x,
+            y: mapViewPointToImage(region.origin).y,
+            width: mapViewPointToImage(CGPoint(x: region.maxX, y: region.maxY)).x - mapViewPointToImage(region.origin).x,
+            height: mapViewPointToImage(CGPoint(x: region.maxX, y: region.maxY)).y - mapViewPointToImage(region.origin).y
+        ).integral
+
+        guard let cg = baseImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
+        let scaleX = CGFloat(cg.width) / baseImage.size.width
+        let scaleY = CGFloat(cg.height) / baseImage.size.height
+        let pixelCrop = CGRect(
+            x: imageRegion.origin.x * scaleX,
+            y: CGFloat(cg.height) - (imageRegion.origin.y + imageRegion.height) * scaleY,
+            width: imageRegion.width * scaleX,
+            height: imageRegion.height * scaleY
+        ).integral
+        guard let cropped = cg.cropping(to: pixelCrop) else { return }
+
+        cropUndoStack.append(currentCropSnapshot())
+        cropRedoStack = []
+        redoStrokes = []
+
+        let croppedImage = NSImage(cgImage: cropped, size: NSSize(
+            width: imageRegion.width,
+            height: imageRegion.height
+        ))
+        baseImage = croppedImage
+        strokes = []
+        redactionRegions = []
+        previewRedactions = []
         rebuildComposite()
         needsDisplay = true
         onStrokesChanged?()
+    }
+
+    private func currentCropSnapshot() -> (image: NSImage, strokes: [AnnotationStroke], redactions: [CGRect]) {
+        (image: baseImage?.copy() as? NSImage ?? baseImage ?? NSImage(), strokes: strokes, redactions: redactionRegions)
     }
 
     private func promptForText(at point: CGPoint, completion: @escaping (String) -> Void) {
@@ -251,96 +480,17 @@ final class AnnotationCanvasView: NSView {
         baseImage.draw(in: NSRect(origin: .zero, size: size))
         let canvas = NSRect(origin: .zero, size: size)
         for region in redactionRegions {
-            pixelate(from: CGPoint(x: region.minX, y: region.minY), to: CGPoint(x: region.maxX, y: region.maxY), in: canvas)
+            AnnotationDrawing.pixelate(
+                from: CGPoint(x: region.minX, y: region.minY),
+                to: CGPoint(x: region.maxX, y: region.maxY),
+                in: canvas,
+                sourceImage: baseImage
+            )
         }
         for stroke in strokes {
-            drawStroke(stroke, in: canvas)
+            AnnotationDrawing.draw(stroke: stroke, in: canvas, sourceImage: baseImage)
         }
         image.unlockFocus()
         renderedImage = image
-    }
-
-    private func drawStroke(_ stroke: AnnotationStroke, in rect: NSRect) {
-        switch stroke.tool {
-        case .arrow:
-            stroke.color.setStroke()
-            let path = NSBezierPath()
-            path.move(to: stroke.start)
-            path.line(to: stroke.end)
-            path.lineWidth = stroke.lineWidth
-            path.stroke()
-            addArrowHead(to: path, at: stroke.end, from: stroke.start, width: stroke.lineWidth)
-        case .rectangle:
-            stroke.color.setStroke()
-            let box = NSRect(
-                x: min(stroke.start.x, stroke.end.x),
-                y: min(stroke.start.y, stroke.end.y),
-                width: abs(stroke.end.x - stroke.start.x),
-                height: abs(stroke.end.y - stroke.start.y)
-            )
-            let path = NSBezierPath(rect: box)
-            path.lineWidth = stroke.lineWidth
-            path.stroke()
-        case .text:
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: max(16, stroke.lineWidth * 4)),
-                .foregroundColor: stroke.color
-            ]
-            (stroke.text as NSString).draw(at: stroke.start, withAttributes: attributes)
-        case .pixelate:
-            pixelate(from: stroke.start, to: stroke.end, in: rect)
-        case .measure:
-            break
-        }
-    }
-
-    private func addArrowHead(to path: NSBezierPath, at tip: CGPoint, from tail: CGPoint, width: CGFloat) {
-        let angle = atan2(tip.y - tail.y, tip.x - tail.x)
-        let head = width * 3
-        let p1 = CGPoint(
-            x: tip.x - head * cos(angle - .pi / 6),
-            y: tip.y - head * sin(angle - .pi / 6)
-        )
-        let p2 = CGPoint(
-            x: tip.x - head * cos(angle + .pi / 6),
-            y: tip.y - head * sin(angle + .pi / 6)
-        )
-        path.move(to: tip)
-        path.line(to: p1)
-        path.move(to: tip)
-        path.line(to: p2)
-        path.lineWidth = width
-        path.stroke()
-    }
-
-    private func pixelate(from start: CGPoint, to end: CGPoint, in rect: NSRect) {
-        guard let baseImage, let cg = baseImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
-        let region = NSRect(
-            x: min(start.x, end.x),
-            y: min(start.y, end.y),
-            width: abs(end.x - start.x),
-            height: abs(end.y - start.y)
-        )
-        guard region.width > 2, region.height > 2 else { return }
-
-        let scaleX = CGFloat(cg.width) / rect.width
-        let scaleY = CGFloat(cg.height) / rect.height
-        let crop = CGRect(
-            x: region.origin.x * scaleX,
-            y: CGFloat(cg.height) - (region.origin.y + region.height) * scaleY,
-            width: region.width * scaleX,
-            height: region.height * scaleY
-        ).integral
-        guard let cropped = cg.cropping(to: crop) else { return }
-
-        let ci = CIImage(cgImage: cropped)
-        guard let filter = CIFilter(name: "CIPixellate") else { return }
-        filter.setValue(ci, forKey: kCIInputImageKey)
-        filter.setValue(12, forKey: kCIInputScaleKey)
-        guard let output = filter.outputImage else { return }
-        let context = CIContext()
-        guard let pix = context.createCGImage(output, from: output.extent) else { return }
-        let patch = NSImage(cgImage: pix, size: region.size)
-        patch.draw(in: region)
     }
 }
