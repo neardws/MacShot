@@ -2,6 +2,28 @@ import AppKit
 import SwiftUI
 import OctoshotCore
 
+private struct QuickAccessPanelSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
+    }
+}
+
+private extension QuickAccessStackGeometry.CollapsedStackAnchor {
+    var swiftUIAlignment: Alignment {
+        switch self {
+        case .bottomLeading:
+            return .bottomLeading
+        case .bottomTrailing:
+            return .bottomTrailing
+        case .topLeading:
+            return .topLeading
+        case .topTrailing:
+            return .topTrailing
+        }
+    }
+}
+
 struct QuickAccessActions {
     var onCopy: () -> Void
     var onSave: () -> Void
@@ -112,15 +134,15 @@ final class QuickAccessPanelController: NSObject {
             onDismissAll: { [weak self] in self?.closePanel() },
             onUserChoseAlternateAction: { [weak self] entry in
                 self?.cancelSpeculative(for: entry)
+            },
+            onContentSizeChange: { [weak self] size in
+                self?.applyPanelContentSize(size)
             }
         )
 
         let hosting = NSHostingView(rootView: root)
         let fitting = hosting.fittingSize
-        let size = NSSize(
-            width: min(max(fitting.width, 160), maxThumbWidth + 56),
-            height: fitting.height
-        )
+        let size = Self.clampedPanelSize(from: fitting, maxThumbWidth: maxThumbWidth)
 
         if panel == nil {
             let panel = NSPanel(
@@ -144,6 +166,22 @@ final class QuickAccessPanelController: NSObject {
             position(panel: panel, size: size)
             panel.orderFrontRegardless()
         }
+    }
+
+    private func applyPanelContentSize(_ contentSize: CGSize) {
+        guard let panel else { return }
+        let size = Self.clampedPanelSize(from: contentSize, maxThumbWidth: maxThumbWidth)
+        let current = panel.frame.size
+        guard abs(current.width - size.width) > 0.5 || abs(current.height - size.height) > 0.5 else { return }
+        panel.setContentSize(size)
+        position(panel: panel, size: size)
+    }
+
+    private static func clampedPanelSize(from fitting: CGSize, maxThumbWidth: CGFloat) -> NSSize {
+        NSSize(
+            width: min(max(fitting.width, 160), maxThumbWidth + 56),
+            height: fitting.height
+        )
     }
 
     private func position(panel: NSPanel, size: NSSize) {
@@ -204,6 +242,7 @@ private struct QuickAccessStackView: View {
     let onDismissEntry: (UUID) -> Void
     let onDismissAll: () -> Void
     let onUserChoseAlternateAction: (QuickAccessEntry) -> Void
+    let onContentSizeChange: (CGSize) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isStackExpanded = false
@@ -222,10 +261,13 @@ private struct QuickAccessStackView: View {
 
             if useCollapsedStack {
                 collapsedStack
+                    .transition(.opacity.combined(with: .scale(scale: 0.98, anchor: collapseTransitionAnchor)))
             } else {
                 expandedList
+                    .transition(.opacity)
             }
         }
+        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.82), value: useCollapsedStack)
         .padding(12)
         .background {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -253,6 +295,15 @@ private struct QuickAccessStackView: View {
                 isStackExpanded = false
             }
         }
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: QuickAccessPanelSizeKey.self, value: proxy.size)
+            }
+        }
+        .onPreferenceChange(QuickAccessPanelSizeKey.self) { size in
+            guard size.width > 0, size.height > 0 else { return }
+            onContentSizeChange(size)
+        }
     }
 
     private var horizontalAlignment: HorizontalAlignment {
@@ -261,6 +312,19 @@ private struct QuickAccessStackView: View {
             return .leading
         case .bottomRight, .rightSidebar:
             return .trailing
+        }
+    }
+
+    private var collapseTransitionAnchor: UnitPoint {
+        switch placement {
+        case .bottomLeft:
+            return .bottomLeading
+        case .bottomRight:
+            return .bottomTrailing
+        case .leftSidebar:
+            return .topLeading
+        case .rightSidebar:
+            return .topTrailing
         }
     }
 
@@ -297,7 +361,8 @@ private struct QuickAccessStackView: View {
                         maxHeight: maxThumbHeight
                     ),
                     onClose: { onDismissEntry(entry.id) },
-                    onAlternateAction: { onUserChoseAlternateAction(entry) }
+                    onAlternateAction: { onUserChoseAlternateAction(entry) },
+                    onDragSucceeded: { onDismissEntry(entry.id) }
                 )
                 .transition(
                     .asymmetric(
@@ -311,52 +376,55 @@ private struct QuickAccessStackView: View {
     }
 
     private var collapsedStack: some View {
-        ZStack(alignment: zStackAlignment) {
+        let frontThumb = QuickAccessPanelController.aspectFitSize(
+            for: entries[0].image,
+            maxWidth: maxThumbWidth,
+            maxHeight: maxThumbHeight
+        )
+        let frontSize = CGSize(width: frontThumb.width, height: frontThumb.height)
+        let stackSize = QuickAccessStackGeometry.collapsedStackContentSize(
+            frontCardSize: frontSize,
+            total: entries.count,
+            placement: placement
+        )
+        let frameAlignment = QuickAccessStackGeometry.collapsedStackAnchor(placement: placement).swiftUIAlignment
+
+        return ZStack(alignment: .topLeading) {
             ForEach(Array(entries.enumerated().reversed()), id: \.element.id) { index, entry in
                 if index < QuickAccessStackGeometry.maxCollapsedLayers {
+                    let thumbSize = QuickAccessPanelController.aspectFitSize(
+                        for: entry.image,
+                        maxWidth: maxThumbWidth,
+                        maxHeight: maxThumbHeight
+                    )
                     QuickAccessCard(
                         entry: entry,
                         placement: placement,
-                        thumbSize: QuickAccessPanelController.aspectFitSize(
-                            for: entry.image,
-                            maxWidth: maxThumbWidth,
-                            maxHeight: maxThumbHeight
-                        ),
+                        thumbSize: thumbSize,
                         onClose: { onDismissEntry(entry.id) },
                         onAlternateAction: { onUserChoseAlternateAction(entry) },
+                        onDragSucceeded: index == 0 ? { onDismissEntry(entry.id) } : nil,
                         showsActionsOnHover: index == 0
                     )
+                    .overlay(alignment: stackBadgeAlignment) {
+                        if index == 0, entries.count > 1 {
+                            stackCountBadge
+                        }
+                    }
                     .offset(
-                        CGSize(
-                            width: QuickAccessStackGeometry.collapsedOffset(
-                                index: index,
-                                total: entries.count,
-                                placement: placement
-                            ).width,
-                            height: QuickAccessStackGeometry.collapsedOffset(
-                                index: index,
-                                total: entries.count,
-                                placement: placement
-                            ).height
+                        QuickAccessStackGeometry.collapsedOffset(
+                            index: index,
+                            total: entries.count,
+                            placement: placement
                         )
                     )
                     .zIndex(QuickAccessStackGeometry.collapsedZIndex(index: index, total: entries.count))
                     .allowsHitTesting(index == 0)
                 }
             }
-
-            if entries.count > 1 {
-                Text("\(entries.count)")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.accentColor))
-                    .overlay(Capsule().strokeBorder(Color.white.opacity(0.35), lineWidth: 1))
-                    .offset(stackBadgeOffset)
-                    .zIndex(100)
-            }
         }
+        .frame(width: stackSize.width, height: stackSize.height, alignment: frameAlignment)
+        .animation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.82), value: entries.count)
         .contentShape(Rectangle())
         .onHover { hovering in
             isStackHovering = hovering
@@ -369,21 +437,24 @@ private struct QuickAccessStackView: View {
         }
     }
 
-    private var zStackAlignment: Alignment {
+    private var stackCountBadge: some View {
+        Text("\(entries.count)")
+            .font(.system(size: 11, weight: .bold, design: .rounded))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .background(Capsule().fill(Color.accentColor))
+            .overlay(Capsule().strokeBorder(Color.white.opacity(0.35), lineWidth: 1))
+            .padding(6)
+            .allowsHitTesting(false)
+    }
+
+    private var stackBadgeAlignment: Alignment {
         switch placement {
         case .bottomLeft, .leftSidebar:
             return .topLeading
         case .bottomRight, .rightSidebar:
             return .topTrailing
-        }
-    }
-
-    private var stackBadgeOffset: CGSize {
-        switch placement {
-        case .bottomLeft, .leftSidebar:
-            return CGSize(width: 8, height: -8)
-        case .bottomRight, .rightSidebar:
-            return CGSize(width: -8, height: -8)
         }
     }
 
@@ -406,6 +477,7 @@ private struct QuickAccessCard: View {
     let thumbSize: NSSize
     let onClose: () -> Void
     let onAlternateAction: () -> Void
+    var onDragSucceeded: (() -> Void)?
     var showsActionsOnHover: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -417,6 +489,7 @@ private struct QuickAccessCard: View {
         thumbSize: NSSize,
         onClose: @escaping () -> Void,
         onAlternateAction: @escaping () -> Void,
+        onDragSucceeded: (() -> Void)? = nil,
         showsActionsOnHover: Bool = true
     ) {
         self.entry = entry
@@ -425,6 +498,7 @@ private struct QuickAccessCard: View {
         self.thumbSize = thumbSize
         self.onClose = onClose
         self.onAlternateAction = onAlternateAction
+        self.onDragSucceeded = onDragSucceeded
         self.showsActionsOnHover = showsActionsOnHover
     }
 
@@ -437,7 +511,15 @@ private struct QuickAccessCard: View {
 
             ZStack(alignment: .bottom) {
                 QuickAccessThumbnailChrome(isHovering: showsActionsOnHover && isHovering, reduceMotion: reduceMotion) {
-                    DraggableThumbnailView(image: entry.image, size: thumbSize)
+                    DraggableThumbnailView(
+                        image: entry.image,
+                        size: thumbSize,
+                        onDragEnded: { operation in
+                            if QuickAccessDragOutcome.fromEndedDragOperation(operation) == .removeFromStack {
+                                onDragSucceeded?()
+                            }
+                        }
+                    )
                         .frame(width: thumbSize.width, height: thumbSize.height)
                 }
 
@@ -651,20 +733,42 @@ private struct QuickAccessButton: View {
 private struct DraggableThumbnailView: NSViewRepresentable {
     let image: NSImage
     let size: NSSize
+    var onDragEnded: (UInt) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onDragEnded: onDragEnded)
+    }
 
     func makeNSView(context: Context) -> DraggableImageView {
         let view = DraggableImageView()
         view.image = image
         view.imageScaling = .scaleProportionallyUpOrDown
+        view.onDragEnded = { context.coordinator.reportDragEnded(operation: $0) }
         return view
     }
 
     func updateNSView(_ nsView: DraggableImageView, context: Context) {
         nsView.image = image
+        nsView.onDragEnded = { context.coordinator.reportDragEnded(operation: $0) }
+        context.coordinator.onDragEnded = onDragEnded
+    }
+
+    final class Coordinator {
+        var onDragEnded: (UInt) -> Void
+
+        init(onDragEnded: @escaping (UInt) -> Void) {
+            self.onDragEnded = onDragEnded
+        }
+
+        func reportDragEnded(operation: UInt) {
+            onDragEnded(operation)
+        }
     }
 }
 
 final class DraggableImageView: NSImageView {
+    var onDragEnded: ((UInt) -> Void)?
+
     override var isFlipped: Bool { true }
 
     override func mouseDown(with event: NSEvent) {
@@ -685,6 +789,14 @@ extension DraggableImageView: NSDraggingSource {
         sourceOperationMaskFor context: NSDraggingContext
     ) -> NSDragOperation {
         .copy
+    }
+
+    func draggingSession(
+        _ session: NSDraggingSession,
+        endedAt screenPoint: NSPoint,
+        operation: NSDragOperation
+    ) {
+        onDragEnded?(operation.rawValue)
     }
 }
 
