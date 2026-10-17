@@ -26,4 +26,11 @@ enum RecentCapturesStore {
             .map { URL(fileURLWithPath: $0) }
             .filter { FileManager.default.fileExists(atPath: $0.path) }
     }
+
+    static func remove(path: String) {
+        var paths = UserDefaults.standard.stringArray(forKey: key) ?? []
+        paths.removeAll { $0 == path }
+        UserDefaults.standard.set(paths, forKey: key)
+        NotificationCenter.default.post(name: .octoshotRecentCapturesDidChange, object: nil)
+    }
 }
