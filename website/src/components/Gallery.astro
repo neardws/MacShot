@@ -1,6 +1,11 @@
 ---
 import type { LandingCopy, Locale } from '@/i18n/ui';
-import { assets } from '@/config/assets';
+import {
+  availableGalleryScreenshots,
+  screenshotSrcSet,
+  screenshotWebSrc,
+  type ScreenshotStem,
+} from '@/lib/screenshots';
 import Reveal from './Reveal.astro';
 
 interface Props {
@@ -9,7 +14,16 @@ interface Props {
 }
 
 const { t, locale } = Astro.props;
-const shots = ['capture', 'annotate', 'settings', 'agent'];
+const shots = availableGalleryScreenshots(locale);
+
+const labels: Record<ScreenshotStem, string> = {
+  hero: 'Hero',
+  'capture-modebar': t.galleryShotCapture,
+  'quick-access-stack': t.galleryShotQuickAccess,
+  annotate: t.galleryShotAnnotate,
+  'settings-shortcuts': t.galleryShotSettings,
+  ocr: t.galleryShotOcr,
+};
 ---
 
 <section class="section-pad bg-mb-bg-alt" id="gallery">
@@ -23,25 +37,26 @@ const shots = ['capture', 'annotate', 'settings', 'agent'];
     class="flex gap-5 overflow-x-auto scroll-smooth px-[max(22px,env(safe-area-inset-left))] pb-4 snap-x snap-mandatory"
   >
     {
-      shots.map((name, i) => (
+      shots.map((name) => (
         <div
           class="min-w-[min(85vw,420px)] shrink-0 snap-center overflow-hidden rounded-shot border border-mb-hair bg-mb-tile-on-alt shot-frame"
         >
           <div class="relative aspect-[16/10] bg-mb-tile">
             <img
-              src={assets.screenshot(locale, name)}
-              alt=""
+              src={screenshotWebSrc(locale, name)}
+              srcset={screenshotSrcSet(locale, name)}
+              sizes="420px"
+              alt={labels[name]}
               width="420"
               height="263"
-              class="gallery-shot absolute inset-0 h-full w-full object-cover opacity-0"
+              class="h-full w-full object-cover"
               loading="lazy"
               decoding="async"
-              onerror="this.remove();this.parentElement?.querySelector('.gallery-fallback')?.classList.remove('hidden')"
             />
-            <div class="gallery-fallback flex h-full items-center justify-center text-sm text-mb-fg3">
-              {name}
-            </div>
           </div>
+          <p class="border-t border-mb-hair px-4 py-3 text-center text-sm font-medium text-mb-fg2">
+            {labels[name]}
+          </p>
         </div>
       ))
     }

@@ -20,6 +20,12 @@ export type LandingCopy = {
   heroFine: string;
   galleryTitle: string;
   galleryLead: string;
+  galleryShotCapture: string;
+  galleryShotQuickAccess: string;
+  galleryShotAnnotate: string;
+  galleryShotSettings: string;
+  galleryShotOcr: string;
+  heroScreenshotAlt: string;
   tilesTitle: string;
   tilesLead: string;
   tiles: { title: string; body: string; wide?: boolean }[];
@@ -61,7 +67,13 @@ const en: LandingCopy = {
   heroSecondary: 'View on GitHub',
   heroFine: 'Requires macOS 14+. Screen Recording permission for capture.',
   galleryTitle: 'See it in action',
-  galleryLead: 'Placeholders until release screenshots are bundled.',
+  galleryLead: 'Marketing visuals generated from the real Octoshot UI (regenerate with npm run render:visuals).',
+  galleryShotCapture: 'Unified capture mode bar',
+  galleryShotQuickAccess: 'Quick Access stack',
+  galleryShotAnnotate: 'Annotation editor',
+  galleryShotSettings: 'Shortcuts settings',
+  galleryShotOcr: 'OCR from capture',
+  heroScreenshotAlt: 'Octoshot capture on macOS',
   tilesTitle: 'Everything in one mode bar',
   tilesLead: 'Pick a region, then switch intent without leaving the overlay.',
   tiles: [
@@ -135,7 +147,7 @@ const en: LandingCopy = {
       a: 'No. Capture and optional on-device models run locally unless you explicitly configure an external endpoint.',
     },
     {
-      q: 'What is 章鱼君?',
+      q: 'What is 一酱?',
       a: 'The Chinese product name and mascot—an original cartoon octopus holding a capture frame, not a third-party character.',
     },
     {
@@ -146,7 +158,7 @@ const en: LandingCopy = {
   finalTitle: 'Ready when you are',
   finalLead: 'Grab the latest build and keep eight arms on your workflow.',
   finalCta: 'Download Octoshot',
-  footerTagline: 'Octoshot · 章鱼君 — eight arms, one capture.',
+  footerTagline: 'Octoshot · 一酱 — eight arms, one capture.',
   footerDisclaimer: 'Not affiliated with Apple Inc. macOS is a trademark of Apple Inc.',
   footerGitHub: 'GitHub',
   footerIssues: 'Issues',
@@ -157,7 +169,7 @@ const en: LandingCopy = {
 const zh: LandingCopy = {
   lang: 'zh',
   htmlLang: 'zh-CN',
-  metaTitle: '章鱼君 Octoshot — macOS 原生截图与录制',
+  metaTitle: '一酱 Octoshot — macOS 原生截图与录制',
   metaDescription:
     '开源 macOS 截图、滚动拼接、录屏与 GIF；本机优先、统一模式条、嵌入式 AI 与 Agent CLI。',
   navFeatures: '功能',
@@ -168,12 +180,18 @@ const zh: LandingCopy = {
   heroEyebrow: 'macOS · MIT · 本机优先',
   heroTitle: '八只手，一次截完。',
   heroLead:
-    '章鱼君是菜单栏常驻的原生工具：区域/窗口/全屏截图、滚动拼接、视频与 GIF，以及可选的本机 AI——面向科研写作者与开发者，数据留在你的 Mac。',
+    '一酱是菜单栏常驻的原生工具：区域/窗口/全屏截图、滚动拼接、视频与 GIF，以及可选的本机 AI——面向科研写作者与开发者，数据留在你的 Mac。',
   heroCta: '下载最新版本',
   heroSecondary: '在 GitHub 查看',
   heroFine: '需要 macOS 14+。捕获需授予屏幕录制权限。',
   galleryTitle: '界面预览',
-  galleryLead: '正式截图上线后将替换此处占位图。',
+  galleryLead: '根据真实 Octoshot 界面生成的营销视觉（可用 npm run render:visuals 重新导出）。',
+  galleryShotCapture: '统一捕获模式条',
+  galleryShotQuickAccess: '快速访问浮层',
+  galleryShotAnnotate: '标注编辑器',
+  galleryShotSettings: '快捷键设置',
+  galleryShotOcr: 'OCR 识别',
+  heroScreenshotAlt: '一酱在 macOS 上的捕获界面',
   tilesTitle: '统一模式条，一气呵成',
   tilesLead: '框选区域后，在浮层上切换意图，无需重来。',
   tiles: [
@@ -201,7 +219,7 @@ const zh: LandingCopy = {
   ],
   agentTitle: '为人也为 Agent 设计',
   agentLead:
-    '同一套捕获能力提供 CLI、stdio MCP 与 URL，便于 Cursor、Claude Code 与快捷指令在本机驱动章鱼君。',
+    '同一套捕获能力提供 CLI、stdio MCP 与 URL，便于 Cursor、Claude Code 与快捷指令在本机驱动一酱。',
   agentTerminal: [
     '$ octoshot capture --mode region --output ~/Desktop/shot.png',
     '$ octoshot mcp   # stdio MCP，供 IDE 集成',
@@ -229,15 +247,15 @@ const zh: LandingCopy = {
   ],
   faqTitle: '常见问题',
   faqs: [
-    { q: '章鱼君免费吗？', a: '是。MIT 开源，发行版在 GitHub 发布。' },
+    { q: '一酱免费吗？', a: '是。MIT 开源，发行版在 GitHub 发布。' },
     { q: '会上传截图到云端吗？', a: '不会。捕获与可选本机模型均在本地运行，除非你自行配置外部接口。' },
     { q: '和 Apple 截图有什么关系？', a: '独立第三方工具，可读取系统快捷键并引导关闭系统截图快捷键。' },
     { q: '文档在哪里？', a: '将与应用内帮助 Markdown（中英）同步；本站文档区将随仓库更新。' },
   ],
   finalTitle: '准备好了就开始',
   finalLead: '获取最新构建，让八只手加入你的工作流。',
-  finalCta: '下载章鱼君',
-  footerTagline: 'Octoshot · 章鱼君 — 八只手，一次截完。',
+  finalCta: '下载一酱',
+  footerTagline: 'Octoshot · 一酱 — 八只手，一次截完。',
   footerDisclaimer: '与 Apple Inc. 无关联。macOS 为 Apple Inc. 商标。',
   footerGitHub: 'GitHub',
   footerIssues: 'Issues',

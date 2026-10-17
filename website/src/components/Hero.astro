@@ -42,7 +42,7 @@ const { t, locale } = Astro.props;
     </div>
     <p class="hero-rise mt-6 text-sm text-mb-fg2" style="--i: 6">{t.heroFine}</p>
     <div class="hero-rise" style="--i: 7">
-      <HeroDesk locale={locale} />
+      <HeroDesk t={t} locale={locale} />
     </div>
   </div>
 </section>
