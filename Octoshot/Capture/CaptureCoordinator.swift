@@ -216,7 +216,6 @@ final class CaptureCoordinator {
         let developer = settings.developerModeEnabled
         quickAccess.show(
             image: image,
-            captureAnchor: captureAnchor,
             actions: QuickAccessActions(
             onCopy: {
                 if let file = savedFileURL {
@@ -268,7 +267,8 @@ final class CaptureCoordinator {
                 }
             } : nil,
             onClose: {}
-            )
+            ),
+            captureAnchor: captureAnchor
         )
     }
 
