@@ -11,3 +11,9 @@ dist/
 .derivedData/
 .derivedData-release/
 build/
+.build/sparkle/
+
+# Sparkle EdDSA private keys (never commit)
+**/eddsa_priv.key
+**/sparkle/eddsa_priv.key
+octoshot-private/

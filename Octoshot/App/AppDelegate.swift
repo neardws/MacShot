@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeyManager = HotkeyManager()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        _ = Updater.shared
         EmbeddedAIRegistrar.install()
         NSApp.setActivationPolicy(.accessory)
         SettingsOpener.installAccessoryRestoreOnClose()
@@ -120,6 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsItem.keyEquivalentModifierMask = .command
         menu.addItem(settingsItem)
         menu.addItem(menuItem("Help…", action: #selector(openHelp)))
+        menu.addItem(menuItem(OctoshotL10n.checkForUpdates, action: #selector(checkForUpdates)))
 
         let versionItem = NSMenuItem(title: "Version \(AppVersion.display)", action: nil, keyEquivalent: "")
         versionItem.isEnabled = false
@@ -259,6 +261,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openHelp() {
         HelpOpener.open()
+    }
+
+    @objc private func checkForUpdates() {
+        Updater.shared.checkForUpdates()
     }
 
     private func setupHelpMenu() {

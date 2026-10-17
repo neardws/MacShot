@@ -17,6 +17,9 @@ packages:
   mlx-swift-lm:
     url: https://github.com/ml-explore/mlx-swift-lm
     from: 2.29.3
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.10.0
 configFiles:
   Debug: Config/Signing.xcconfig
   Release: Config/Signing.xcconfig
@@ -101,6 +104,8 @@ targets:
       - target: OctoshotCore
       - target: OctoshotEmbeddedMLX
       - target: octoshot
+      - package: Sparkle
+        product: Sparkle
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |

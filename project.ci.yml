@@ -10,6 +10,10 @@ options:
     - en
     - Base
     - zh-Hans
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.10.0
 configs:
   Debug: debug
   Release: release
@@ -93,6 +97,8 @@ targets:
       - target: OctoshotCore
       - target: OctoshotEmbeddedMLX
       - target: octoshot
+      - package: Sparkle
+        product: Sparkle
     postBuildScripts:
       - name: Embed octoshot CLI in app bundle
         script: |

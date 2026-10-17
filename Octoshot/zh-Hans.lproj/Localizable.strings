@@ -22,3 +22,6 @@
 "Could not delete the file." = "无法删除该文件。";
 "Pin to Screen" = "贴图";
 "Cancel" = "取消";
+
+/* Updates */
+"Check for Updates…" = "检查更新…";

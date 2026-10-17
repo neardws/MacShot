@@ -6,11 +6,13 @@ on:
     paths:
       - 'website/**'
       - 'Docs/guide/**'
+      - 'website/public/appcast.xml'
       - '.github/workflows/website.yml'
   pull_request:
     paths:
       - 'website/**'
       - 'Docs/guide/**'
+      - 'website/public/appcast.xml'
       - '.github/workflows/website.yml'
 
 permissions:

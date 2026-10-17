@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placeholder feed: no <item> entries until Scripts/generate-appcast.sh runs for a release. -->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>Octoshot</title>
+    <link>https://neardws.github.io/Octoshot/</link>
+    <description>Octoshot updates</description>
+    <language>en</language>
+  </channel>
+</rss>

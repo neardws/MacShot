@@ -102,6 +102,10 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 
 然后重新打开应用并在 **隐私与安全性 → 屏幕录制** 中启用。应用内会通过 **ScreenCaptureKit**（`SCShareableContent`）校验权限，因 CoreGraphics 预检 API 可能滞后于真实 TCC 状态。
 
+## 应用内更新（Sparkle）
+
+正式发布的 Octoshot 通过 Sparkle 2 检查 [GitHub Pages 上的 appcast](https://neardws.github.io/Octoshot/appcast.xml)。菜单栏或 **设置 → 关于** 中可选择 **检查更新…**。维护者签名与发布流程见 [Docs/sparkle.md](Docs/sparkle.md)。
+
 ## 参与贡献
 
 欢迎 Issue 与 Pull Request：[neardws/Octoshot](https://github.com/neardws/Octoshot)。请先 `xcodegen generate` 再构建；修改应用图标可运行 `python3 Scripts/generate_icons.py`。
@@ -215,6 +219,10 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 ```
 
 Relaunch the app and enable it again under **Privacy & Security → Screen Recording**. The UI verifies access via **ScreenCaptureKit** because `CGPreflightScreenCaptureAccess()` can lag TCC.
+
+## In-app updates (Sparkle)
+
+Shipped Octoshot builds use Sparkle 2 to read the [GitHub Pages appcast](https://neardws.github.io/Octoshot/appcast.xml). Use **Check for Updates…** from the menu bar or **Settings → About**. Maintainer signing and appcast generation are documented in [Docs/sparkle.md](Docs/sparkle.md).
 
 ## Contributing
 

@@ -304,6 +304,10 @@ private struct AboutSettingsPane: View {
             Text("Version \(AppVersion.display)")
                 .foregroundStyle(.secondary)
             Link("View on GitHub", destination: AppSettings.repositoryURL)
+            Button(OctoshotL10n.checkForUpdates) {
+                Updater.shared.checkForUpdates()
+            }
+            .buttonStyle(.bordered)
             Button("Open User Guide") {
                 HelpOpener.open()
             }
