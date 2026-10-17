@@ -37,13 +37,12 @@ struct OctoshotSettingsView: View {
                 }
             }
         } detail: {
-            NavigationStack {
-                detailView(for: selection)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            }
+            detailView(for: selection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .background(Color(nsColor: .windowBackgroundColor))
         }
         .navigationSplitViewStyle(.balanced)
-        .toolbarBackground(.hidden, for: .windowToolbar)
+        .toolbar(.hidden, for: .windowToolbar)
         .frame(minWidth: 780, minHeight: 560)
         .onReceive(NotificationCenter.default.publisher(for: .octoshotOpenSettingsSection)) { note in
             if let section = note.object as? SettingsSection {

@@ -16,9 +16,6 @@ final class SettingsWindowController: NSWindowController {
         window.title = "Octoshot Settings"
         window.isReleasedWhenClosed = false
         window.titlebarSeparatorStyle = .line
-        if #available(macOS 15.0, *) {
-            window.toolbarStyle = .automatic
-        }
         window.center()
 
         let hosting = NSHostingController(rootView: OctoshotSettingsView())

@@ -51,9 +51,58 @@ private final class QuickAccessEntry: Identifiable {
 }
 
 @MainActor
+private final class QuickAccessStackPresentation: ObservableObject {
+    @Published private(set) var stack = QuickAccessCaptureStack()
+
+    func prepend(_ id: QuickAccessStackItemID) {
+        var next = stack
+        next.prepend(id)
+        stack = next
+    }
+
+    func syncItemIDs(_ ids: [QuickAccessStackItemID]) {
+        var next = stack
+        next.syncItemIDs(ids)
+        stack = next
+    }
+
+    @discardableResult
+    func dismissItem(_ id: QuickAccessStackItemID) -> Bool {
+        var next = stack
+        let isEmpty = next.dismissItem(id)
+        stack = next
+        return isEmpty
+    }
+
+    func expand() {
+        var next = stack
+        next.expand()
+        stack = next
+    }
+
+    func collapse() {
+        var next = stack
+        next.collapse()
+        stack = next
+    }
+
+    func clear() {
+        stack = QuickAccessCaptureStack()
+    }
+
+    func setStackCapturesEnabled(_ enabled: Bool) {
+        var next = stack
+        next.stackCapturesEnabled = enabled
+        stack = next
+    }
+}
+
+@MainActor
 final class QuickAccessPanelController: NSObject {
     private var panel: NSPanel?
     private var entries: [QuickAccessEntry] = []
+    private let stackPresentation = QuickAccessStackPresentation()
+    private var outsideClickMonitors: [Any] = []
     private var autoCloseTimer: Timer?
     private var lastCaptureAnchor: CGPoint?
     private var placementObserver: NSObjectProtocol?
@@ -83,10 +132,13 @@ final class QuickAccessPanelController: NSObject {
         lastCaptureAnchor = captureAnchor
         let entry = QuickAccessEntry(image: image, actions: actions)
         entries.insert(entry, at: 0)
+        stackPresentation.prepend(QuickAccessStackItemID(entry.id))
+        stackPresentation.setStackCapturesEnabled(AppSettings.shared.quickAccessStackCaptures)
         if entries.count > maxStackCount {
             let removed = entries.suffix(from: maxStackCount)
             removed.forEach { SpeculativeCapturePipeline.shared.cancel(entryID: $0.id) }
             entries.removeLast(entries.count - maxStackCount)
+            stackPresentation.syncItemIDs(entries.map { QuickAccessStackItemID($0.id) })
         }
         SpeculativeCapturePipeline.shared.start(entryID: entry.id, image: image, state: entry.speculativeState)
         rebuildPanel()
@@ -98,6 +150,8 @@ final class QuickAccessPanelController: NSObject {
         autoCloseTimer = nil
         SpeculativeCapturePipeline.shared.cancelAll()
         entries.removeAll()
+        stackPresentation.clear()
+        removeOutsideClickMonitors()
         panel?.orderOut(nil)
         panel = nil
     }
@@ -105,7 +159,7 @@ final class QuickAccessPanelController: NSObject {
     private func removeEntry(id: UUID) {
         SpeculativeCapturePipeline.shared.cancel(entryID: id)
         entries.removeAll { $0.id == id }
-        if entries.isEmpty {
+        if stackPresentation.dismissItem(QuickAccessStackItemID(id)) {
             closePanel()
         } else {
             rebuildPanel()
@@ -124,10 +178,12 @@ final class QuickAccessPanelController: NSObject {
 
     private func rebuildPanel() {
         let settings = AppSettings.shared
+        stackPresentation.setStackCapturesEnabled(settings.quickAccessStackCaptures)
+
         let root = QuickAccessStackView(
             entries: entries,
+            stackPresentation: stackPresentation,
             placement: settings.quickAccessPlacement,
-            stackCapturesEnabled: settings.quickAccessStackCaptures,
             maxThumbWidth: maxThumbWidth,
             maxThumbHeight: maxThumbHeight,
             onDismissEntry: { [weak self] id in self?.removeEntry(id: id) },
@@ -137,6 +193,9 @@ final class QuickAccessPanelController: NSObject {
             },
             onContentSizeChange: { [weak self] size in
                 self?.applyPanelContentSize(size)
+            },
+            onStackExpandedChange: { [weak self] expanded in
+                self?.handleStackExpandedChange(expanded)
             }
         )
 
@@ -225,6 +284,44 @@ final class QuickAccessPanelController: NSObject {
         }
     }
 
+    private func handleStackExpandedChange(_ expanded: Bool) {
+        if expanded {
+            installOutsideClickMonitors()
+        } else {
+            removeOutsideClickMonitors()
+        }
+    }
+
+    private func installOutsideClickMonitors() {
+        guard outsideClickMonitors.isEmpty else { return }
+        let handler: (NSEvent) -> Void = { [weak self] _ in
+            Task { @MainActor in self?.collapseStackIfClickedOutside() }
+        }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown, handler: { event in
+            handler(event)
+            return event
+        }) {
+            outsideClickMonitors.append(local)
+        }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: .leftMouseDown, handler: handler) {
+            outsideClickMonitors.append(global)
+        }
+    }
+
+    private func removeOutsideClickMonitors() {
+        outsideClickMonitors.forEach { NSEvent.removeMonitor($0) }
+        outsideClickMonitors.removeAll()
+    }
+
+    private func collapseStackIfClickedOutside() {
+        guard stackPresentation.stack.isExpanded, let panel else { return }
+        let click = NSEvent.mouseLocation
+        if panel.frame.contains(click) {
+            return
+        }
+        stackPresentation.collapse()
+    }
+
     static func aspectFitSize(for image: NSImage, maxWidth: CGFloat, maxHeight: CGFloat) -> NSSize {
         let w = max(image.size.width, 1)
         let h = max(image.size.height, 1)
@@ -235,22 +332,22 @@ final class QuickAccessPanelController: NSObject {
 
 private struct QuickAccessStackView: View {
     let entries: [QuickAccessEntry]
+    @ObservedObject var stackPresentation: QuickAccessStackPresentation
     let placement: QuickAccessPlacement
-    let stackCapturesEnabled: Bool
     let maxThumbWidth: CGFloat
     let maxThumbHeight: CGFloat
     let onDismissEntry: (UUID) -> Void
     let onDismissAll: () -> Void
     let onUserChoseAlternateAction: (QuickAccessEntry) -> Void
     let onContentSizeChange: (CGSize) -> Void
+    let onStackExpandedChange: (Bool) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isStackExpanded = false
     @State private var isStackHovering = false
     @State private var panelAppeared = false
 
     private var useCollapsedStack: Bool {
-        stackCapturesEnabled && entries.count > 1 && !isStackExpanded
+        stackPresentation.stack.showsCollapsedStack
     }
 
     var body: some View {
@@ -290,10 +387,8 @@ private struct QuickAccessStackView: View {
                 panelAppeared = true
             }
         }
-        .onChange(of: entries.count) { _, newCount in
-            if newCount <= 1 {
-                isStackExpanded = false
-            }
+        .onChange(of: stackPresentation.stack.isExpanded) { _, expanded in
+            onStackExpandedChange(expanded)
         }
         .background {
             GeometryReader { proxy in
@@ -330,11 +425,20 @@ private struct QuickAccessStackView: View {
 
     @ViewBuilder
     private var stackHeader: some View {
-        HStack {
+        HStack(spacing: 10) {
             if placement == .bottomRight || placement == .rightSidebar {
                 Spacer(minLength: 0)
             }
-            if isStackExpanded || isStackHovering || !useCollapsedStack {
+            if stackPresentation.stack.isExpanded {
+                Button(action: collapseStack) {
+                    Label(OctoshotL10n.quickAccessCollapseStack, systemImage: "rectangle.arrowtriangle.2.inward")
+                        .font(.system(size: 11, weight: .semibold))
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.secondary)
+                .help(OctoshotL10n.quickAccessCollapseStack)
+            }
+            if stackPresentation.stack.isExpanded || isStackHovering || !useCollapsedStack {
                 Button(action: onDismissAll) {
                     Label(OctoshotL10n.quickAccessCloseAll, systemImage: "xmark.circle.fill")
                         .font(.system(size: 11, weight: .semibold))
@@ -404,6 +508,7 @@ private struct QuickAccessStackView: View {
                         onClose: { onDismissEntry(entry.id) },
                         onAlternateAction: { onUserChoseAlternateAction(entry) },
                         onDragSucceeded: index == 0 ? { onDismissEntry(entry.id) } : nil,
+                        onThumbnailClick: index == 0 ? { expandStackIfNeeded() } : nil,
                         showsActionsOnHover: index == 0
                     )
                     .overlay(alignment: stackBadgeAlignment) {
@@ -428,9 +533,6 @@ private struct QuickAccessStackView: View {
         .contentShape(Rectangle())
         .onHover { hovering in
             isStackHovering = hovering
-            if hovering, stackCapturesEnabled, entries.count > 1 {
-                expandStackIfNeeded()
-            }
         }
         .onTapGesture {
             expandStackIfNeeded()
@@ -459,12 +561,23 @@ private struct QuickAccessStackView: View {
     }
 
     private func expandStackIfNeeded() {
-        guard !isStackExpanded else { return }
+        guard !stackPresentation.stack.isExpanded else { return }
         if reduceMotion {
-            isStackExpanded = true
+            stackPresentation.expand()
         } else {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                isStackExpanded = true
+                stackPresentation.expand()
+            }
+        }
+    }
+
+    private func collapseStack() {
+        guard stackPresentation.stack.isExpanded else { return }
+        if reduceMotion {
+            stackPresentation.collapse()
+        } else {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                stackPresentation.collapse()
             }
         }
     }
@@ -478,6 +591,7 @@ private struct QuickAccessCard: View {
     let onClose: () -> Void
     let onAlternateAction: () -> Void
     var onDragSucceeded: (() -> Void)?
+    var onThumbnailClick: (() -> Void)?
     var showsActionsOnHover: Bool = true
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -490,6 +604,7 @@ private struct QuickAccessCard: View {
         onClose: @escaping () -> Void,
         onAlternateAction: @escaping () -> Void,
         onDragSucceeded: (() -> Void)? = nil,
+        onThumbnailClick: (() -> Void)? = nil,
         showsActionsOnHover: Bool = true
     ) {
         self.entry = entry
@@ -499,6 +614,7 @@ private struct QuickAccessCard: View {
         self.onClose = onClose
         self.onAlternateAction = onAlternateAction
         self.onDragSucceeded = onDragSucceeded
+        self.onThumbnailClick = onThumbnailClick
         self.showsActionsOnHover = showsActionsOnHover
     }
 
@@ -514,6 +630,7 @@ private struct QuickAccessCard: View {
                     DraggableThumbnailView(
                         image: entry.image,
                         size: thumbSize,
+                        onClick: onThumbnailClick,
                         onDragEnded: { operation in
                             if QuickAccessDragOutcome.fromEndedDragOperation(operation) == .removeFromStack {
                                 onDragSucceeded?()
@@ -521,6 +638,21 @@ private struct QuickAccessCard: View {
                         }
                     )
                         .frame(width: thumbSize.width, height: thumbSize.height)
+                }
+                .overlay(alignment: dismissButtonAlignment) {
+                    if isHovering {
+                        Button(action: onClose) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .symbolRenderingMode(.palette)
+                                .foregroundStyle(.white, Color.black.opacity(0.45))
+                                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+                        }
+                        .buttonStyle(.plain)
+                        .help(OctoshotL10n.quickAccessDismissCapture)
+                        .padding(6)
+                        .transition(.opacity)
+                    }
                 }
 
                 if showsActionsOnHover, isHovering {
@@ -585,7 +717,7 @@ private struct QuickAccessCard: View {
                 }
             }
         }
-        .onHover { isHovering = showsActionsOnHover && $0 }
+        .onHover { isHovering = $0 }
         .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: isHovering)
     }
 
@@ -595,6 +727,15 @@ private struct QuickAccessCard: View {
             return .leading
         case .bottomRight, .rightSidebar:
             return .trailing
+        }
+    }
+
+    private var dismissButtonAlignment: Alignment {
+        switch placement {
+        case .bottomLeft, .leftSidebar:
+            return .topLeading
+        case .bottomRight, .rightSidebar:
+            return .topTrailing
         }
     }
 
@@ -733,10 +874,11 @@ private struct QuickAccessButton: View {
 private struct DraggableThumbnailView: NSViewRepresentable {
     let image: NSImage
     let size: NSSize
+    var onClick: (() -> Void)?
     var onDragEnded: (UInt) -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onDragEnded: onDragEnded)
+        Coordinator(onDragEnded: onDragEnded, onClick: onClick)
     }
 
     func makeNSView(context: Context) -> DraggableImageView {
@@ -744,35 +886,60 @@ private struct DraggableThumbnailView: NSViewRepresentable {
         view.image = image
         view.imageScaling = .scaleProportionallyUpOrDown
         view.onDragEnded = { context.coordinator.reportDragEnded(operation: $0) }
+        view.onClick = { context.coordinator.reportClick() }
         return view
     }
 
     func updateNSView(_ nsView: DraggableImageView, context: Context) {
         nsView.image = image
         nsView.onDragEnded = { context.coordinator.reportDragEnded(operation: $0) }
+        nsView.onClick = { context.coordinator.reportClick() }
         context.coordinator.onDragEnded = onDragEnded
+        context.coordinator.onClick = onClick
     }
 
     final class Coordinator {
         var onDragEnded: (UInt) -> Void
+        var onClick: (() -> Void)?
 
-        init(onDragEnded: @escaping (UInt) -> Void) {
+        init(onDragEnded: @escaping (UInt) -> Void, onClick: (() -> Void)?) {
             self.onDragEnded = onDragEnded
+            self.onClick = onClick
         }
 
         func reportDragEnded(operation: UInt) {
             onDragEnded(operation)
+        }
+
+        func reportClick() {
+            onClick?()
         }
     }
 }
 
 final class DraggableImageView: NSImageView {
     var onDragEnded: ((UInt) -> Void)?
+    var onClick: (() -> Void)?
+
+    private var mouseDownLocation: NSPoint?
+    private var didBeginDrag = false
+    private let dragThreshold: CGFloat = 5
 
     override var isFlipped: Bool { true }
 
     override func mouseDown(with event: NSEvent) {
-        guard let image else { return }
+        mouseDownLocation = convert(event.locationInWindow, from: nil)
+        didBeginDrag = false
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard !didBeginDrag, let image, let start = mouseDownLocation else { return }
+        let current = convert(event.locationInWindow, from: nil)
+        let distance = hypot(current.x - start.x, current.y - start.y)
+        guard distance >= dragThreshold else { return }
+        didBeginDrag = true
+        mouseDownLocation = nil
+
         let item = NSPasteboardItem()
         if let data = ImageFormats.pngData(from: image) {
             item.setData(data, forType: .png)
@@ -780,6 +947,14 @@ final class DraggableImageView: NSImageView {
         let dragging = NSDraggingItem(pasteboardWriter: item)
         dragging.setDraggingFrame(bounds, contents: image)
         beginDraggingSession(with: [dragging], event: event, source: self)
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        if !didBeginDrag, mouseDownLocation != nil {
+            onClick?()
+        }
+        mouseDownLocation = nil
+        didBeginDrag = false
     }
 }
 
