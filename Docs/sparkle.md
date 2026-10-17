@@ -43,6 +43,8 @@ Optional GitHub Actions secret: store the **file contents** of `eddsa_priv.key` 
 
 ## Publishing an appcast (no GitHub Release from this script)
 
+`Scripts/package.sh` re-signs Sparkle’s nested XPC services, `Autoupdate`, and `Updater.app` with your Developer ID before signing `Sparkle.framework` and the app.
+
 After `Scripts/package.sh` produces a **notarized** DMG:
 
 ```bash
