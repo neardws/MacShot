@@ -1,0 +1,29 @@
+---
+import DocsLayout from '@/layouts/DocsLayout.astro';
+import { getAllChapterParams, getChapters, getChapterMarkdown } from '@/lib/guide';
+import { getCopy } from '@/i18n/ui';
+import { marked } from 'marked';
+
+export function getStaticPaths() {
+  return getAllChapterParams('zh')
+    .filter((p) => p.slug !== 'index')
+    .map((p) => ({ params: p }));
+}
+
+const locale = 'zh';
+const slug = Astro.params.slug!;
+const t = getCopy(locale);
+const chapters = getChapters(locale);
+const chapter = chapters.find((c) => c.id === slug);
+const html = marked.parse(getChapterMarkdown(locale, slug));
+---
+
+<DocsLayout
+  t={t}
+  locale={locale}
+  chapters={chapters}
+  chapterId={slug}
+  title={chapter?.title ?? slug}
+>
+  <div set:html={html} />
+</DocsLayout>
