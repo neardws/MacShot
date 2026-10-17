@@ -1,4 +1,5 @@
 import Foundation
+import OctoshotCore
 
 enum OctoshotL10n {
     static var ocrAction: String {
@@ -90,5 +91,30 @@ enum OctoshotL10n {
 
     static var checkForUpdates: String {
         String(localized: "Check for Updates…", comment: "Sparkle manual update check")
+    }
+
+    static var quickAccessPlacementTitle: String {
+        String(localized: "Quick access position", comment: "Settings picker label for overlay placement")
+    }
+
+    static func quickAccessPlacementName(_ placement: QuickAccessPlacement) -> String {
+        switch placement {
+        case .bottomLeft:
+            return String(localized: "Bottom left", comment: "Quick access panel bottom-left corner")
+        case .bottomRight:
+            return String(localized: "Bottom right", comment: "Quick access panel bottom-right corner")
+        case .leftSidebar:
+            return String(localized: "Left sidebar", comment: "Quick access vertical strip on left")
+        case .rightSidebar:
+            return String(localized: "Right sidebar", comment: "Quick access vertical strip on right")
+        }
+    }
+
+    static var quickAccessStackCaptures: String {
+        String(localized: "Stack multiple captures", comment: "Settings toggle for Finder-style thumbnail stack")
+    }
+
+    static var quickAccessCloseAll: String {
+        String(localized: "Close all", comment: "Dismiss every quick-access thumbnail at once")
     }
 }
