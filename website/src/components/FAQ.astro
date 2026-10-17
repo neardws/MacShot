@@ -1,0 +1,30 @@
+---
+import type { LandingCopy } from '@/i18n/ui';
+import Reveal from './Reveal.astro';
+
+interface Props {
+  t: LandingCopy;
+}
+
+const { t } = Astro.props;
+---
+
+<section class="section-pad" id="faq">
+  <div class="wrap max-w-narrow">
+    <Reveal>
+      <h2 class="h2 text-center">{t.faqTitle}</h2>
+    </Reveal>
+    <div class="faq mt-12 border-t border-mb-line">
+      {
+        t.faqs.map((item) => (
+          <details class="border-b border-mb-line py-5">
+            <summary class="cursor-pointer list-none font-semibold marker:content-none">
+              {item.q}
+            </summary>
+            <p class="mt-3 text-mb-fg2">{item.a}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

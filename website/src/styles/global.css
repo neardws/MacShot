@@ -1,0 +1,330 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f5f5f7;
+  --tile: #f5f5f7;
+  --tile-on-alt: #ffffff;
+  --fg: #1d1d1f;
+  --fg2: #6e6e73;
+  --fg3: #86868b;
+  --hair: rgba(0, 0, 0, 0.08);
+  --line: rgba(0, 0, 0, 0.14);
+  --link: #0066cc;
+  --btn: #0071e3;
+  --btn-hover: #0077ed;
+  --focus: #0071e3;
+  --nav: rgba(255, 255, 255, 0.78);
+  --nav-fg: rgba(0, 0, 0, 0.8);
+  --paddle: rgba(210, 210, 215, 0.64);
+  --key: #ffffff;
+  --key-edge: rgba(0, 0, 0, 0.16);
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  --ls-body: -0.022em;
+  --ls-hero: -0.015em;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --shot-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.04),
+    0 18px 48px -12px rgba(0, 0, 0, 0.22);
+  --brand-red: #d70015;
+  --brand-red-soft: #ff3b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --bg-alt: #161617;
+    --tile: #1c1c1e;
+    --tile-on-alt: #1d1d1f;
+    --fg: #f5f5f7;
+    --fg2: #a1a1a6;
+    --fg3: #86868b;
+    --hair: rgba(255, 255, 255, 0.1);
+    --line: rgba(255, 255, 255, 0.18);
+    --link: #2997ff;
+    --focus: #2997ff;
+    --nav: rgba(22, 22, 23, 0.78);
+    --nav-fg: rgba(255, 255, 255, 0.92);
+    --paddle: rgba(60, 60, 67, 0.64);
+    --key: #2c2c2e;
+    --key-edge: rgba(255, 255, 255, 0.12);
+    --shot-shadow:
+      0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.35),
+      0 18px 48px -12px rgba(0, 0, 0, 0.55);
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 1.47;
+    letter-spacing: var(--ls-body);
+    color: var(--fg);
+    background: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :lang(zh) body,
+  :lang(zh-CN) body {
+    line-height: 1.5;
+    word-break: keep-all;
+    line-break: strict;
+  }
+
+  :lang(zh) h1,
+  :lang(zh) h2,
+  :lang(zh) .h2,
+  :lang(zh-CN) h1,
+  :lang(zh-CN) h2,
+  :lang(zh-CN) .h2 {
+    letter-spacing: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    padding: 0.75rem 1rem;
+    background: var(--btn);
+    color: #fff;
+    border-radius: 8px;
+  }
+
+  .skip-link:focus {
+    left: 1rem;
+    top: 1rem;
+  }
+}
+
+@layer components {
+  .nav-bar {
+    background: var(--nav);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin-inline: auto;
+    padding-inline: max(22px, env(safe-area-inset-left, 0px));
+    padding-inline-end: max(22px, env(safe-area-inset-right, 0px));
+  }
+
+  .section-pad {
+    padding-block: 120px;
+  }
+
+  @media (max-width: 734px) {
+    .section-pad {
+      padding-block: 80px;
+    }
+  }
+
+  .h2 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 600;
+    line-height: 1.07;
+    letter-spacing: var(--ls-hero);
+    text-wrap: balance;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35em;
+    padding: 0.65em 1.35em;
+    font-size: 17px;
+    font-weight: 400;
+    color: #fff;
+    background: var(--btn);
+    border-radius: 980px;
+    transition: background 200ms var(--ease);
+    text-decoration: none;
+  }
+
+  .btn:hover {
+    background: var(--btn-hover);
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+    transition-duration: 160ms;
+  }
+
+  .btn-sm {
+    padding: 0.45em 1em;
+    font-size: 12px;
+  }
+
+  .link {
+    color: var(--link);
+    text-decoration: none;
+  }
+
+  .link:hover {
+    text-decoration: underline;
+  }
+
+  .rv {
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 600ms var(--ease),
+      transform 600ms var(--ease);
+  }
+
+  .rv.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hero-rise {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: rise 600ms var(--ease) forwards;
+    animation-delay: calc(var(--i, 0) * 70ms);
+  }
+
+  @keyframes rise {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .shot-frame {
+    box-shadow: var(--shot-shadow);
+  }
+
+  .dark-section {
+    background: #000;
+    color: #f5f5f7;
+  }
+
+  .dark-section .tile-dark {
+    background: #1c1c1e;
+    border-radius: 28px;
+  }
+
+  .terminal {
+    background: #1c1c1e;
+    border-radius: 18px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+  }
+
+  .terminal .prompt {
+    color: #30d158;
+  }
+
+  .terminal .cmd {
+    color: #f5f5f7;
+  }
+
+  .terminal .comment {
+    color: #86868b;
+  }
+
+  .faq summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .faq summary::after {
+    content: '+';
+    flex-shrink: 0;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--fg2);
+    transition: transform 300ms var(--ease);
+  }
+
+  .faq details[open] summary::after {
+    transform: rotate(45deg);
+  }
+
+  .prose-doc h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .prose-doc h2 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .prose-doc p,
+  .prose-doc li {
+    color: var(--fg2);
+    margin-top: 0.65rem;
+  }
+
+  .prose-doc a {
+    color: var(--link);
+  }
+
+  .prose-doc table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 15px;
+  }
+
+  .prose-doc th,
+  .prose-doc td {
+    border: 1px solid var(--line);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+  }
+
+  .prose-doc code {
+    font-family: var(--mono);
+    font-size: 0.9em;
+    background: var(--tile);
+    padding: 0.1em 0.35em;
+    border-radius: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .rv,
+  .hero-rise {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .faq summary::after {
+    transition: none;
+  }
+}

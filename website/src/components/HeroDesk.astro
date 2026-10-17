@@ -1,0 +1,42 @@
+---
+import type { Locale } from '@/i18n/ui';
+import { assets } from '@/config/assets';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const shot = assets.screenshot(locale, 'hero-desk');
+---
+
+<div class="hero-desk mx-auto mt-16 max-w-[min(100%,920px)]">
+  <div class="shot-frame overflow-hidden rounded-shot bg-mb-tile shadow-shot">
+    <div
+      class="flex h-7 items-center gap-1.5 border-b border-mb-hair px-3"
+      aria-hidden="true"
+    >
+      <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-[#febc2e]"></span>
+      <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
+      <span class="ml-3 flex-1 text-center text-[10px] text-mb-fg3">Octoshot</span>
+    </div>
+    <div class="relative aspect-[16/10] bg-mb-bg-alt">
+      <img
+        src={shot}
+        alt=""
+        width="920"
+        height="575"
+        class="hero-shot absolute inset-0 h-full w-full object-cover opacity-0"
+        loading="lazy"
+        decoding="async"
+        onerror="this.remove();this.parentElement?.querySelector('.hero-shot-fallback')?.classList.remove('hidden')"
+      />
+      <div
+        class="hero-shot-fallback flex h-full items-center justify-center text-sm text-mb-fg3"
+      >
+        Screenshot placeholder
+      </div>
+    </div>
+  </div>
+</div>

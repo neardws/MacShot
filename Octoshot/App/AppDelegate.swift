@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         SettingsOpener.installAccessoryRestoreOnClose()
         setupStatusItem()
+        setupHelpMenu()
         applyMenuBarVisibility()
         setupHotkeys()
 
@@ -113,6 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let settingsItem = menuItem("Settings…", action: #selector(openSettings), keyEquivalent: ",")
         settingsItem.keyEquivalentModifierMask = .command
         menu.addItem(settingsItem)
+        menu.addItem(menuItem("Help…", action: #selector(openHelp)))
 
         let versionItem = NSMenuItem(title: "Version \(AppVersion.display)", action: nil, keyEquivalent: "")
         versionItem.isEnabled = false
@@ -244,6 +246,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func openSettings() {
         SettingsOpener.open()
+    }
+
+    @objc private func openHelp() {
+        HelpOpener.open()
+    }
+
+    private func setupHelpMenu() {
+        let helpMenu = NSMenu(title: "Help")
+        let item = NSMenuItem(title: "Octoshot Help", action: #selector(openHelp), keyEquivalent: "?")
+        item.keyEquivalentModifierMask = .command
+        item.target = self
+        helpMenu.addItem(item)
+        NSApp.helpMenu = helpMenu
     }
 
     @objc private func quit() {

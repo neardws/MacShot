@@ -1,0 +1,46 @@
+---
+import { GITHUB } from '@/config/assets';
+
+interface Props {
+  label: string;
+  class?: string;
+  small?: boolean;
+}
+
+const { label, class: className = '', small = false } = Astro.props;
+const id = `dl-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<a
+  id={id}
+  class:list={['btn download-btn', small && 'btn-sm', className]}
+  href={GITHUB.releasesLatest}
+  data-download-btn
+  data-fallback={GITHUB.releasesLatest}
+  data-api={GITHUB.apiLatest}
+>
+  {label}
+</a>
+
+<script>
+  function wireDownloadButtons() {
+    document.querySelectorAll<HTMLAnchorElement>('[data-download-btn]').forEach((el) => {
+      if (el.dataset.wired) return;
+      el.dataset.wired = '1';
+      const fallback = el.dataset.fallback || '';
+      const api = el.dataset.api || '';
+      fetch(api, { headers: { Accept: 'application/vnd.github+json' } })
+        .then((r) => (r.ok ? r.json() : Promise.reject()))
+        .then((data) => {
+          const assets = data.assets as { name: string; browser_download_url: string }[] | undefined;
+          const dmg = assets?.find((a) => /\.dmg$/i.test(a.name))?.browser_download_url;
+          if (dmg) el.href = dmg;
+        })
+        .catch(() => {
+          el.href = fallback;
+        });
+    });
+  }
+  wireDownloadButtons();
+  document.addEventListener('astro:page-load', wireDownloadButtons);
+</script>

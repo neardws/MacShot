@@ -1,0 +1,25 @@
+---
+import type { LandingCopy, Locale } from '@/i18n/ui';
+import { ISSUES_URL, REPO_URL } from '@/i18n/ui';
+import { localePath, otherLocale } from '@/utils/paths';
+
+interface Props {
+  t: LandingCopy;
+  locale: Locale;
+}
+
+const { t, locale } = Astro.props;
+const other = otherLocale(locale);
+---
+
+<footer class="border-t border-mb-hair bg-mb-bg-alt section-pad !py-16">
+  <div class="wrap text-xs text-mb-fg2">
+    <p class="mb-4 text-sm text-mb-fg">{t.footerTagline}</p>
+    <p class="mb-6 max-w-narrow">{t.footerDisclaimer}</p>
+    <div class="flex flex-wrap gap-4">
+      <a class="link" href={REPO_URL}>{t.footerGitHub}</a>
+      <a class="link" href={ISSUES_URL}>{t.footerIssues}</a>
+      <a class="link" href={localePath(other)}>{other === 'zh' ? '中文' : 'English'}</a>
+    </div>
+  </div>
+</footer>

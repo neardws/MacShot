@@ -1,0 +1,33 @@
+---
+import type { GuideChapter, GuideLocale } from '@/lib/guide';
+import { localePath } from '@/utils/paths';
+
+interface Props {
+  locale: GuideLocale;
+  chapters: GuideChapter[];
+  currentId: string;
+}
+
+const { locale, chapters, currentId } = Astro.props;
+const docsBase = localePath(locale, 'docs');
+---
+
+<nav class="guide-sidebar" aria-label="Guide contents">
+  <ul class="space-y-1 text-sm">
+    {
+      chapters.map((ch) => (
+        <li>
+          <a
+            class:list={[
+              'block rounded-lg px-3 py-2 no-underline',
+              ch.id === currentId ? 'bg-mb-tile font-semibold text-mb-fg' : 'text-mb-link hover:bg-mb-bg-alt',
+            ]}
+            href={`${docsBase}${ch.id === 'index' ? '' : `${ch.id}/`}`}
+          >
+            {ch.title}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
