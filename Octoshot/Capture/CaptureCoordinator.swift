@@ -239,6 +239,7 @@ final class CaptureCoordinator {
             },
             onAnnotate: { self.annotation.open(with: image) },
             onPin: { PinnedScreenshotManager.shared.pin(image: image) },
+            onOCR: { FeatureCoordinator.shared.showOCR(with: image) },
             onAskAI: { self.showAI(for: image) },
             onCopyMarkdown: developer ? {
                 do {

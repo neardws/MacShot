@@ -68,6 +68,7 @@ final class AnnotationWindowController {
         toolbarModel.onPin = { [weak self] in self?.pinImage() }
         toolbarModel.onAutoRedact = { [weak self] in Task { await self?.runAutoRedactPreview() } }
         toolbarModel.onAskAI = { [weak self] in self?.toggleAIPanel() }
+        toolbarModel.onOCR = { [weak self] in self?.showOCR() }
         toolbarModel.onCopyMarkdown = { [weak self] in self?.copyMarkdown() }
         toolbarModel.onCopyPath = { [weak self] in self?.copyFilePath() }
 
@@ -93,6 +94,11 @@ final class AnnotationWindowController {
 
         window.contentView = container
         window.makeFirstResponder(canvas)
+    }
+
+    private func showOCR() {
+        guard let image = canvasView?.currentImage() ?? currentImage else { return }
+        FeatureCoordinator.shared.showOCR(with: image)
     }
 
     private func toggleAIPanel() {
@@ -224,6 +230,7 @@ final class AnnotationToolbarModel: ObservableObject {
     var onPin: (() -> Void)?
     var onAutoRedact: (() -> Void)?
     var onAskAI: (() -> Void)?
+    var onOCR: (() -> Void)?
     var onCopyMarkdown: (() -> Void)?
     var onCopyPath: (() -> Void)?
 
@@ -302,6 +309,8 @@ struct AnnotationToolbarView: View {
             Spacer(minLength: 8)
 
             Button("Auto Redact") { model.onAutoRedact?() }
+            Button(OctoshotL10n.ocrAction) { model.onOCR?() }
+                .help(OctoshotL10n.ocrWindowTitle)
             Button("Ask AI") { model.onAskAI?() }
             if settings.developerModeEnabled {
                 Button("Copy MD") { model.onCopyMarkdown?() }
