@@ -179,8 +179,8 @@ public enum SymbolicHotkeyPlist {
 
 // MARK: - Backup / disable / restore (file-based, testable)
 
-public struct SymbolicHotkeyIDBackup: Sendable {
-    public enum State: Sendable {
+public struct SymbolicHotkeyIDBackup {
+    public enum State {
         case missingFromPlist
         case entry([String: Any])
     }
