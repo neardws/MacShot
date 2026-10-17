@@ -1,0 +1,11 @@
+---
+import type { Locale } from '@/i18n/ui';
+
+const { locale } = Astro.props as { locale: Locale };
+---
+
+<script define:vars={{ locale }}>
+  try {
+    localStorage.setItem('octoshot-lang', locale);
+  } catch {}
+</script>

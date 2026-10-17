@@ -1,0 +1,20 @@
+---
+/** MijiaBar-style layered blue hero waves (inline SVG, no raster). */
+---
+
+<div class="hero-waves pointer-events-none absolute inset-x-0 top-0 -z-10 h-[min(52vh,420px)] overflow-hidden" aria-hidden="true">
+  <svg class="h-full w-full" viewBox="0 0 1440 400" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="wave-a" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#3576ee" stop-opacity="0.35" />
+        <stop offset="100%" stop-color="#5ac8fa" stop-opacity="0.12" />
+      </linearGradient>
+      <linearGradient id="wave-b" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#0071e3" stop-opacity="0.2" />
+        <stop offset="100%" stop-color="#2997ff" stop-opacity="0.08" />
+      </linearGradient>
+    </defs>
+    <path fill="url(#wave-a)" d="M0,220 C360,120 720,320 1080,200 C1260,140 1380,180 1440,160 L1440,0 L0,0 Z" />
+    <path fill="url(#wave-b)" d="M0,280 C400,180 800,360 1200,240 C1320,200 1400,260 1440,240 L1440,0 L0,0 Z" opacity="0.9" />
+  </svg>
+</div>

@@ -1,0 +1,16 @@
+---
+import DocsLayout from '@/layouts/DocsLayout.astro';
+import { getChapters, getChapterMarkdown } from '@/lib/guide';
+import { getCopy } from '@/i18n/ui';
+import { marked } from 'marked';
+
+const locale = 'zh';
+const t = getCopy(locale);
+const chapters = getChapters(locale);
+const html = marked.parse(getChapterMarkdown(locale, 'index'));
+---
+
+<DocsLayout t={t} locale={locale} chapters={chapters} chapterId="index" title="概览">
+  <h1 class="h2 !text-[clamp(28px,4vw,40px)]">文档</h1>
+  <div class="mt-6" set:html={html} />
+</DocsLayout>

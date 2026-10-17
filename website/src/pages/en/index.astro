@@ -1,0 +1,32 @@
+---
+import AgentSection from '@/components/AgentSection.astro';
+import FAQ from '@/components/FAQ.astro';
+import FeatureTiles from '@/components/FeatureTiles.astro';
+import FinalCta from '@/components/FinalCta.astro';
+import Footer from '@/components/Footer.astro';
+import Gallery from '@/components/Gallery.astro';
+import Hero from '@/components/Hero.astro';
+import Nav from '@/components/Nav.astro';
+import Steps from '@/components/Steps.astro';
+import LangPersist from '@/components/LangPersist.astro';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { getCopy } from '@/i18n/ui';
+
+const locale = 'en';
+const t = getCopy(locale);
+---
+
+<BaseLayout t={t} locale={locale}>
+  <Nav t={t} locale={locale} />
+  <main id="main">
+    <Hero t={t} locale={locale} />
+    <Gallery t={t} locale={locale} />
+    <FeatureTiles t={t} />
+    <AgentSection t={t} />
+    <Steps t={t} />
+    <FAQ t={t} />
+    <FinalCta t={t} />
+  </main>
+  <Footer t={t} locale={locale} />
+  <LangPersist locale={locale} />
+</BaseLayout>

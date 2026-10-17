@@ -1,0 +1,31 @@
+---
+import Footer from '@/components/Footer.astro';
+import GuideSidebar from '@/components/GuideSidebar.astro';
+import Nav from '@/components/Nav.astro';
+import type { GuideChapter, GuideLocale } from '@/lib/guide';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import type { LandingCopy } from '@/i18n/ui';
+
+interface Props {
+  t: LandingCopy;
+  locale: GuideLocale;
+  chapters: GuideChapter[];
+  chapterId: string;
+  title: string;
+}
+
+const { t, locale, chapters, chapterId, title } = Astro.props;
+---
+
+<BaseLayout t={t} locale={locale} subpath={`docs/${chapterId === 'index' ? '' : chapterId}`}>
+  <Nav t={t} locale={locale} />
+  <main id="main" class="section-pad !py-16">
+    <div class="wrap grid gap-10 lg:grid-cols-[240px_1fr]">
+      <GuideSidebar locale={locale} chapters={chapters} currentId={chapterId} />
+      <article class="prose-doc min-w-0 max-w-narrow">
+        <slot />
+      </article>
+    </div>
+  </main>
+  <Footer t={t} locale={locale} />
+</BaseLayout>
