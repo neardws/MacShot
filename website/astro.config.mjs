@@ -3,7 +3,7 @@ import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  site: 'https://neardws.github.io',
+  site: 'https://www.neardws.com',
   base: '/Octoshot',
   trailingSlash: 'always',
   integrations: [

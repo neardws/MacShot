@@ -6,9 +6,9 @@ Octoshot uses [Sparkle 2](https://sparkle-project.org/) for signed, notarized up
 
 Released builds read:
 
-`https://neardws.github.io/Octoshot/appcast.xml`
+`https://www.neardws.com/Octoshot/appcast.xml`
 
-The appcast is published from `website/public/appcast.xml` when the GitHub Pages site deploys from `main`.
+The appcast is published from `website/public/appcast.xml` when the site deploys from `main` (GitHub Pages, custom domain `www.neardws.com`).
 
 ## Checking for updates
 

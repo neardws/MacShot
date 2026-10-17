@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-const SITE = 'https://neardws.github.io/Octoshot/';
+const SITE = 'https://www.neardws.com/Octoshot/';
 
 export const GET: APIRoute = () => {
   const body = `User-agent: *

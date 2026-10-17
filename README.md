@@ -104,7 +104,7 @@ tccutil reset ScreenCapture com.neardws.Octoshot
 
 ## 应用内更新（Sparkle）
 
-正式发布的 Octoshot 通过 Sparkle 2 检查 [GitHub Pages 上的 appcast](https://neardws.github.io/Octoshot/appcast.xml)。菜单栏或 **设置 → 关于** 中可选择 **检查更新…**。维护者签名与发布流程见 [Docs/sparkle.md](Docs/sparkle.md)。
+正式发布的 Octoshot 通过 Sparkle 2 检查 [站点上的 appcast](https://www.neardws.com/Octoshot/appcast.xml)。菜单栏或 **设置 → 关于** 中可选择 **检查更新…**。维护者签名与发布流程见 [Docs/sparkle.md](Docs/sparkle.md)。
 
 ## 参与贡献
 
@@ -222,7 +222,7 @@ Relaunch the app and enable it again under **Privacy & Security → Screen Recor
 
 ## In-app updates (Sparkle)
 
-Shipped Octoshot builds use Sparkle 2 to read the [GitHub Pages appcast](https://neardws.github.io/Octoshot/appcast.xml). Use **Check for Updates…** from the menu bar or **Settings → About**. Maintainer signing and appcast generation are documented in [Docs/sparkle.md](Docs/sparkle.md).
+Shipped Octoshot builds use Sparkle 2 to read the [site appcast](https://www.neardws.com/Octoshot/appcast.xml). Use **Check for Updates…** from the menu bar or **Settings → About**. Maintainer signing and appcast generation are documented in [Docs/sparkle.md](Docs/sparkle.md).
 
 ## Contributing
 
