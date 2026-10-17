@@ -27,11 +27,7 @@ final class AreaSelectionController: NSResponder {
             window.controller = self
             overlayWindows.append(window)
         }
-        for window in overlayWindows {
-            window.makeKeyAndOrderFront(nil)
-        }
-        overlayWindows.first?.makeKey()
-        NSApp.activate(ignoringOtherApps: true)
+        FullScreenOverlaySupport.presentCaptureOverlays(overlayWindows)
 
         localMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .mouseMoved, .leftMouseDragged]) { [weak self] event in
             guard let self else { return event }
@@ -59,7 +55,21 @@ final class AreaSelectionController: NSResponder {
             return event
         }
         globalKeyMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown]) { [weak self] event in
-            if event.keyCode == 53 { self?.cancel() }
+            guard let self else { return }
+            if event.keyCode == 53 {
+                cancel()
+                return
+            }
+            if AppSettings.shared.developerModeEnabled,
+               event.charactersIgnoringModifiers?.lowercased() == "c" {
+                copyColorUnderCursor()
+                return
+            }
+            if let char = event.charactersIgnoringModifiers,
+               let mode = AreaCaptureMode.modeForModeBarKey(char) {
+                captureMode = mode
+                redrawAll()
+            }
         }
         globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             guard let self else { return }
@@ -152,10 +162,7 @@ final class AreaSelectionController: NSResponder {
     }
 
     private func focusWindowUnderMouse() {
-        let mouse = NSEvent.mouseLocation
-        if let window = overlayWindows.first(where: { $0.frame.contains(mouse) }) {
-            window.makeKey()
-        }
+        FullScreenOverlaySupport.focusOverlay(at: NSEvent.mouseLocation, in: overlayWindows)
     }
 
     private func end() {
@@ -172,8 +179,11 @@ final class AreaSelectionController: NSResponder {
     }
 }
 
-final class AreaOverlayWindow: NSWindow {
+final class AreaOverlayWindow: NSPanel {
     weak var controller: AreaSelectionController?
+
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
@@ -183,17 +193,16 @@ final class AreaOverlayWindow: NSWindow {
     init(screen: NSScreen) {
         super.init(
             contentRect: screen.frame,
-            styleMask: .borderless,
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered,
             defer: false
         )
         setFrame(screen.frame, display: false)
         isOpaque = false
         backgroundColor = .clear
-        level = .screenSaver
         ignoresMouseEvents = false
         acceptsMouseMovedEvents = true
-        collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+        FullScreenOverlaySupport.configureCaptureOverlayPanel(self)
         contentView = AreaOverlayView()
         (contentView as? AreaOverlayView)?.overlayWindow = self
     }

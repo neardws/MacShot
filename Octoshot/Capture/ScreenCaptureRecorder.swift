@@ -279,14 +279,13 @@ final class RecordingStopPanelController {
         if panel == nil {
             let panel = NSPanel(contentRect: view.bounds, styleMask: [.nonactivatingPanel, .titled], backing: .buffered, defer: false)
             panel.title = "Recording"
-            panel.isFloatingPanel = true
-            panel.level = .floating
-            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            FullScreenOverlaySupport.configureFloatingOverlayPanel(panel)
             self.panel = panel
         }
         panel?.contentView = view
         panel?.center()
-        panel?.makeKeyAndOrderFront(nil)
+        panel?.orderFrontRegardless()
+        panel?.makeKey()
     }
 
     func hide() {
