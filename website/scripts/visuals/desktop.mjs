@@ -40,9 +40,9 @@ export function wallpaperHtml() {
   </div>`;
 }
 
-export function desktopWindowsHtml() {
-  return `
-  <div class="desktop-windows">
+export function desktopWindowsHtml({ includePdf = true } = {}) {
+  const pdfWindow = includePdf
+    ? `
     <div class="win pdf-window">
       <div class="win-chrome-sm"><span class="t r"></span><span class="t y"></span><span class="t g"></span><span class="win-title-sm">paper.pdf</span></div>
       <div class="pdf-body">
@@ -50,7 +50,11 @@ export function desktopWindowsHtml() {
         <p class="pdf-formula">E[∫₀ᵀ f(Xₜ)dt] = ∫₀ᵀ E[f(Xₜ)]dt</p>
         <p class="pdf-text">Proof sketch: apply Fubini under the L¹ bound …</p>
       </div>
-    </div>
+    </div>`
+    : '';
+  return `
+  <div class="desktop-windows">
+    ${pdfWindow}
     <div class="win browser-window">
       <div class="win-chrome-sm"><span class="t r"></span><span class="t y"></span><span class="t g"></span><span class="win-title-sm">localhost — Dashboard</span></div>
       <div class="browser-body">${captureContentHtml().replace('capture-content', 'capture-content browser-inner')}</div>

@@ -365,12 +365,13 @@ body {
 
 .hero-tag {
   position: absolute;
-  left: 100px;
-  top: 120px;
+  left: 88px;
+  top: 88px;
   z-index: 30;
   color: #fff;
   text-shadow: 0 2px 28px rgba(0, 0, 0, 0.45);
-  max-width: 900px;
+  max-width: 980px;
+  padding: 8px 0;
 }
 
 .brand-row {
@@ -395,41 +396,57 @@ body {
   font-size: 68px;
   font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.12;
+  margin-bottom: 20px;
+}
+
+.lang-en .hero-tag h2 {
+  font-size: 54px;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  margin-bottom: 24px;
+}
+
+.lang-zh .hero-tag h2 {
+  font-size: 60px;
+  line-height: 1.18;
+  margin-bottom: 22px;
 }
 
 .hero-tag p {
-  font-size: 30px;
+  font-size: 28px;
   opacity: 0.92;
-  margin-top: 14px;
+  margin-top: 0;
+  line-height: 1.4;
+  max-width: 720px;
 }
 
 .qa-hero-corner {
   position: absolute;
-  right: 100px;
-  bottom: 140px;
+  right: 72px;
+  bottom: 120px;
   z-index: 35;
   perspective: 1200px;
 }
 
 .qa-scene-center {
   position: absolute;
-  right: 280px;
-  bottom: 200px;
+  right: 200px;
+  bottom: 160px;
   z-index: 30;
   perspective: 1400px;
-  transform: scale(1.15);
+  transform: scale(1.28);
 }
 
 .qa-stack-wrap {
   position: relative;
-  width: 380px;
-  height: 340px;
+  width: 520px;
+  height: 440px;
 }
 
 .qa-card {
   position: absolute;
-  width: 320px;
+  width: 440px;
   border-radius: 14px;
   background: rgba(30, 30, 34, 0.15);
   overflow: hidden;
@@ -439,16 +456,16 @@ body {
 }
 
 .qa-thumb {
-  height: 200px;
+  height: 268px;
   overflow: hidden;
   background: #1e1e1e;
 }
 
 .qa-thumb .capture-content {
-  transform: scale(0.42);
+  transform: scale(0.48);
   transform-origin: top left;
-  width: 760px;
-  height: 480px;
+  width: 920px;
+  height: 560px;
 }
 
 .qa-card.back2 {
@@ -468,7 +485,7 @@ body {
 }
 
 .qa-card.front {
-  left: 48px;
+  left: 56px;
   top: 0;
   transform: rotate3d(-0.3, 1, 0, 7deg);
   z-index: 3;
@@ -478,9 +495,9 @@ body {
   display: flex;
   flex-wrap: nowrap;
   justify-content: center;
-  gap: 4px;
-  padding: 10px 8px 12px;
-  background: rgba(255, 255, 255, 0.78);
+  gap: 6px;
+  padding: 14px 10px 16px;
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(22px);
 }
 
@@ -489,22 +506,29 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
-  min-width: 52px;
-  max-width: 58px;
-  padding: 4px 2px;
+  gap: 6px;
+  min-width: 62px;
+  max-width: 68px;
+  padding: 2px 4px 4px;
   border: none;
   background: transparent;
   color: #1d1d1f;
-  font-size: 10px;
+  font-size: 22px;
   font-weight: 600;
-  line-height: 1.15;
+  line-height: 1.2;
   font-family: inherit;
+}
+
+.qa-btn svg {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .qa-btn span {
   text-align: center;
   white-space: nowrap;
+  font-size: 22px;
 }
 
 .desktop-dim {

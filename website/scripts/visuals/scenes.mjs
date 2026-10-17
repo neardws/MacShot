@@ -18,11 +18,11 @@ function esc(s) {
     .replace(/>/g, '&gt;');
 }
 
-function desktopScene(inner, locale, iconDataUrl, c) {
+function desktopScene(inner, locale, iconDataUrl, c, windowOpts = {}) {
   return `
   <div class="scene">
     ${wallpaperHtml()}
-    ${desktopWindowsHtml()}
+    ${desktopWindowsHtml(windowOpts)}
     ${inner}
     ${menubarHtml(locale, iconDataUrl, c)}
     ${dockHtml(iconDataUrl)}
@@ -73,6 +73,7 @@ export function buildSceneHtml(sceneId, locale, { css, iconDataUrl }) {
         locale,
         iconDataUrl,
         c,
+        { includePdf: false },
       );
       break;
 
