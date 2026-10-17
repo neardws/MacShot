@@ -25,3 +25,53 @@
 
 /* Updates */
 "Check for Updates…" = "检查更新…";
+
+/* Shortcuts & system hotkeys */
+"Global capture hotkeys and macOS screenshot bindings" = "全局截图热键与 macOS 系统截图快捷键";
+"Capture fullscreen" = "全屏截图";
+"Capture area" = "区域截图";
+"Capture window" = "窗口截图";
+"Click Record, then press a shortcut that includes ⌘, ⌥, ⌃, or ⇧. Press Esc to cancel." = "点击「录制」，然后按下包含 ⌘、⌥、⌃ 或 ⇧ 的快捷键。按 Esc 取消。";
+"Record" = "录制";
+"Press keys…" = "请按键…";
+"Recording cancelled." = "已取消录制。";
+"Reset to Defaults" = "恢复默认";
+"Octoshot hotkeys" = "Octoshot 热键";
+"Include at least one modifier key (⌘, ⌥, ⌃, or ⇧)." = "请至少包含一个修饰键（⌘、⌥、⌃ 或 ⇧）。";
+"That shortcut is already used by another Octoshot capture action." = "该快捷键已被其他 Octoshot 截图操作占用。";
+"That shortcut matches an enabled macOS screenshot shortcut." = "该快捷键与已启用的 macOS 系统截图快捷键相同。";
+"That shortcut is not available." = "无法使用该快捷键。";
+"macOS screenshot shortcuts" = "macOS 截图快捷键";
+"Take over system shortcuts" = "接管系统快捷键";
+"Enabled" = "已启用";
+"Disabled" = "已禁用";
+"System default (not in plist)" = "系统默认（偏好中无条目）";
+"Refresh system bindings" = "刷新系统绑定";
+"System shortcuts still enabled for the same keys — captures may open both apps." = "相同按键的系统截图快捷键仍启用，可能同时触发 Octoshot 与系统。";
+"Use Octoshot for ⌘⇧3 / ⌘⇧4 / ⌘⇧5" = "使用 Octoshot 接管 ⌘⇧3 / ⌘⇧4 / ⌘⇧5";
+"This sets Octoshot to the standard screenshot keys. Disable the matching items under System Settings → Keyboard → Keyboard Shortcuts → Screenshots, or turn them off below." = "将 Octoshot 设为常用截图键。请在 系统设置 → 键盘 → 键盘快捷键 → 截图 中关闭对应项，或使用下方一键关闭。";
+"Open Keyboard Shortcuts…" = "打开键盘快捷键…";
+"Disable system screenshot hotkeys…" = "关闭系统截图快捷键…";
+"Restore system screenshot shortcuts" = "恢复系统截图快捷键";
+"Disable macOS screenshot shortcuts?" = "关闭 macOS 截图快捷键？";
+"Octoshot will save the previous state for screenshot shortcut IDs (28, 29, 30, 31, 184), turn them off, and apply the change immediately. Use Restore to undo only those IDs." = "Octoshot 会备份截图快捷键 ID（28、29、30、31、184）的原始状态并立即关闭，仅可通过「恢复」还原这些 ID。";
+"Disable" = "关闭";
+"Open System Settings" = "打开系统设置";
+"Not Now" = "稍后";
+"Do not show this again" = "不再提示";
+"Screenshot shortcut conflict" = "截图快捷键冲突";
+"macOS screenshot shortcuts are still active for: %@. Octoshot may capture at the same time as the system UI. Disable the system shortcuts or change Octoshot’s keys in Settings → Shortcuts." = "以下 macOS 截图快捷键仍启用：%@。可能与 Octoshot 同时响应。请关闭系统快捷键或在设置 → 快捷键 中修改 Octoshot 热键。";
+"These macOS screenshot shortcuts overlap Octoshot: %@. Turn them off now to avoid double captures." = "以下 macOS 截图快捷键与 Octoshot 冲突：%@。建议立即关闭以避免重复触发。";
+"System screenshot shortcuts disabled. A per-ID backup was saved in Application Support/Octoshot." = "已关闭系统截图快捷键。按 ID 的备份已保存至 Application Support/Octoshot。";
+"Restored system screenshot shortcuts from backup." = "已从备份恢复系统截图快捷键。";
+"Could not disable system shortcuts" = "无法关闭系统快捷键";
+"Could not find com.apple.symbolichotkeys.plist." = "找不到 com.apple.symbolichotkeys.plist。";
+"Could not parse symbolic hotkeys plist." = "无法解析 symbolichotkeys 偏好。";
+"No saved backup of system screenshot shortcuts." = "没有已保存的系统截图快捷键备份。";
+"Use Octoshot with the familiar ⌘⇧3 / ⌘⇧4 / ⌘⇧5 keys. If macOS screenshot shortcuts are still on, turn them off so only Octoshot responds." = "使用熟悉的 ⌘⇧3 / ⌘⇧4 / ⌘⇧5 截图。若 macOS 系统截图快捷键仍开启，请关闭以免重复触发。";
+"Open Settings → Shortcuts" = "打开设置 → 快捷键";
+"Save picture of screen as file (⌘⇧3)" = "将屏幕图片存储为文件（⌘⇧3）";
+"Copy picture of screen (⌃⌘⇧3)" = "将屏幕图片拷贝到剪贴板（⌃⌘⇧3）";
+"Save picture of selected area (⌘⇧4)" = "将所选区域存储为文件（⌘⇧4）";
+"Copy picture of selection (⌃⌘⇧4)" = "将所选区域拷贝到剪贴板（⌃⌘⇧4）";
+"Screenshot & recording options (⌘⇧5)" = "截图与录屏选项（⌘⇧5）";

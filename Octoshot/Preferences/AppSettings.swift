@@ -1,5 +1,4 @@
 import AppKit
-import Carbon.HIToolbox
 import Foundation
 import OctoshotCore
 
@@ -28,15 +27,6 @@ enum QuickAccessCorner: String, CaseIterable, Identifiable, Codable {
         case .bottomRight: return "Bottom Right"
         }
     }
-}
-
-struct HotkeyBinding: Codable, Equatable {
-    var keyCode: UInt32
-    var modifiers: UInt32
-
-    static let areaDefault = HotkeyBinding.systemAreaCapture // ⌘⇧4
-    static let windowDefault = HotkeyBinding.systemScreenshotOptions // ⌘⇧5
-    static let fullscreenDefault = HotkeyBinding.systemFullscreenCapture // ⌘⇧3
 }
 
 extension Notification.Name {
