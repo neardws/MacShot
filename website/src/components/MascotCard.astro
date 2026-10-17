@@ -1,6 +1,6 @@
 ---
+import BrandMark from '@/components/BrandMark.astro';
 import type { MascotCardCopy } from '@/i18n/ui';
-import MascotArt from '@/components/MascotArt.astro';
 
 interface Props {
   card: MascotCardCopy;
@@ -22,7 +22,7 @@ const rows: { label: string; value: string }[] = [
   aria-label={card.ariaLabel}
 >
   <div class="flex items-start gap-4">
-    <MascotArt variant="frame" width={72} height={72} class="shrink-0" />
+    <BrandMark size={72} class="shrink-0" />
     <div class="min-w-0">
       <p class="text-xs font-semibold uppercase tracking-wide text-mb-fg2">{card.cardTitle}</p>
       <p class="mt-1 text-[22px] font-semibold leading-tight text-mb-fg">{card.name}</p>

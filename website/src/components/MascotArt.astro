@@ -1,23 +1,17 @@
 ---
-export type MascotVariant = 'intro' | 'frame' | 'busy' | 'done';
+import BrandMark from '@/components/BrandMark.astro';
 
 interface Props {
-  variant: MascotVariant;
   class?: string;
+  /** Square display size in CSS pixels (matches header logo art). */
+  size?: number;
   width?: number;
   height?: number;
+  priority?: boolean;
 }
 
-const { variant, class: className, width = 200, height = 200 } = Astro.props;
-const src = `${import.meta.env.BASE_URL}brand/mascot/${variant}.svg`;
+const { class: className = '', size, width, height, priority = false } = Astro.props;
+const dimension = size ?? width ?? height ?? 200;
 ---
 
-<img
-  src={src}
-  alt=""
-  width={width}
-  height={height}
-  class:list={['mascot-art select-none', className]}
-  decoding="async"
-  draggable="false"
-/>
+<BrandMark size={dimension} priority={priority} class:list={['mascot-art', className]} />
