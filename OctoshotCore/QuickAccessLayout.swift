@@ -97,23 +97,139 @@ public enum QuickAccessPanelGeometry {
         origin.y = min(max(origin.y, minY), maxY)
         return origin
     }
+
+    /// Clamps a panel origin so the full `panelSize` rect stays inside `visibleFrame` with `margin`.
+    public static func clampedPanelOrigin(
+        proposedOrigin: CGPoint,
+        visibleFrame: CGRect,
+        panelSize: CGSize,
+        margin: CGFloat
+    ) -> CGPoint {
+        let inset = visibleFrame.insetBy(dx: margin, dy: margin)
+        let maxX = inset.maxX - panelSize.width
+        let maxY = inset.maxY - panelSize.height
+        let minX = inset.minX
+        let minY = inset.minY
+        return CGPoint(
+            x: min(max(proposedOrigin.x, minX), maxX),
+            y: min(max(proposedOrigin.y, minY), maxY)
+        )
+    }
 }
 
 public enum QuickAccessStackGeometry {
     /// Maximum cards drawn in the collapsed stack peek.
     public static let maxCollapsedLayers = 5
 
+    public static let collapsedStepX: CGFloat = 5
+    public static let collapsedStepY: CGFloat = 4
+
+    /// Unit fan direction for back cards (into the display) per placement.
+    public static func collapsedFanDirection(placement: QuickAccessPlacement) -> (x: CGFloat, y: CGFloat) {
+        switch placement {
+        case .bottomRight:
+            return (-1, -1)
+        case .bottomLeft:
+            return (1, -1)
+        case .leftSidebar:
+            return (1, 1)
+        case .rightSidebar:
+            return (-1, 1)
+        }
+    }
+
     /// Visual offset for a card at `index` (0 = front / newest) when the stack is collapsed.
+    /// Offsets are relative to the front card's top-leading corner in the collapsed `ZStack`.
     public static func collapsedOffset(index: Int, total: Int, placement: QuickAccessPlacement) -> CGSize {
         guard total > 1, index > 0 else { return .zero }
-        let layer = min(index, maxCollapsedLayers)
-        let signX: CGFloat = placement == .leftSidebar || placement == .bottomLeft ? 1 : -1
-        let signY: CGFloat = placement.isSidebar ? -1 : 1
-        return CGSize(width: signX * CGFloat(layer) * 5, height: signY * CGFloat(layer) * 4)
+        let layer = CGFloat(min(index, maxCollapsedLayers))
+        let fan = collapsedFanDirection(placement: placement)
+        return CGSize(
+            width: fan.x * layer * collapsedStepX,
+            height: fan.y * layer * collapsedStepY
+        )
     }
 
     /// Z-index ordering: front card highest.
     public static func collapsedZIndex(index: Int, total: Int) -> Double {
         Double(total - index)
+    }
+
+    /// Bounding size of the collapsed fan for a uniform front-card size.
+    public static func collapsedStackContentSize(
+        frontCardSize: CGSize,
+        total: Int,
+        placement: QuickAccessPlacement
+    ) -> CGSize {
+        guard total > 1 else { return frontCardSize }
+        let layers = min(total, maxCollapsedLayers)
+        var minX: CGFloat = 0
+        var minY: CGFloat = 0
+        var maxX = frontCardSize.width
+        var maxY = frontCardSize.height
+
+        if layers > 1 {
+            for index in 1..<layers {
+                let offset = collapsedOffset(index: index, total: total, placement: placement)
+                let rect = CGRect(
+                    x: offset.width,
+                    y: offset.height,
+                    width: frontCardSize.width,
+                    height: frontCardSize.height
+                )
+                minX = min(minX, rect.minX)
+                minY = min(minY, rect.minY)
+                maxX = max(maxX, rect.maxX)
+                maxY = max(maxY, rect.maxY)
+            }
+        }
+
+        return CGSize(width: maxX - minX, height: maxY - minY)
+    }
+
+    /// Pins the front card to the panel anchor when the collapsed fan is placed in a fixed frame.
+    public enum CollapsedStackAnchor: Sendable, Equatable {
+        case bottomLeading
+        case bottomTrailing
+        case topLeading
+        case topTrailing
+    }
+
+    public static func collapsedStackAnchor(placement: QuickAccessPlacement) -> CollapsedStackAnchor {
+        switch placement {
+        case .bottomLeft:
+            return .bottomLeading
+        case .bottomRight:
+            return .bottomTrailing
+        case .leftSidebar:
+            return .topLeading
+        case .rightSidebar:
+            return .topTrailing
+        }
+    }
+
+    /// Offset for the count badge relative to the front card's top-leading corner.
+    public static func stackBadgeOffset(
+        frontCardSize: CGSize,
+        placement: QuickAccessPlacement
+    ) -> CGSize {
+        let inset: CGFloat = 8
+        switch placement {
+        case .bottomLeft, .leftSidebar:
+            return CGSize(width: inset, height: inset)
+        case .bottomRight, .rightSidebar:
+            return CGSize(width: frontCardSize.width - inset, height: inset)
+        }
+    }
+}
+
+/// Whether a dragged quick-access thumbnail should be removed after drop.
+public enum QuickAccessDragOutcome: Equatable, Sendable {
+    case keep
+    case removeFromStack
+
+    /// `operation` is the drag session's ended-at mask (`NSDragOperation`); empty means cancel / drop on source.
+    public static func fromEndedDragOperation(_ operation: UInt) -> QuickAccessDragOutcome {
+        operation == 0 ? .keep : .removeFromStack
     }
 }
