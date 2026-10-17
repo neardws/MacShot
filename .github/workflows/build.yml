@@ -26,7 +26,7 @@ jobs:
           set -o pipefail
           DERIVED="$PWD/.derivedData"
           XCBUILD=(xcodebuild -derivedDataPath "$DERIVED" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO -skipPackagePluginValidation)
-          "${XCBUILD[@]}" -scheme octoshot -configuration Debug build
+          "${XCBUILD[@]}" -scheme octoshot-cli -configuration Debug build
           "${XCBUILD[@]}" -scheme Octoshot -configuration Debug build
           "${XCBUILD[@]}" -scheme OctoshotCoreTests -configuration Debug test
         env:

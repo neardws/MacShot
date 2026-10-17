@@ -31,7 +31,7 @@ command -v xcodegen >/dev/null && xcodegen generate >/dev/null
 # Full MLX (project.yml). Skip plugin validation like CI mlx job.
 XB=(xcodebuild -project Octoshot.xcodeproj -derivedDataPath "$DERIVED" -configuration Release -skipPackagePluginValidation)
 "${XB[@]}" -scheme Octoshot -resolvePackageDependencies
-for scheme in octoshot Octoshot; do
+for scheme in octoshot-cli Octoshot; do
   "${XB[@]}" -scheme "$scheme" build
 done
 

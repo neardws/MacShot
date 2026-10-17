@@ -81,7 +81,7 @@ open Octoshot.xcodeproj
 ```bash
 xcodegen generate
 DERIVED="$PWD/.derivedData"
-xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot -configuration Debug build
+xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot-cli -configuration Debug build
 xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 
@@ -201,7 +201,7 @@ Signing: default team in `Config/Signing.xcconfig` (see `.sample` for overrides)
 ```bash
 xcodegen generate
 DERIVED="$PWD/.derivedData"
-xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot -configuration Debug build
+xcodebuild -derivedDataPath "$DERIVED" -scheme octoshot-cli -configuration Debug build
 xcodebuild -derivedDataPath "$DERIVED" -scheme Octoshot -configuration Debug build
 ```
 

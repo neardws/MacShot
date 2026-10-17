@@ -167,7 +167,7 @@ schemes:
       config: Debug
     archive:
       config: Release
-  octoshot:
+  octoshot-cli:
     build:
       targets:
         octoshot-cli: all
