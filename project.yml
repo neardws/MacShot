@@ -71,7 +71,7 @@ targets:
     settings:
       GENERATE_INFOPLIST_FILE: YES
 
-  octoshot:
+  octoshot-cli:
     type: tool
     platform: macOS
     sources:
@@ -103,7 +103,7 @@ targets:
     dependencies:
       - target: OctoshotCore
       - target: OctoshotEmbeddedMLX
-      - target: octoshot
+      - target: octoshot-cli
       - package: Sparkle
         product: Sparkle
     postBuildScripts:
@@ -117,7 +117,7 @@ targets:
           HELPERS_DIR="${TARGET_BUILD_DIR}/${CONTENTS_FOLDER_PATH}/Helpers"
           CLI_DST="${HELPERS_DIR}/octoshot"
           if [ ! -f "$CLI_SRC" ]; then
-            echo "error: octoshot binary not found at ${BUILT_PRODUCTS_DIR}/octoshot (build the octoshot target first)"
+            echo "error: octoshot binary not found at ${BUILT_PRODUCTS_DIR}/octoshot (build the octoshot-cli target first)"
             exit 1
           fi
           mkdir -p "$HELPERS_DIR"
@@ -160,7 +160,7 @@ schemes:
     build:
       parallelizeBuild: false
       targets:
-        octoshot: build
+        octoshot-cli: build
         OctoshotEmbeddedMLX: build
         Octoshot: all
     run:
@@ -170,7 +170,7 @@ schemes:
   octoshot:
     build:
       targets:
-        octoshot: all
+        octoshot-cli: all
     run:
       config: Debug
   OctoshotCoreTests:

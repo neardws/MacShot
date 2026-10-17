@@ -194,7 +194,7 @@ xcodegen generate
 open Octoshot.xcodeproj
 ```
 
-Select the **Octoshot** scheme in Xcode and press **⌘R** (builds the `octoshot` CLI target first, then embeds it at `Octoshot.app/Contents/Helpers/octoshot` — not `MacOS/`, which collides with the `Octoshot` executable on case-insensitive volumes).
+Select the **Octoshot** scheme in Xcode and press **⌘R** (builds the `octoshot-cli` target first, producing the `octoshot` binary and embedding it at `Octoshot.app/Contents/Helpers/octoshot` — not `MacOS/`, which collides with the `Octoshot` executable on case-insensitive volumes).
 
 Signing: default team in `Config/Signing.xcconfig` (see `.sample` for overrides). Do not leave `DEVELOPMENT_TEAM` empty or TCC may treat each build as a new app.
 
