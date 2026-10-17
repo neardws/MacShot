@@ -3,13 +3,13 @@
     <channel>
         <title>Octoshot</title>
         <item>
-            <title>0.3.0</title>
-            <pubDate>Sat, 17 Oct 2026 16:48:38 +0800</pubDate>
+            <title>0.3.1</title>
+            <pubDate>Sat, 17 Oct 2026 20:17:30 +0800</pubDate>
             <link>https://neardws.github.io/Octoshot/</link>
-            <sparkle:version>3</sparkle:version>
-            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:version>4</sparkle:version>
+            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/neardws/Octoshot/releases/download/v0.3.0/Octoshot-v0.3.0-macOS.dmg" length="49928401" type="application/octet-stream" sparkle:edSignature="PBJJegXWxKLVfrFUy4r70Ww17Om69PCh419Z9M4y6U0Udjr9n+++QitYDfJVAS/0gJdj0GNHPX4Itg7eVzqZCg=="/>
+            <enclosure url="https://github.com/neardws/Octoshot/releases/download/v0.3.1/Octoshot-v0.3.1-macOS.dmg" length="51160568" type="application/octet-stream" sparkle:edSignature="6yOBGbdlyiDXHtxCLeZ9CBn9yqbBpmH4oGyEZpB3bTnXzQrpia08jYSNv9U9Jm1LY70Hg5UAJF5f2sTUw0XkDw=="/>
         </item>
     </channel>
 </rss>
